@@ -387,7 +387,6 @@ async function streamAPI(prompt,onChunk){
     const data=await res.json();
     const full=data.content?.map(b=>b.text||"").join("")||data.error?.message||"⚠ No response received";
     onChunk(full);
-    outputRef.current=full;
     return full;
   }catch(e){const msg="⚠ Connection error: "+e.message;onChunk(msg);return msg;}
 }
@@ -1291,6 +1290,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       let full="";
       if(mode==="copy"){
         full=await streamAPI(buildCopy({brand,niche,platform,contentType,tone,audience,goal,keywords,productName,productDesc,productType,productPrice}),setOutput);
+        outputRef.current=full;
         setHistory(h=>[{id:Date.now(),brand,niche,platform,contentType,tone,mode:"copy",output:full,ts:new Date().toLocaleTimeString()},...h.slice(0,19)]);
       }else if(mode==="image"){
         if(!imageTool)return;
