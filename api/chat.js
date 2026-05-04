@@ -27,17 +27,28 @@ export default async function handler(req) {
   try {
     const body = await req.json();
 
+    // Force latest model
+    const payload = {
+      ...body,
+      model: 'claude-haiku-4-5-20251001',
+    };
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        'x-api-key': apiKey.trim(),
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
     });
 
     const data = await response.text();
+
+    // Log errors for debugging
+    if (!response.ok) {
+      console.error('Anthropic error:', response.status, data);
+    }
 
     return new Response(data, {
       status: response.status,
