@@ -1892,7 +1892,40 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
             </div>
           )}
-
+{mode==="visibility"&&(
+  <div style={{maxWidth:760,margin:"0 auto",padding:"0 16px"}}>
+    <div style={{textAlign:"center",marginBottom:32}}>
+      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:22,color:"#00ff88",letterSpacing:2,marginBottom:8}}>◆ AI SEARCH VISIBILITY</div>
+      <div style={{fontSize:11,color:"#555",letterSpacing:3,textTransform:"uppercase",marginBottom:16}}>Powered by Alli AI</div>
+      <div style={{fontSize:12,color:"#888",lineHeight:1.8,maxWidth:500,margin:"0 auto"}}>28% of most websites are invisible to ChatGPT, Claude and Gemini. Fix your AI visibility before it costs you traffic.</div>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:24}}>
+      {[{stat:"527%",label:"AI Search Traffic Growth YoY",color:"#00ff88"},{stat:"28%",label:"Avg Content Invisible to AI",color:"#ff4500"},{stat:"50+",label:"AI Crawlers Supported",color:"#00e5ff"}].map((s,i)=>(
+        <div key={i} style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:8,padding:"16px 12px",textAlign:"center"}}>
+          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:24,color:s.color,marginBottom:4}}>{s.stat}</div>
+          <div style={{fontSize:9,color:"#555",letterSpacing:1,textTransform:"uppercase",lineHeight:1.4}}>{s.label}</div>
+        </div>
+      ))}
+    </div>
+    <div style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:8,padding:20,marginBottom:16}}>
+      <div style={{fontSize:9,letterSpacing:3,color:"#555",textTransform:"uppercase",marginBottom:14}}>What Alli AI Does For Your Brand</div>
+      {["Makes your entire site readable by ChatGPT, Claude and Gemini","Deploys AEO + GEO + SEO optimizations across thousands of pages instantly","No code rewrites, no migrations — one snippet does it all","Real-time analytics showing which AI crawlers visit your site","Schema markup and structured data deployed automatically"].map((f,i)=>(
+        <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:10}}>
+          <span style={{color:"#00ff88",fontSize:10,marginTop:2,flexShrink:0}}>◆</span>
+          <span style={{fontSize:11,color:"#bbb",lineHeight:1.6}}>{f}</span>
+        </div>
+      ))}
+    </div>
+    <div style={{background:"#0a0a0a",border:"1px solid #c9a84c33",borderRadius:8,padding:16,marginBottom:20}}>
+      <div style={{fontSize:9,letterSpacing:3,color:"#c9a84c",textTransform:"uppercase",marginBottom:8}}>◆ L LEWCOR Strategy Note</div>
+      <div style={{fontSize:11,color:"#888",lineHeight:1.7}}>After generating content in GENTAGAI, run it through Alli AI to ensure your brand pages are AI-crawler ready. This ensures L LEWCOR gets cited when shoppers ask ChatGPT or Gemini about luxury streetwear brands.</div>
+    </div>
+    <div style={{textAlign:"center"}}>
+      <a href="https://www.alliai.com" target="_blank" rel="noopener noreferrer" style={{display:"inline-block",padding:"14px 40px",background:"linear-gradient(135deg,#00ff88,#00e5ff)",color:"#000",fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:12,letterSpacing:3,textTransform:"uppercase",borderRadius:4,textDecoration:"none"}}>Check Your AI Visibility → alliai.com</a>
+      <div style={{fontSize:9,color:"#444",letterSpacing:1,marginTop:8}}>Free audit available · No code required</div>
+    </div>
+  </div>
+)}
           <div>
             <div className="sl" style={{color:mc}}>{mode==="ab"?"06":"05"} — Tone</div>
             <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
