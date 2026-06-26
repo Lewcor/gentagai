@@ -1343,6 +1343,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
     if(e.mode==="ab"){if(e.abA)setAbA(e.abA);if(e.abB)setAbB(e.abB);if(e.abVar)setAbVar(e.abVar);setAbTab("variants");}
     else if(e.mode==="image"){if(e.output)setOutput(e.output);if(e.imageTool)setImageTool(e.imageTool);}
     else if(e.mode==="video"){if(e.output)setOutput(e.output);if(e.videoTool)setVideoTool(e.videoTool);}
+    else if(e.mode==="visibility"){}
     else{if(e.output){setOutput(e.output);}}
     setStep("done");
   }
