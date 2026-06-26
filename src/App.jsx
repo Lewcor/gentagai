@@ -580,7 +580,7 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
       <div style={{width:"100%",maxWidth:860,background:"#0f1928",border:"1px solid #253a56",borderRadius:10,padding:"20px 24px",marginBottom:32}}>
         <div style={{fontSize:11,letterSpacing:4,color:"#5a7a98",textTransform:"uppercase",marginBottom:16}}>What's included in every plan</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12}}>
-          {["Claude Sonnet AI","Algorithm optimization","Platform-native copy","Stripe secure billing","Auto-save sessions","Cancel anytime"].map(f=>(
+          {["Claude Sonnet AI","Algorithm optimization","Platform-native copy","Auto-save sessions","Cancel anytime"].map(f=>(
             <div key={f} style={{display:"flex",alignItems:"center",gap:7}}>
               <div style={{width:5,height:5,borderRadius:"50%",background:"#f0b429",flexShrink:0}}/>
               <span style={{fontSize:13,color:"#6a8aa8"}}>{f}</span>
