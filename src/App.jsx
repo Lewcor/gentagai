@@ -1475,7 +1475,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           paddingBottom:isMobile?"2px":0,
           msOverflowStyle:"none",scrollbarWidth:"none",
         }}>
-          {[{id:"copy",label:"◈ Copy",c:"#00e5ff",free:true},{id:"image",label:"⬡ Images",c:"#ff7c00",free:false},{id:"video",label:"▷ Video",c:"#f0b429",free:false},{id:"ab",label:"⇄ A/B",c:"#7c83fd",free:false}].map(m=>(
+          {[{id:"copy",label:"◈ Copy",c:"#00e5ff",free:true},{id:"image",label:"⬡ Images",c:"#ff7c00",free:false},{id:"video",label:"▷ Video",c:"#f0b429",free:false},{id:"ab",label:,{id:"visibility",label:"◆ AI VIZ",c:"#00ff88",free:true}].map(m=>(
             <button key={m.id} className="mbtn" onClick={()=>handleModeSwitch(m.id)}
               style={{
                 ...(mode===m.id?{borderColor:m.c,color:m.c,background:`${m.c}08`}:{}),
