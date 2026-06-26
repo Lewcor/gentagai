@@ -2369,7 +2369,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             {history.length===0
               ?<div style={{padding:14,fontSize:11,color:"#2e4a64",letterSpacing:.5,lineHeight:2}}>Auto-saved sessions appear here.</div>
               :history.map(e=>{
-                const mColor={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd"}[e.mode]||"#5a7a98";
+                const mColor={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd",visibility:"#00ff88"}[mode]||"#5a7a98";
                 const mIcon={copy:"◈",image:"⬡",video:"▷",ab:"⇄"}[e.mode]||"·";
                 const label=e.mode==="image"?(IMAGE_TYPES.find(c=>c.id===e.contentType)?.label):e.mode==="video"?(VIDEO_AD_TYPES.find(c=>c.id===e.contentType)?.label):(CONTENT_TYPES.find(c=>c.id===e.contentType)?.label)||e.contentType;
                 return(<div key={e.id} className="hi" onClick={()=>loadHist(e)} style={{borderLeftColor:histActive?.id===e.id?mColor:"transparent"}}>
