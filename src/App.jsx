@@ -1347,7 +1347,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
     setStep("done");
   }
 
-  const mc={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd"}[mode]||"#f0b429";
+  const mc={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd",visibility:"#00ff88"}[mode]||"#00e5ff";
   const selTone=TONES.find(t=>t.id===tone);
 
   // ── PRICING SCREEN ──────────────────────────
