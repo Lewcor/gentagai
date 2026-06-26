@@ -580,7 +580,7 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
       <div style={{width:"100%",maxWidth:860,background:"#0f1928",border:"1px solid #253a56",borderRadius:10,padding:"20px 24px",marginBottom:32}}>
         <div style={{fontSize:11,letterSpacing:4,color:"#5a7a98",textTransform:"uppercase",marginBottom:16}}>What's included in every plan</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12}}>
-          {["Claude Sonnet AI","Algorithm optimization","Platform-native copy","Auto-save sessions","Cancel anytime"].map(f=>(
+          {["Claude Sonnet AI","Algorithm optimization","Platform-native copy","Stripe secure billing","Auto-save sessions","Cancel anytime"].map(f=>(
             <div key={f} style={{display:"flex",alignItems:"center",gap:7}}>
               <div style={{width:5,height:5,borderRadius:"50%",background:"#f0b429",flexShrink:0}}/>
               <span style={{fontSize:13,color:"#6a8aa8"}}>{f}</span>
@@ -1343,12 +1343,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
     if(e.mode==="ab"){if(e.abA)setAbA(e.abA);if(e.abB)setAbB(e.abB);if(e.abVar)setAbVar(e.abVar);setAbTab("variants");}
     else if(e.mode==="image"){if(e.output)setOutput(e.output);if(e.imageTool)setImageTool(e.imageTool);}
     else if(e.mode==="video"){if(e.output)setOutput(e.output);if(e.videoTool)setVideoTool(e.videoTool);}
-    else if(e.mode==="visibility"){}
     else{if(e.output){setOutput(e.output);}}
     setStep("done");
   }
 
-  const mc={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd",visibility:"#00ff88"}[mode]||"#00e5ff";
+  const mc={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd"}[mode]||"#f0b429";
   const selTone=TONES.find(t=>t.id===tone);
 
   // ── PRICING SCREEN ──────────────────────────
