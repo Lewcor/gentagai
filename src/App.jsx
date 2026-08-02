@@ -5,10 +5,10 @@ import { useState, useRef, useEffect } from "react";
 // CONFIG — paste your Stripe Payment Links here
 // ─────────────────────────────────────────────
 const STRIPE_LINKS = {
-  pro_monthly:    "https://buy.stripe.com/YOUR_PRO_MONTHLY_LINK",
-  pro_yearly:     "https://buy.stripe.com/YOUR_PRO_YEARLY_LINK",
-  agency_monthly: "https://buy.stripe.com/YOUR_AGENCY_MONTHLY_LINK",
-  agency_yearly:  "https://buy.stripe.com/YOUR_AGENCY_YEARLY_LINK",
+  pro_monthly:    "https://buy.stripe.com/7sYaEY3Pu4Qr0th3P1bjW00",
+  pro_yearly:     "https://buy.stripe.com/fZuaEYgCg0Aba3R5X9bjW01",
+  agency_monthly: "https://buy.stripe.com/fZu8wQbhWaaLb7V2KXbjW02",
+  agency_yearly:  "https://buy.stripe.com/00w6oIadSbeP1xlfxJbjW03",
 };
 const DOMAIN = "gentagai.com";
 const VERSION = "1.0.0";
@@ -1475,7 +1475,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           paddingBottom:isMobile?"2px":0,
           msOverflowStyle:"none",scrollbarWidth:"none",
         }}>
-          {[{id:"copy",label:"◈ Copy",c:"#00e5ff",free:true},{id:"image",label:"⬡ Images",c:"#ff7c00",free:false},{id:"video",label:"▷ Video",c:"#f0b429",free:false},{id:"ab",label:,{id:"visibility",label:"◆ AI VIZ",c:"#00ff88",free:true}].map(m=>(
+          {[{id:"copy",label:"◈ Copy",c:"#00e5ff",free:true},{id:"image",label:"⬡ Images",c:"#ff7c00",free:false},{id:"video",label:"▷ Video",c:"#f0b429",free:false},{id:"ab",label:"⇄ A/B Test",c:"#7c83fd",free:false},{id:"visibility",label:"◆ AI VIZ",c:"#00ff88",free:true}].map(m=>(
             <button key={m.id} className="mbtn" onClick={()=>handleModeSwitch(m.id)}
               style={{
                 ...(mode===m.id?{borderColor:m.c,color:m.c,background:`${m.c}08`}:{}),
@@ -1935,15 +1935,17 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             </div>
           </div>
 
+          {mode!=="visibility"&&(
           <button className="gbtn"
             disabled={!brand||!niche||running||(mode==="video"&&(!videoAdType||!videoTool))||(mode==="image"&&!imageTool)}
             onClick={generate}
             style={{background:mode==="video"?"linear-gradient(135deg,#f0b429,#ff8c00)":mode==="image"?"linear-gradient(135deg,#ff7c00,#ff2200)":mode==="ab"?"linear-gradient(135deg,#7c83fd,#0044ff)":"linear-gradient(135deg,#00e5ff,#0044ff)",color:"#000"}}>
             {running?"⟳  GENERATING...":mode==="image"?"⬡  GENERATE PROMPTS":mode==="video"?"▷  GENERATE VIDEO AD":mode==="ab"?"⇄  RUN A/B TEST":"▶  GENERATE CONTENT"}
           </button>
+          )}
 
           {/* Required selection hints */}
-          {(!brand||!niche)&&<div style={{fontSize:11,color:"#3d5e7a",textAlign:"center",letterSpacing:1,marginTop:-10}}>Brand + Niche required</div>}
+          {mode!=="visibility"&&(!brand||!niche)&&<div style={{fontSize:11,color:"#3d5e7a",textAlign:"center",letterSpacing:1,marginTop:-10}}>Brand + Niche required</div>}
           {mode==="image"&&brand&&niche&&!imageTool&&<div style={{fontSize:11,color:"#ff7c00",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Prompt Target Tool above</div>}
           {mode==="video"&&brand&&niche&&!videoAdType&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Video Ad Format above</div>}
           {mode==="video"&&brand&&niche&&videoAdType&&!videoTool&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Prompt Target Tool above</div>}
