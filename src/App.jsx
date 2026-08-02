@@ -42,14 +42,14 @@ const PLANS = {
     locked:["Image Prompt Engine","Video Ads Engine","A/B Testing + AI Scoring","All 8 platforms","Email campaigns","SEO & product launch","Session history","Priority support"],
   },
   pro: {
-    id:"pro", name:"Pro", price:29, priceYear:19,
+    id:"pro", name:"Pro", price:29, priceYear:16.58, priceYearTotal:199,
     color:"#f0b429", badge:"PRO",
     gens: 200,
     features:["200 generations / month","All 4 engine modes","All 8 platforms","All 6 tones","Full content library","Image prompts (4 AI tools)","Video Ads (6 formats + tools)","A/B Testing + AI scoring","Session auto-save (50 sessions)","Email support"],
     locked:["Unlimited generations","White-label exports","Team seats","API access","Dedicated manager"],
   },
   agency: {
-    id:"agency", name:"Agency", price:49, priceYear:34,
+    id:"agency", name:"Agency", price:49, priceYear:34.92, priceYearTotal:419,
     color:"#7c83fd", badge:"AGENCY",
     gens: Infinity,
     features:["Unlimited generations","Everything in Pro","White-label exports","5 team seats","API access","Priority + dedicated manager","Custom brand presets","Bulk content calendar","Advanced analytics"],
@@ -513,7 +513,7 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:36,background:"#162030",border:"1px solid #2e4a64",borderRadius:99,padding:"6px 8px"}}>
         <button onClick={()=>setBilling("monthly")} style={{padding:"7px 20px",borderRadius:99,border:"none",background:billing==="monthly"?"#253a56":"transparent",color:billing==="monthly"?"#fff":"#6a8aa8",fontSize:14,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}}>Monthly</button>
         <button onClick={()=>setBilling("yearly")} style={{padding:"7px 20px",borderRadius:99,border:"none",background:billing==="yearly"?"#253a56":"transparent",color:billing==="yearly"?"#fff":"#6a8aa8",fontSize:14,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}}>
-          Yearly <span style={{fontSize:12,color:"#00ff88",marginLeft:4}}>SAVE 35%</span>
+          Yearly <span style={{fontSize:12,color:"#00ff88",marginLeft:4}}>SAVE UP TO 43%</span>
         </button>
       </div>
 
@@ -535,6 +535,9 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
                 <div style={{textAlign:"right"}}>
                   <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:32,color:"#fff"}}>{price===0?"Free":`$${price}`}</div>
                   {price>0&&<div style={{fontSize:12,color:"#5a7a98"}}>/ mo{billing==="yearly"?" billed yearly":""}</div>}
+                  {billing==="yearly"&&pid!=="free"&&plan.priceYearTotal&&(
+                    <div style={{fontSize:11,color:"#00ff88",marginTop:2}}>${plan.priceYearTotal}/yr · save {Math.round((1-plan.priceYearTotal/(plan.price*12))*100)}%</div>
+                  )}
                 </div>
               </div>
               <div style={{fontSize:13,color:"#6a8aa8",marginBottom:20,fontStyle:"italic"}}>{highlights[pid]}</div>
