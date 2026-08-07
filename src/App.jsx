@@ -1,5 +1,14 @@
 /* eslint-disable */
 import { useState, useRef, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+// ─────────────────────────────────────────────
+// Supabase — real accounts, replaces localStorage-only plan state
+// ─────────────────────────────────────────────
+const supabase = createClient(
+  process.env.REACT_APP_SUPABASE_URL,
+  process.env.REACT_APP_SUPABASE_ANON_KEY
+);
 
 // ─────────────────────────────────────────────
 // CONFIG — paste your Stripe Payment Links here
@@ -619,7 +628,8 @@ function UpgradeModal({onClose,onUpgrade,featureName}){
 // ─────────────────────────────────────────────
 // ACCOUNT PANEL
 // ─────────────────────────────────────────────
-function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose}){
+function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose,
+  session,authEmail,setAuthEmail,sendMagicLink,magicLinkSent,authLoading,postizStatus}){
   const p=PLANS[plan]||PLANS.free;
   const pct=gensLimit===Infinity?0:Math.min(100,Math.round((gensUsed/gensLimit)*100));
   return(
@@ -629,6 +639,27 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
           <div style={{fontSize:12,letterSpacing:4,color:"#6a8aa8",textTransform:"uppercase"}}>Account</div>
           <button onClick={onClose} style={{background:"none",border:"none",color:"#5a7a98",cursor:"pointer",fontSize:18,lineHeight:1}}>✕</button>
         </div>
+
+        {/* SIGN IN — syncs real plan status from your Stripe subscription */}
+        {!session&&(
+          <div style={{background:"#1e2d42",border:"1px solid #253a56",borderRadius:8,padding:"14px",marginBottom:20}}>
+            <div style={{fontSize:11,letterSpacing:2,color:"#6a8aa8",textTransform:"uppercase",marginBottom:8}}>Sign in</div>
+            {magicLinkSent?(
+              <div style={{fontSize:13,color:"#00ff88",lineHeight:1.6}}>Check your email — click the link to sign in. Then come back and reopen this panel.</div>
+            ):(
+              <>
+                <div style={{fontSize:12,color:"#6a8aa8",lineHeight:1.5,marginBottom:10}}>Sign in with the email you used at checkout to sync your real plan and connect social accounts.</div>
+                <input className="inp" placeholder="you@email.com" value={authEmail}
+                  onChange={e=>setAuthEmail(e.target.value)}
+                  style={{fontSize:13,padding:"10px 12px",marginBottom:8}}/>
+                <button onClick={sendMagicLink} disabled={!authEmail||authLoading}
+                  style={{width:"100%",padding:"9px",border:"1px solid #00e5ff55",background:"transparent",color:"#00e5ff",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:authEmail?"pointer":"not-allowed",fontFamily:"inherit",opacity:authLoading?.5:1}}>
+                  {authLoading?"Sending…":"Send Sign-In Link"}
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         <div style={{background:"#1e2d42",border:`1px solid ${p.color}33`,borderRadius:8,padding:"16px",marginBottom:20}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
@@ -643,6 +674,24 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
           <div style={{fontSize:12,color:"#6a8aa8"}}>{gensUsed} / {gensLimit===Infinity?"∞":gensLimit} used</div>
         </div>
 
+        {/* POSTIZ CONNECTION — only relevant once signed in on a paid plan */}
+        {session&&plan!=="free"&&(
+          <div style={{background:"#1e2d42",border:"1px solid #253a56",borderRadius:8,padding:"14px",marginBottom:20}}>
+            <div style={{fontSize:11,letterSpacing:2,color:"#6a8aa8",textTransform:"uppercase",marginBottom:8}}>Social Auto-Publish</div>
+            {postizStatus?.connected?(
+              <div style={{fontSize:13,color:"#00ff88"}}>✓ Postiz connected — {postizStatus.integrations?.length||0} account(s) linked</div>
+            ):(
+              <>
+                <div style={{fontSize:12,color:"#6a8aa8",lineHeight:1.5,marginBottom:10}}>Connect your Postiz account to auto-publish generated content instead of copy-pasting.</div>
+                <a href={`/api/postiz-connect?userId=${session.user.id}`}
+                  style={{display:"block",textAlign:"center",padding:"9px",border:"1px solid #00ff8855",background:"transparent",color:"#00ff88",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",textDecoration:"none"}}>
+                  Connect via Postiz
+                </a>
+              </>
+            )}
+          </div>
+        )}
+
         <div style={{fontSize:11,letterSpacing:3,color:"#4a6a88",textTransform:"uppercase",marginBottom:10}}>Plan Features</div>
         {p.features.slice(0,5).map((f,i)=>(
           <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:7}}>
@@ -655,7 +704,7 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
         <div style={{display:"flex",flexDirection:"column",gap:8,marginTop:20}}>
           {plan!=="free"&&<button onClick={onManage} style={{padding:"10px",border:"1px solid #2e4a64",background:"transparent",color:"#8bacc8",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit"}}>Manage Billing ↗</button>}
           {plan==="free"&&<button onClick={onManage} style={{padding:"10px",border:`1px solid ${PLANS.pro.color}55`,background:"transparent",color:PLANS.pro.color,fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit"}}>Upgrade Plan</button>}
-          <button onClick={onLogout} style={{padding:"10px",border:"1px solid #253a56",background:"transparent",color:"#5a7a98",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit"}}>Sign Out</button>
+          {session&&<button onClick={onLogout} style={{padding:"10px",border:"1px solid #253a56",background:"transparent",color:"#5a7a98",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit"}}>Sign Out</button>}
         </div>
       </div>
     </div>
@@ -762,6 +811,66 @@ export default function Gentagai(){
       if(Object.keys(urls).length>0) setPlatformURLs(urls);
     }catch{}
   },[]);
+
+  // ── Account (Supabase) — real plan status, sourced from Stripe via webhook ──
+  const [session,setSession]=useState(null);
+  const [authEmail,setAuthEmail]=useState("");
+  const [magicLinkSent,setMagicLinkSent]=useState(false);
+  const [authLoading,setAuthLoading]=useState(false);
+  const [postizStatus,setPostizStatus]=useState({connected:false,integrations:[]});
+
+  useEffect(()=>{
+    supabase.auth.getSession().then(({data})=>setSession(data.session||null));
+    const {data:listener}=supabase.auth.onAuthStateChange((_event,newSession)=>{
+      setSession(newSession);
+    });
+    return ()=>listener.subscription.unsubscribe();
+  },[]);
+
+  // Once signed in, the REAL account record (set by the Stripe webhook) takes
+  // over from whatever local/optimistic plan state was showing before.
+  useEffect(()=>{
+    if(!session?.user)return;
+    supabase.from("users").select("plan,billing_interval")
+      .eq("id",session.user.id).single()
+      .then(({data})=>{ if(data){setPlan(data.plan||"free");setBilling(data.billing_interval||"monthly");} })
+      .catch(()=>{});
+  },[session]);
+
+  useEffect(()=>{
+    if(!session?.user)return;
+    fetch(`/api/postiz-integrations?userId=${session.user.id}`)
+      .then(r=>r.json()).then(setPostizStatus).catch(()=>{});
+  },[session]);
+
+  // Surface the result of a Postiz connect attempt after the redirect back
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    if(params.get("postiz_connected")==="true"){
+      alert("Postiz connected! You can now auto-publish to your accounts.");
+      window.history.replaceState({},"",window.location.pathname);
+    }else if(params.get("postiz_error")){
+      alert("Postiz connection failed: "+params.get("postiz_error"));
+      window.history.replaceState({},"",window.location.pathname);
+    }
+  },[]);
+
+  async function sendMagicLink(){
+    if(!authEmail||authLoading)return;
+    setAuthLoading(true);
+    const {error}=await supabase.auth.signInWithOtp({
+      email:authEmail,
+      options:{emailRedirectTo:window.location.origin},
+    });
+    setAuthLoading(false);
+    if(!error)setMagicLinkSent(true);
+    else alert("Couldn't send sign-in link: "+error.message);
+  }
+
+  async function signOutAccount(){
+    await supabase.auth.signOut();
+    setSession(null);setPlan("free");setBilling("monthly");setMagicLinkSent(false);setAuthEmail("");
+  }
 
   // ── Auto-save ───────────────────────────────
   useEffect(()=>{
@@ -1454,8 +1563,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
       {/* ACCOUNT PANEL */}
       {showAccount&&<AccountPanel plan={plan} billing={billing} gensUsed={gensUsed} gensLimit={genLimit}
+        session={session} authEmail={authEmail} setAuthEmail={setAuthEmail}
+        sendMagicLink={sendMagicLink} magicLinkSent={magicLinkSent} authLoading={authLoading}
+        postizStatus={postizStatus}
         onManage={()=>{setShowAccount(false);setScreen("pricing");}}
-        onLogout={()=>{setShowAccount(false);setScreen("pricing");setPlan("free");}}
+        onLogout={()=>{setShowAccount(false);setScreen("pricing");signOutAccount();}}
         onClose={()=>setShowAccount(false)}/>}
 
       {/* TOPBAR */}
