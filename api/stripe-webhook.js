@@ -19,10 +19,10 @@ const supabase = createClient(
 // Map your 4 real Stripe Price IDs to plan + billing interval.
 // Fill these in from Stripe Dashboard → Product catalog → each price's ID (starts with "price_").
 const PRICE_MAP = {
-  "price_PRO_MONTHLY_ID":     { plan: "pro",    billing_interval: "monthly" },
-  "price_PRO_YEARLY_ID":      { plan: "pro",    billing_interval: "yearly"  },
-  "price_AGENCY_MONTHLY_ID":  { plan: "agency", billing_interval: "monthly" },
-  "price_AGENCY_YEARLY_ID":   { plan: "agency", billing_interval: "yearly"  },
+  "price_1TzlSbLCObk4zWm60tnChZHf": { plan: "pro",    billing_interval: "monthly" },
+  "price_1TzmfJLCObk4zWm6WGFzuBXc": { plan: "pro",    billing_interval: "yearly"  },
+  "price_1TzmprLCObk4zWm6kb6JC0zO": { plan: "agency", billing_interval: "monthly" },
+  "price_1TzmvcLCObk4zWm69h4Aj5PK": { plan: "agency", billing_interval: "yearly"  },
 };
 
 async function buffer(readable) {
