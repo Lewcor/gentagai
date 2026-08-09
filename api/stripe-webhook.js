@@ -23,6 +23,7 @@ const PRICE_MAP = {
   "price_1TzmfJLCObk4zWm6WGFzuBXc": { plan: "pro",    billing_interval: "yearly"  },
   "price_1TzmprLCObk4zWm6kb6JC0zO": { plan: "agency", billing_interval: "monthly" },
   "price_1TzmvcLCObk4zWm69h4Aj5PK": { plan: "agency", billing_interval: "yearly"  },
+  "price_1U2OssLCObk4zWm6TLy2hLMa": { plan: "pro",    billing_interval: "monthly" }, // TEMP TEST — remove after verifying
 };
 
 async function buffer(readable) {
