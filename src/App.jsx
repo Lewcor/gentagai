@@ -836,6 +836,7 @@ export default function Gentagai(){
       .then(({data})=>{ if(data){setPlan(data.plan||"free");setBilling(data.billing_interval||"monthly");} })
       .catch(()=>{});
   },[session]);
+  
   useEffect(() => {
   if (!session?.user) return;
 
