@@ -836,6 +836,46 @@ export default function Gentagai(){
       .then(({data})=>{ if(data){setPlan(data.plan||"free");setBilling(data.billing_interval||"monthly");} })
       .catch(()=>{});
   },[session]);
+  useEffect(() => {
+  if (!session?.user) return;
+
+  async function migratePendingPurchase() {
+    const email = session.user.email;
+
+    const { data: pending } = await supabase
+      .from("pending_stripe_customers")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (!pending) return;
+
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        stripe_customer_id: pending.stripe_customer_id,
+        stripe_subscription_id: pending.stripe_subscription_id,
+        plan: pending.plan,
+        billing_interval: pending.billing_interval,
+      })
+      .eq("id", session.user.id);
+
+    if (updateError) {
+      console.error("Failed to migrate pending purchase:", updateError);
+      return;
+    }
+
+    setPlan(pending.plan || "free");
+    setBilling(pending.billing_interval || "monthly");
+
+    await supabase
+      .from("pending_stripe_customers")
+      .delete()
+      .eq("email", email);
+  }
+
+  migratePendingPurchase();
+}, [session]);
 
   useEffect(()=>{
     if(!session?.user)return;
