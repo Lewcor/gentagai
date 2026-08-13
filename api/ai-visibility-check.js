@@ -120,6 +120,23 @@ export default async function handler(req) {
     const hasTitle = !!(titleMatch && titleMatch[1].trim());
     const hasH1 = /<h1[\s>]/i.test(html);
 
+    // ── Pull real visible copy so BISHOP can learn the site's actual voice ──
+    let siteCopy = '';
+    if (pageFetched && html) {
+      const noScripts = html
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<!--[\s\S]*?-->/g, ' ');
+      const textOnly = noScripts
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&[a-z]+;/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      siteCopy = textOnly.slice(0, 3000);
+    }
+
     let score = 100;
     score -= blockedCount * 8;
     if (!hasSchema) score -= 15;
@@ -150,6 +167,8 @@ export default async function handler(req) {
       hasTitle,
       hasH1,
       issues,
+      siteCopy,
+      pageTitle: hasTitle ? titleMatch[1].trim() : '',
     });
   } catch (err) {
     return json({ error: err.message }, 500);
