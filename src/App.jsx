@@ -1620,7 +1620,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
   // ── APP SCREEN ──────────────────────────────
   return(
-    <div style={{minHeight:"100vh",height:"100vh",background:"linear-gradient(135deg,#0d1421 0%,#0f1e35 50%,#0d1421 100%)",color:"#e8edf8",fontFamily:"'DM Mono','Courier New',monospace",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+    <div style={{minHeight:"100vh",height:"100vh",background:"radial-gradient(ellipse 900px 500px at 15% -10%, rgba(110,231,255,0.07), transparent 60%),radial-gradient(ellipse 700px 500px at 100% 0%, rgba(139,124,255,0.07), transparent 60%),#060708",color:"#e8edf8",fontFamily:"'DM Mono','Courier New',monospace",display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
         @media(max-width:768px){
@@ -1667,6 +1667,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         .toolc{display:flex;align-items:center;border:1px solid #253a56;background:#152033;color:#8bacc8;font-size:12px;padding:10px 14px;cursor:pointer;gap:6px;transition:all .15s;}
         .toolc:hover{border-color:#3d5e7a;color:#c8d8ea;}
         .lock-icon{font-size:9px;color:#5a7a98;margin-left:4px;}
+        .bishop-sidebar{background:linear-gradient(180deg,#0C0E12 0%,#08090B 100%);}
+        .bishop-core-ring{fill:none;stroke:#6EE7FF;stroke-width:1.4;opacity:.5;animation:corePulse 2.6s ease-in-out infinite;transform-origin:center;}
+        @keyframes corePulse{0%,100%{opacity:.25;transform:scale(.85);}50%{opacity:.9;transform:scale(1.05);}}
+        .bishop-navitem{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#82858C;cursor:pointer;transition:all .15s;}
+        .bishop-navitem:hover{background:rgba(255,255,255,.04);color:#F5F6F8;}
       `}</style>
 
       {/* UPGRADE MODAL */}
@@ -1682,7 +1687,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         onClose={()=>setShowAccount(false)}/>}
 
       {/* TOPBAR */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMobile?"10px 14px":"12px 18px",borderBottom:"1px solid #1e2d42",background:"#0d1421",flexShrink:0,zIndex:50,gap:8,flexWrap:isMobile?"wrap":"nowrap"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMobile?"10px 14px":"12px 18px",borderBottom:"1px solid #1a1d24",background:"#08090B",flexShrink:0,zIndex:50,gap:8,flexWrap:isMobile?"wrap":"nowrap"}}>
 
         {/* Logo */}
         <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
@@ -1732,6 +1737,42 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
       {/* BODY */}
       <div style={{display:"flex",flex:1,overflow:"hidden",minHeight:0}}>
+
+        {/* ── BISHOP SIDEBAR — desktop only ── */}
+        {!isMobile&&(
+          <div className="bishop-sidebar" style={{width:220,flexShrink:0,borderRight:"1px solid #1a1d24",padding:"16px 12px",display:"flex",flexDirection:"column",overflowY:"auto"}}>
+            <div style={{display:"flex",alignItems:"center",gap:9,padding:"6px 4px 14px 4px",borderBottom:"1px solid #1a1d24",marginBottom:12}}>
+              <div style={{width:26,height:26,flexShrink:0}}>
+                <svg viewBox="0 0 40 40"><circle className="bishop-core-ring" cx="20" cy="20" r="17"/><circle className="bishop-core-ring" cx="20" cy="20" r="11"/><circle cx="20" cy="20" r="3.4" fill="#6EE7FF"/></svg>
+              </div>
+              <div>
+                <div style={{fontSize:13.5,fontWeight:800,color:"#F5F6F8",fontFamily:"'Syne',sans-serif"}}>GENTAGAI</div>
+                <div style={{fontSize:8.5,color:"#6EE7FF",letterSpacing:"1px",fontWeight:700}}>BISHOP CORE</div>
+              </div>
+            </div>
+
+            <div style={{background:"rgba(255,255,255,.03)",border:"1px solid #1a1d24",borderRadius:10,padding:"10px 11px",marginBottom:14}}>
+              <div style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",marginBottom:6}}>Active Niche</div>
+              <div style={{fontSize:12,fontWeight:700,color:"#F5F6F8",display:"flex",alignItems:"center",gap:7}}>
+                <span style={{width:7,height:7,borderRadius:"50%",background:mc,boxShadow:`0 0 8px ${mc}`,flexShrink:0}}/>
+                <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{niche||"Not set yet"}</span>
+              </div>
+            </div>
+
+            {[{id:"copy",label:"◆ BISHOP",m:"copy"},{id:"content",label:"▣ Content Studio",m:"copy"},{id:"campaigns",label:"⬡ Campaigns",m:"video"},{id:"analytics",label:"◈ Analytics",m:"visibility"},{id:"bridge",label:"⌁ Bridge",m:"ab"}].map(n=>(
+              <div key={n.id} className="bishop-navitem" onClick={()=>handleModeSwitch(n.m)}
+                style={mode===n.m?{background:"rgba(110,231,255,.10)",color:"#F5F6F8"}:{}}>
+                {n.label}
+              </div>
+            ))}
+
+            <div style={{marginTop:"auto",paddingTop:12,borderTop:"1px solid #1a1d24"}}>
+              <div onClick={()=>setShowAccount(true)} style={{fontSize:11,fontWeight:700,color:"#6EE7FF",padding:"9px 8px",borderRadius:8,border:"1px dashed #1a1d24",cursor:"pointer",textAlign:"center"}}>
+                {currentPlan.badge} · Account
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── MOBILE BOTTOM TAB BAR ── */}
         {isMobile&&(
