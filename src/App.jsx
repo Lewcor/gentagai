@@ -1642,14 +1642,14 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         .sm:hover{border-color:#565A64;color:#a8c0d8;}
         .sm.on{border-color:#f0b429;color:#f0b429;background:rgba(201,168,76,.05);}
         .chip{display:flex;align-items:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);backdrop-filter:blur(16px);color:#9BA0AC;font-size:12px;letter-spacing:1px;padding:10px 14px;cursor:pointer;gap:7px;transition:all .18s;border-radius:12px;}
-        .chip:hover{border-color:#45484F;color:#bccfe0;}
+        .chip:hover{border-color:${mc}66;color:${mc};box-shadow:0 0 12px ${mc}22;}
         .chip.on{border-color:${mc};background:${mc}0a;color:${mc};box-shadow:0 0 16px ${mc}33;}
         .inp{background:rgba(255,255,255,.025);backdrop-filter:blur(16px);border:1.5px solid rgba(255,255,255,.08);color:#F5F6F8;font-family:'DM Mono',monospace;font-size:14px;padding:14px 16px;width:100%;outline:none;transition:border-color .2s;border-radius:12px;}
         .inp:focus{border-color:${mc}44;} .inp::placeholder{color:#565A64;}
         .sl{font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-weight:500;}
         .sl::after{content:'';flex:1;height:1px;background:#1a1d24;}
         .ctc{background:rgba(255,255,255,.025);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);padding:14px 16px;cursor:pointer;transition:all .18s;border-radius:14px;}
-        .ctc:hover{background:#15181D;}
+        .ctc:hover{background:#15181D;border-color:${mc}44;box-shadow:0 0 16px ${mc}1a;}
         .ctc.on{border-color:${mc};background:${mc}0d;box-shadow:0 0 24px ${mc}22, inset 0 0 20px ${mc}0d;}
         .ctc.locked{opacity:.35;cursor:not-allowed;}
         .otext{font-size:14px;line-height:1.9;color:#F0F1F4;white-space:pre-wrap;font-family:'DM Mono',monospace;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
@@ -1658,20 +1658,20 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         .gline{height:1px;animation:gl 1.1s linear infinite;margin:1px 0;}
         @keyframes gl{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
         .mbtn{background:rgba(255,255,255,.02);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);color:#82858C;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:all .2s;border-radius:11px;}
-        .mbtn:hover{border-color:#3a5572;color:#9BA0AC;}
+        .mbtn:hover{border-color:var(--hc,#45484F);color:var(--hc,#9BA0AC);box-shadow:0 0 12px color-mix(in srgb, var(--hc,#45484F) 35%, transparent);}
         .vp{flex:1;display:flex;flex-direction:column;overflow:hidden;}
         .hi{padding:12px 14px;margin-bottom:4px;border-radius:11px;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
-        .hi:hover{background:#15181D;}
+        .hi:hover{background:#15181D;box-shadow:inset 3px 0 0 ${mc}88;}
         .nt{font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;background:transparent;border:1px solid #24272E;color:#82858C;cursor:pointer;transition:all .15s;letter-spacing:1px;border-radius:4px;}
-        .nt:hover{border-color:#45484F;color:#82858C;}
+        .nt:hover{border-color:${mc}55;color:${mc};}
         .toolc{display:flex;align-items:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);backdrop-filter:blur(16px);color:#9BA0AC;font-size:12px;padding:10px 14px;cursor:pointer;gap:6px;transition:all .18s;border-radius:11px;}
-        .toolc:hover{border-color:#45484F;color:#F0F1F4;}
+        .toolc:hover{border-color:${mc}55;color:#F0F1F4;box-shadow:0 0 12px ${mc}22;}
         .lock-icon{font-size:9px;color:#6B6F7A;margin-left:4px;}
         .bishop-sidebar{background:rgba(8,9,11,.7);backdrop-filter:blur(24px);}
         .bishop-core-ring{fill:none;stroke:#6EE7FF;stroke-width:1.4;opacity:.5;animation:corePulse 2.6s ease-in-out infinite;transform-origin:center;}
         @keyframes corePulse{0%,100%{opacity:.25;transform:scale(.85);}50%{opacity:.9;transform:scale(1.05);}}
         .bishop-navitem{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:11px;font-size:12px;font-weight:600;color:#82858C;cursor:pointer;transition:all .18s;}
-        .bishop-navitem:hover{background:rgba(255,255,255,.04);color:#F5F6F8;}
+        .bishop-navitem:hover{background:rgba(255,255,255,.05);filter:brightness(1.3);box-shadow:0 0 14px rgba(255,255,255,.06);}
       `}</style>
 
       {/* UPGRADE MODAL */}
@@ -1709,6 +1709,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           {[{id:"copy",label:"◈ Copy",c:"#00e5ff",free:true},{id:"image",label:"⬡ Images",c:"#ff7c00",free:false},{id:"video",label:"▷ Video",c:"#f0b429",free:false},{id:"ab",label:"⇄ A/B Test",c:"#7c83fd",free:false},{id:"visibility",label:"◆ AI VIZ",c:"#00ff88",free:true}].map(m=>(
             <button key={m.id} className="mbtn" onClick={()=>handleModeSwitch(m.id)}
               style={{
+                "--hc":m.c,
                 ...(mode===m.id?{borderColor:m.c,color:m.c,background:`${m.c}08`,boxShadow:`0 0 14px ${m.c}33`}:{}),
                 fontSize:isMobile?11:12,
                 padding:isMobile?"8px 12px":"9px 16px",
