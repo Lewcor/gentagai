@@ -1635,42 +1635,42 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         }
         *{box-sizing:border-box;margin:0;padding:0;}
         ::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-track{background:#08090B;} ::-webkit-scrollbar-thumb{background:#2A2D33;}
-        .gbtn{border:none;font-family:'DM Mono',monospace;font-weight:600;font-size:14px;letter-spacing:3px;text-transform:uppercase;padding:18px 0;cursor:pointer;transition:all .2s;width:100%;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+        .gbtn{border:none;font-family:'DM Mono',monospace;font-weight:600;font-size:14px;letter-spacing:3px;text-transform:uppercase;padding:18px 0;cursor:pointer;transition:all .25s;width:100%;border-radius:16px;}
         .gbtn:hover{filter:brightness(1.18);transform:translateY(-1px);box-shadow:0 8px 30px rgba(0,0,0,.55);}
         .gbtn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
-        .sm{background:transparent;border:1px solid #2A2D33;color:#82858C;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:6px 12px;cursor:pointer;transition:all .15s;}
+        .sm{background:rgba(255,255,255,.02);backdrop-filter:blur(12px);border:1px solid #2A2D33;color:#82858C;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:6px 12px;cursor:pointer;transition:all .15s;border-radius:9px;}
         .sm:hover{border-color:#565A64;color:#a8c0d8;}
         .sm.on{border-color:#f0b429;color:#f0b429;background:rgba(201,168,76,.05);}
-        .chip{display:flex;align-items:center;border:1px solid #24272E;background:#0E1013;color:#9BA0AC;font-size:12px;letter-spacing:1px;padding:10px 14px;cursor:pointer;gap:7px;transition:all .15s;}
+        .chip{display:flex;align-items:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);backdrop-filter:blur(16px);color:#9BA0AC;font-size:12px;letter-spacing:1px;padding:10px 14px;cursor:pointer;gap:7px;transition:all .18s;border-radius:12px;}
         .chip:hover{border-color:#45484F;color:#bccfe0;}
         .chip.on{border-color:${mc};background:${mc}0a;color:${mc};box-shadow:0 0 16px ${mc}33;}
-        .inp{background:#0E1013;border:1.5px solid #24272E;color:#F5F6F8;font-family:'DM Mono',monospace;font-size:14px;padding:14px 16px;width:100%;outline:none;transition:border-color .2s;}
+        .inp{background:rgba(255,255,255,.025);backdrop-filter:blur(16px);border:1.5px solid rgba(255,255,255,.08);color:#F5F6F8;font-family:'DM Mono',monospace;font-size:14px;padding:14px 16px;width:100%;outline:none;transition:border-color .2s;border-radius:12px;}
         .inp:focus{border-color:${mc}44;} .inp::placeholder{color:#565A64;}
         .sl{font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-weight:500;}
         .sl::after{content:'';flex:1;height:1px;background:#1a1d24;}
-        .ctc{background:#0E1013;border:1px solid #24272E;border-left:3px solid transparent;padding:14px 16px;cursor:pointer;transition:all .14s;}
+        .ctc{background:rgba(255,255,255,.025);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);padding:14px 16px;cursor:pointer;transition:all .18s;border-radius:14px;}
         .ctc:hover{background:#15181D;}
-        .ctc.on{border-left-color:${mc};background:${mc}06;box-shadow:inset 0 0 20px ${mc}0d;}
+        .ctc.on{border-color:${mc};background:${mc}0d;box-shadow:0 0 24px ${mc}22, inset 0 0 20px ${mc}0d;}
         .ctc.locked{opacity:.35;cursor:not-allowed;}
         .otext{font-size:14px;line-height:1.9;color:#F0F1F4;white-space:pre-wrap;font-family:'DM Mono',monospace;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
         .blink::after{content:'█';animation:bl .7s steps(1) infinite;color:${mc};}
         @keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
         .gline{height:1px;animation:gl 1.1s linear infinite;margin:1px 0;}
         @keyframes gl{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
-        .mbtn{background:transparent;border:1px solid #24272E;color:#82858C;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:all .2s;}
+        .mbtn{background:rgba(255,255,255,.02);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);color:#82858C;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:all .2s;border-radius:11px;}
         .mbtn:hover{border-color:#3a5572;color:#9BA0AC;}
         .vp{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-        .hi{padding:12px 14px;border-bottom:1px solid #1a1d24;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
+        .hi{padding:12px 14px;margin-bottom:4px;border-radius:11px;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
         .hi:hover{background:#15181D;}
         .nt{font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;background:transparent;border:1px solid #24272E;color:#82858C;cursor:pointer;transition:all .15s;letter-spacing:1px;border-radius:4px;}
         .nt:hover{border-color:#45484F;color:#82858C;}
-        .toolc{display:flex;align-items:center;border:1px solid #24272E;background:#0E1013;color:#9BA0AC;font-size:12px;padding:10px 14px;cursor:pointer;gap:6px;transition:all .15s;}
+        .toolc{display:flex;align-items:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);backdrop-filter:blur(16px);color:#9BA0AC;font-size:12px;padding:10px 14px;cursor:pointer;gap:6px;transition:all .18s;border-radius:11px;}
         .toolc:hover{border-color:#45484F;color:#F0F1F4;}
         .lock-icon{font-size:9px;color:#6B6F7A;margin-left:4px;}
-        .bishop-sidebar{background:linear-gradient(180deg,#0C0E12 0%,#08090B 100%);}
+        .bishop-sidebar{background:rgba(8,9,11,.7);backdrop-filter:blur(24px);}
         .bishop-core-ring{fill:none;stroke:#6EE7FF;stroke-width:1.4;opacity:.5;animation:corePulse 2.6s ease-in-out infinite;transform-origin:center;}
         @keyframes corePulse{0%,100%{opacity:.25;transform:scale(.85);}50%{opacity:.9;transform:scale(1.05);}}
-        .bishop-navitem{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#82858C;cursor:pointer;transition:all .15s;}
+        .bishop-navitem{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:11px;font-size:12px;font-weight:600;color:#82858C;cursor:pointer;transition:all .18s;}
         .bishop-navitem:hover{background:rgba(255,255,255,.04);color:#F5F6F8;}
       `}</style>
 
@@ -1687,7 +1687,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         onClose={()=>setShowAccount(false)}/>}
 
       {/* TOPBAR */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMobile?"10px 14px":"12px 18px",borderBottom:"1px solid #1a1d24",background:"#08090B",flexShrink:0,zIndex:50,gap:8,flexWrap:isMobile?"wrap":"nowrap"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMobile?"10px 14px":"12px 18px",borderBottom:"1px solid #1a1d24",background:"rgba(8,9,11,.75)",backdropFilter:"blur(24px)",flexShrink:0,zIndex:50,gap:8,flexWrap:isMobile?"wrap":"nowrap"}}>
 
         {/* Logo */}
         <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
@@ -1759,9 +1759,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
             </div>
 
-            {[{id:"copy",label:"◆ BISHOP",m:"copy"},{id:"content",label:"▣ Content Studio",m:"copy"},{id:"campaigns",label:"⬡ Campaigns",m:"video"},{id:"analytics",label:"◈ Analytics",m:"visibility"},{id:"bridge",label:"⌁ Bridge",m:"ab"}].map(n=>(
+            {[{id:"copy",label:"◆ BISHOP",m:"copy",c:"#00e5ff"},{id:"content",label:"▣ Content Studio",m:"copy",c:"#00e5ff"},{id:"campaigns",label:"⬡ Campaigns",m:"video",c:"#f0b429"},{id:"analytics",label:"◈ Analytics",m:"visibility",c:"#00ff88"},{id:"bridge",label:"⌁ Bridge",m:"ab",c:"#7c83fd"}].map(n=>(
               <div key={n.id} className="bishop-navitem" onClick={()=>handleModeSwitch(n.m)}
-                style={mode===n.m?{background:"rgba(110,231,255,.10)",color:"#F5F6F8"}:{}}>
+                style={mode===n.m?{background:`${n.c}14`,color:"#F5F6F8",boxShadow:`0 0 16px ${n.c}22`}:{color:n.c+"99"}}>
                 {n.label}
               </div>
             ))}
@@ -2265,9 +2265,16 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
           <div ref={outRef} style={{flex:1,overflowY:"auto",padding:mode==="ab"?"0":isMobile?"20px 16px":"32px 36px",minHeight:0,wordBreak:"break-word"}}>
             {step==="idle"&&(
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:14,userSelect:"none"}}>
-                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:64,color:"#15181D",letterSpacing:4,lineHeight:1}}>GENTAGAI</div>
-                <div style={{fontSize:11,letterSpacing:4,color:"#2A2D33",textTransform:"uppercase"}}>Configure → Generate</div>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:18,userSelect:"none"}}>
+                <div style={{width:72,height:72}}>
+                  <svg viewBox="0 0 40 40">
+                    <circle className="bishop-core-ring" cx="20" cy="20" r="17" style={{stroke:mc}}/>
+                    <circle className="bishop-core-ring" cx="20" cy="20" r="11" style={{stroke:mc,animationDelay:".4s"}}/>
+                    <circle cx="20" cy="20" r="3.4" fill={mc} style={{filter:`drop-shadow(0 0 10px ${mc})`}}/>
+                  </svg>
+                </div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:40,letterSpacing:3,lineHeight:1,background:`linear-gradient(120deg,${mc},#F5F6F8 60%)`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>GENTAGAI</div>
+                <div style={{fontSize:11,letterSpacing:4,color:"#45484F",textTransform:"uppercase"}}>Configure → Generate</div>
               </div>
             )}
 
