@@ -410,6 +410,29 @@ RULES: No filler. No generic placeholders. Write like a top creative director wh
 // ─────────────────────────────────────────────
 // API HELPERS
 // ─────────────────────────────────────────────
+// Simulates a live "typing" reveal for responses that arrive all at once
+// (the default built-in Claude path isn't truly streamed server-side),
+// so it feels like BISHOP is writing instead of a result just appearing.
+function typewriterReveal(text,onChunk){
+  return new Promise(resolve=>{
+    if(!text||text.length<40){onChunk(text);resolve();return;}
+    const totalTicks=180;
+    const chunkSize=Math.max(2,Math.ceil(text.length/totalTicks));
+    let i=0;
+    function tick(){
+      i+=chunkSize;
+      onChunk(text.slice(0,i));
+      if(i<text.length){
+        setTimeout(tick,14);
+      }else{
+        onChunk(text);
+        resolve();
+      }
+    }
+    tick();
+  });
+}
+
 async function streamAPI(prompt,onChunk){
   try{
     const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-3-5-sonnet-20241022",max_tokens:4096,messages:[{role:"user",content:prompt}]})});
@@ -421,7 +444,7 @@ async function streamAPI(prompt,onChunk){
     }
     const data=await res.json();
     const full=data.content?.map(b=>b.text||"").join("")||data.error?.message||"⚠ No response received";
-    onChunk(full);
+    await typewriterReveal(full,onChunk);
     return full;
   }catch(e){const msg="⚠ Connection error: "+e.message;onChunk(msg);return msg;}
 }
