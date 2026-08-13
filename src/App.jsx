@@ -1620,7 +1620,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
   // ── APP SCREEN ──────────────────────────────
   return(
-    <div style={{minHeight:"100vh",height:"100vh",background:"radial-gradient(ellipse 900px 500px at 15% -10%, rgba(110,231,255,0.07), transparent 60%),radial-gradient(ellipse 700px 500px at 100% 0%, rgba(139,124,255,0.07), transparent 60%),#060708",color:"#F5F6F8",fontFamily:"'DM Mono','Courier New',monospace",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1000px 600px at 12% -10%, ${mc}14, transparent 60%),radial-gradient(ellipse 800px 550px at 100% 0%, rgba(139,124,255,0.08), transparent 60%),radial-gradient(ellipse 700px 500px at 30% 110%, ${mc}0d, transparent 60%),#060708`,color:"#F5F6F8",fontFamily:"'DM Mono','Courier New',monospace",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
         @media(max-width:768px){
@@ -1672,6 +1672,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         @keyframes corePulse{0%,100%{opacity:.25;transform:scale(.85);}50%{opacity:.9;transform:scale(1.05);}}
         .bishop-navitem{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:11px;font-size:12px;font-weight:600;color:#82858C;cursor:pointer;transition:all .18s;}
         .bishop-navitem:hover{background:rgba(255,255,255,.05);filter:brightness(1.3);box-shadow:0 0 14px rgba(255,255,255,.06);}
+        .ambient-glow{animation:ambientBreathe 8s ease-in-out infinite;}
+        @keyframes ambientBreathe{0%,100%{filter:brightness(1);}50%{filter:brightness(1.18);}}
       `}</style>
 
       {/* UPGRADE MODAL */}
