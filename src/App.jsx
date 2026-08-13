@@ -1018,6 +1018,9 @@ export default function Gentagai(){
   const [vizError,setVizError]=useState("");
   const [vizFixOutput,setVizFixOutput]=useState("");
   const [vizFixing,setVizFixing]=useState(false);
+  const [vizBrandSuggestion,setVizBrandSuggestion]=useState(null);
+  const [vizAnalyzingBrand,setVizAnalyzingBrand]=useState(false);
+  const [vizBrandError,setVizBrandError]=useState("");
 
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>setSession(data.session||null));
@@ -1376,13 +1379,20 @@ export default function Gentagai(){
   // ── Real AI-visibility scan — actually fetches robots.txt + homepage ──
   async function scanVisibility(){
     if(!vizUrl.trim())return;
-    setVizScanning(true);setVizResult(null);setVizError("");setVizFixOutput("");
+    setVizScanning(true);setVizResult(null);setVizError("");setVizFixOutput("");setVizBrandSuggestion(null);setVizBrandError("");
     try{
       const res=await fetch("/api/ai-visibility-check",{
         method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({url:vizUrl.trim()}),
       });
-      const data=await res.json();
+      const raw=await res.text();
+      let data;
+      try{data=JSON.parse(raw);}catch{
+        setVizError(res.status===404
+          ?"Scan endpoint isn't deployed yet — the ai-visibility-check.js file needs to be added to the api folder on GitHub."
+          :`Scan endpoint returned an unexpected response (status ${res.status}). Try again in a moment.`);
+        setVizScanning(false);return;
+      }
       if(!res.ok||data.error){setVizError(data.error||"Scan failed — try again.");}
       else{setVizResult(data);}
     }catch(e){setVizError("Connection error: "+e.message);}
@@ -1393,18 +1403,54 @@ export default function Gentagai(){
   async function generateVizFixes(){
     if(!vizResult)return;
     setVizFixing(true);setVizFixOutput("");
+    const voiceCtx=vizResult.siteCopy
+      ?`\n\nHere is real text pulled from the live site — match this brand's actual existing voice and vocabulary, don't invent a generic one:\n"""${vizResult.siteCopy.slice(0,1500)}"""`
+      :"";
     const prompt=`You are BISHOP, an AI marketing assistant. A brand called "${brand||"this brand"}" (niche: ${niche||"general business"}) just ran an AI-visibility scan on ${vizResult.url} and scored ${vizResult.score}/100.
 
 Issues found:
-${vizResult.issues.map(i=>"- "+i).join("\n")}
+${vizResult.issues.map(i=>"- "+i).join("\n")}${voiceCtx}
 
 Write a clear, practical fix guide for a non-technical business owner. For each issue:
 1. One or two sentences on why it matters for how ChatGPT, Claude, Gemini, and Perplexity understand their site.
-2. The exact code or text to add — real robots.txt lines to allow AI crawlers, a working JSON-LD schema snippet, and a meta description written in a tone that fits "${niche||"their brand"}".
+2. The exact code or text to add — real robots.txt lines to allow AI crawlers, a working JSON-LD schema snippet, and a meta description written in a tone that fits "${niche||"their brand"}"${vizResult.siteCopy?" and matches the real voice shown above":""}.
 
 Keep everything copy-paste ready. No filler, no disclaimers.`;
     await streamAPI(prompt,chunk=>setVizFixOutput(chunk));
     setVizFixing(false);
+  }
+
+  // ── "Learn My Brand" — analyzes real site copy and suggests Brand Brief fields ──
+  async function analyzeBrandFromSite(){
+    if(!vizResult?.siteCopy)return;
+    setVizAnalyzingBrand(true);setVizBrandSuggestion(null);setVizBrandError("");
+    const nicheList=NICHE_PRESETS.join(", ");
+    const toneList=TONES.map(t=>t.id).join(", ");
+    const prompt=`You are BISHOP. Read this real text pulled from a live website and infer the brand's identity. Respond with ONLY valid JSON, nothing else, no markdown fences, in exactly this shape:
+{"brandName":"best guess at the actual brand/business name","niche":"closest match from this list: ${nicheList}","audience":"a short target audience description like 'urban males 18-35'","tones":["one or two tone ids from this list: ${toneList}"],"voiceSummary":"2 sentences describing how this brand actually sounds/writes, in plain language"}
+
+Page title: ${vizResult.pageTitle||"(none found)"}
+
+Site text:
+"""${vizResult.siteCopy}"""`;
+    try{
+      const raw=await callAPI(prompt);
+      const parsed=JSON.parse(raw.replace(/```json|```/g,"").trim());
+      setVizBrandSuggestion(parsed);
+    }catch(e){
+      setVizBrandError("Couldn't read a clear brand identity from this page — try filling in Brand Brief manually instead.");
+    }
+    setVizAnalyzingBrand(false);
+  }
+
+  function applyBrandSuggestion(){
+    if(!vizBrandSuggestion)return;
+    if(vizBrandSuggestion.brandName)setBrand(vizBrandSuggestion.brandName);
+    if(vizBrandSuggestion.niche)setNiche(vizBrandSuggestion.niche);
+    if(vizBrandSuggestion.audience)setAudience(vizBrandSuggestion.audience);
+    if(Array.isArray(vizBrandSuggestion.tones)&&vizBrandSuggestion.tones.length){
+      setTone(vizBrandSuggestion.tones.filter(t=>TONES.some(x=>x.id===t)).slice(0,2));
+    }
   }
 
   async function postizPublishNow(integration){
@@ -2513,6 +2559,32 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div style={{fontSize:11,color:"#82858C",lineHeight:1.5}}>{vizResult.url}</div>
           </div>
         </div>
+
+        {vizResult.siteCopy&&!vizBrandSuggestion&&(
+          <div style={{background:"rgba(0,255,136,.05)",border:"1px solid #00ff8833",borderRadius:14,padding:18,marginBottom:16}}>
+            <div style={{fontSize:12,fontWeight:700,color:"#00ff88",marginBottom:6}}>◆ Real Site Copy Pulled</div>
+            <div style={{fontSize:11.5,color:"#82858C",lineHeight:1.6,marginBottom:12}}>BISHOP can read this brand's actual words and suggest a Brand Brief — niche, audience, tone, voice — instead of you typing it in by hand.</div>
+            <button className="sm" disabled={vizAnalyzingBrand} onClick={analyzeBrandFromSite} style={{borderColor:"#00ff8855",color:"#00ff88"}}>
+              {vizAnalyzingBrand?"⟳ READING YOUR BRAND...":"◆ LEARN MY BRAND FROM THIS SITE"}
+            </button>
+            {vizBrandError&&<div style={{fontSize:11,color:"#ff6a6a",marginTop:10}}>{vizBrandError}</div>}
+          </div>
+        )}
+
+        {vizBrandSuggestion&&(
+          <div style={{background:"rgba(255,255,255,.025)",backdropFilter:"blur(16px)",border:"1px solid #00ff8844",borderRadius:14,padding:18,marginBottom:16}}>
+            <div style={{fontSize:9.5,letterSpacing:2,color:"#00ff88",textTransform:"uppercase",marginBottom:12}}>BISHOP's Read On Your Brand</div>
+            <div style={{fontSize:13,color:"#F0F1F4",lineHeight:1.7,marginBottom:14,fontStyle:"italic"}}>"{vizBrandSuggestion.voiceSummary}"</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+              <div style={{background:"rgba(255,255,255,.02)",borderRadius:9,padding:"9px 11px"}}><div style={{fontSize:9,color:"#565A64",textTransform:"uppercase",letterSpacing:1,marginBottom:3}}>Brand Name</div><div style={{fontSize:12.5,color:"#F0F1F4"}}>{vizBrandSuggestion.brandName||"—"}</div></div>
+              <div style={{background:"rgba(255,255,255,.02)",borderRadius:9,padding:"9px 11px"}}><div style={{fontSize:9,color:"#565A64",textTransform:"uppercase",letterSpacing:1,marginBottom:3}}>Niche</div><div style={{fontSize:12.5,color:"#F0F1F4"}}>{vizBrandSuggestion.niche||"—"}</div></div>
+              <div style={{background:"rgba(255,255,255,.02)",borderRadius:9,padding:"9px 11px"}}><div style={{fontSize:9,color:"#565A64",textTransform:"uppercase",letterSpacing:1,marginBottom:3}}>Audience</div><div style={{fontSize:12.5,color:"#F0F1F4"}}>{vizBrandSuggestion.audience||"—"}</div></div>
+              <div style={{background:"rgba(255,255,255,.02)",borderRadius:9,padding:"9px 11px"}}><div style={{fontSize:9,color:"#565A64",textTransform:"uppercase",letterSpacing:1,marginBottom:3}}>Tone</div><div style={{fontSize:12.5,color:"#F0F1F4"}}>{(vizBrandSuggestion.tones||[]).map(t=>TONES.find(x=>x.id===t)?.label).filter(Boolean).join(" + ")||"—"}</div></div>
+            </div>
+            <button className="gbtn" onClick={applyBrandSuggestion} style={{background:"linear-gradient(135deg,#00ff88,#00b894)",color:"#000"}}>◆ APPLY TO BRAND BRIEF</button>
+            <div style={{fontSize:10.5,color:"#565A64",textAlign:"center",marginTop:8}}>This fills your Brand Brief on the Copy tab — you can still edit anything by hand.</div>
+          </div>
+        )}
 
         <div style={{marginBottom:16}}>
           <div style={{fontSize:9.5,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:10}}>AI Crawlers</div>
