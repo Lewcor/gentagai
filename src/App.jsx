@@ -71,7 +71,7 @@ const AGENCY_CODES = [
 const PLANS = {
   free: {
     id:"free", name:"Starter", price:0, priceYear:0,
-    color:"#6a8aa8", badge:"FREE",
+    color:"#82858C", badge:"FREE",
     gens: 5,
     features:["5 generations / month","Copy Engine only","Instagram & TikTok","3 tones","Basic hooks & captions","Community support"],
     locked:["Image Prompt Engine","Video Ads Engine","A/B Testing + AI Scoring","All 8 platforms","Email campaigns","SEO & product launch","Session history","Priority support"],
@@ -508,7 +508,7 @@ async function callChatGPTVision(prompt,base64,mimeType,apiKey,onChunk){
 // ─────────────────────────────────────────────
 // SCORE BAR
 // ─────────────────────────────────────────────
-function ScoreBar({label,value,color}){return(<div style={{marginBottom:9}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:11,letterSpacing:2,color:"#6a8aa8",textTransform:"uppercase"}}>{label}</span><span style={{fontSize:12,color:color||"#f0b429",fontWeight:500}}>{value}</span></div><div style={{height:2,background:"#243650",borderRadius:1,overflow:"hidden"}}><div style={{height:"100%",background:color||"#f0b429",width:`${value}%`,transition:"width 1.2s ease"}}/></div></div>);}
+function ScoreBar({label,value,color}){return(<div style={{marginBottom:9}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:11,letterSpacing:2,color:"#82858C",textTransform:"uppercase"}}>{label}</span><span style={{fontSize:12,color:color||"#f0b429",fontWeight:500}}>{value}</span></div><div style={{height:2,background:"#243650",borderRadius:1,overflow:"hidden"}}><div style={{height:"100%",background:color||"#f0b429",width:`${value}%`,transition:"width 1.2s ease"}}/></div></div>);}
 
 // ─────────────────────────────────────────────
 // PRICING PAGE
@@ -537,17 +537,17 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
           <div style={{display:"flex",gap:4}}>{["#ff2d2d","#f0b429","#7c83fd"].map((c,i)=><div key={i} style={{width:8,height:8,borderRadius:2,background:c}}/>)}</div>
           <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:32,letterSpacing:3,color:"#fff"}}>GENTAGAI</div>
         </div>
-        <div style={{fontSize:12,letterSpacing:5,color:"#5a7a98",textTransform:"uppercase",marginBottom:20}}>gentagai.com — AI Marketing Engine</div>
+        <div style={{fontSize:12,letterSpacing:5,color:"#6B6F7A",textTransform:"uppercase",marginBottom:20}}>gentagai.com — AI Marketing Engine</div>
         <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:32,color:"#fff",lineHeight:1.2,maxWidth:480,margin:"0 auto"}}>
           The engine that makes every brand go viral.
         </div>
-        <div style={{fontSize:15,color:"#6a8aa8",marginTop:12,letterSpacing:.5}}>Copy · Images · Video Ads · A/B Testing · SEO — all in one engine.</div>
+        <div style={{fontSize:15,color:"#82858C",marginTop:12,letterSpacing:.5}}>Copy · Images · Video Ads · A/B Testing · SEO — all in one engine.</div>
       </div>
 
       {/* Billing Toggle */}
-      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:36,background:"#162030",border:"1px solid #2e4a64",borderRadius:99,padding:"6px 8px"}}>
-        <button onClick={()=>setBilling("monthly")} style={{padding:"7px 20px",borderRadius:99,border:"none",background:billing==="monthly"?"#253a56":"transparent",color:billing==="monthly"?"#fff":"#6a8aa8",fontSize:14,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}}>Monthly</button>
-        <button onClick={()=>setBilling("yearly")} style={{padding:"7px 20px",borderRadius:99,border:"none",background:billing==="yearly"?"#253a56":"transparent",color:billing==="yearly"?"#fff":"#6a8aa8",fontSize:14,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:36,background:"#15181D",border:"1px solid #2A2D33",borderRadius:99,padding:"6px 8px"}}>
+        <button onClick={()=>setBilling("monthly")} style={{padding:"7px 20px",borderRadius:99,border:"none",background:billing==="monthly"?"#24272E":"transparent",color:billing==="monthly"?"#fff":"#82858C",fontSize:14,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}}>Monthly</button>
+        <button onClick={()=>setBilling("yearly")} style={{padding:"7px 20px",borderRadius:99,border:"none",background:billing==="yearly"?"#24272E":"transparent",color:billing==="yearly"?"#fff":"#82858C",fontSize:14,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}}>
           Yearly <span style={{fontSize:12,color:"#00ff88",marginLeft:4}}>SAVE UP TO 43%</span>
         </button>
       </div>
@@ -560,7 +560,7 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
           const price=billing==="yearly"&&pid!=="free"?plan.priceYear:plan.price;
           const isFeatured=pid==="pro";
           return(
-            <div key={pid} style={{background:isFeatured?"#172236":"#0f1928",border:`1px solid ${isFeatured?plan.color+"55":"#253a56"}`,borderRadius:12,padding:"28px 24px",position:"relative",display:"flex",flexDirection:"column"}}>
+            <div key={pid} style={{background:isFeatured?"#172236":"#08090B",border:`1px solid ${isFeatured?plan.color+"55":"#24272E"}`,borderRadius:12,padding:"28px 24px",position:"relative",display:"flex",flexDirection:"column"}}>
               {isFeatured&&<div style={{position:"absolute",top:-12,left:"50%",transform:"translateX(-50%)",background:plan.color,color:"#000",fontSize:12,letterSpacing:3,padding:"4px 16px",borderRadius:99,textTransform:"uppercase",fontWeight:500,whiteSpace:"nowrap"}}>MOST POPULAR</div>}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
                 <div>
@@ -569,13 +569,13 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
                 </div>
                 <div style={{textAlign:"right"}}>
                   <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:32,color:"#fff"}}>{price===0?"Free":`$${price}`}</div>
-                  {price>0&&<div style={{fontSize:12,color:"#5a7a98"}}>/ mo{billing==="yearly"?" billed yearly":""}</div>}
+                  {price>0&&<div style={{fontSize:12,color:"#6B6F7A"}}>/ mo{billing==="yearly"?" billed yearly":""}</div>}
                   {billing==="yearly"&&pid!=="free"&&plan.priceYearTotal&&(
                     <div style={{fontSize:11,color:"#00ff88",marginTop:2}}>${plan.priceYearTotal}/yr · save {Math.round((1-plan.priceYearTotal/(plan.price*12))*100)}%</div>
                   )}
                 </div>
               </div>
-              <div style={{fontSize:13,color:"#6a8aa8",marginBottom:20,fontStyle:"italic"}}>{highlights[pid]}</div>
+              <div style={{fontSize:13,color:"#82858C",marginBottom:20,fontStyle:"italic"}}>{highlights[pid]}</div>
               <div style={{flex:1,marginBottom:24}}>
                 {plan.features.map((f,i)=>(
                   <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,marginBottom:8}}>
@@ -587,10 +587,10 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
                 ))}
                 {plan.locked.length>0&&plan.locked.slice(0,3).map((f,i)=>(
                   <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,marginBottom:8,opacity:.3}}>
-                    <div style={{width:14,height:14,borderRadius:"50%",border:"1px solid #4a6a88",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
-                      <div style={{fontSize:12,color:"#6a8aa8",lineHeight:1}}>—</div>
+                    <div style={{width:14,height:14,borderRadius:"50%",border:"1px solid #565A64",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                      <div style={{fontSize:12,color:"#82858C",lineHeight:1}}>—</div>
                     </div>
-                    <span style={{fontSize:14,color:"#6a8aa8",lineHeight:1.5}}>{f}</span>
+                    <span style={{fontSize:14,color:"#82858C",lineHeight:1.5}}>{f}</span>
                   </div>
                 ))}
               </div>
@@ -600,7 +600,7 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
                     placeholder="Have a staff code? Enter it here"
                     value={agencyCode}
                     onChange={e=>setAgencyCode(e.target.value)}
-                    style={{width:"100%",padding:"14px 16px",background:"#152033",border:"1px solid #3d5e7a",color:"#ddd",fontFamily:"'DM Mono',monospace",fontSize:14,letterSpacing:"0.06em",outline:"none",borderRadius:6,marginBottom:4}}
+                    style={{width:"100%",padding:"14px 16px",background:"#0E1013",border:"1px solid #45484F",color:"#ddd",fontFamily:"'DM Mono',monospace",fontSize:14,letterSpacing:"0.06em",outline:"none",borderRadius:6,marginBottom:4}}
                   />
                   {agencyCode&&<div style={{fontSize:12,color:"#7c83fd",letterSpacing:1}}>↑ Enter code then click below</div>}
                 </div>
@@ -608,26 +608,26 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
               <button onClick={()=>onSelect(pid,billing,pid==="agency"?agencyCode:null)} style={{width:"100%",padding:"13px 0",border:`1px solid ${isFeatured||isCurrentPlan?plan.color:plan.color+"44"}`,background:isFeatured?plan.color:"transparent",color:isFeatured?"#000":plan.color,fontSize:14,letterSpacing:3,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",fontWeight:500,transition:"all .2s",borderRadius:6}}>
                 {isCurrentPlan?"Current Plan":pid==="free"?"Start Free":agencyCode&&pid==="agency"?"Activate Staff Code":`Subscribe — $${price}/mo`}
               </button>
-              {pid!=="free"&&<div style={{fontSize:12,color:"#4a6a88",textAlign:"center",marginTop:8,letterSpacing:.5}}>Powered by Stripe · Cancel anytime</div>}
+              {pid!=="free"&&<div style={{fontSize:12,color:"#565A64",textAlign:"center",marginTop:8,letterSpacing:.5}}>Powered by Stripe · Cancel anytime</div>}
             </div>
           );
         })}
       </div>
 
       {/* Feature compare strip */}
-      <div style={{width:"100%",maxWidth:860,background:"#0f1928",border:"1px solid #253a56",borderRadius:10,padding:"20px 24px",marginBottom:32}}>
-        <div style={{fontSize:11,letterSpacing:4,color:"#5a7a98",textTransform:"uppercase",marginBottom:16}}>What's included in every plan</div>
+      <div style={{width:"100%",maxWidth:860,background:"#08090B",border:"1px solid #24272E",borderRadius:10,padding:"20px 24px",marginBottom:32}}>
+        <div style={{fontSize:11,letterSpacing:4,color:"#6B6F7A",textTransform:"uppercase",marginBottom:16}}>What's included in every plan</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12}}>
           {["Claude Sonnet AI","Algorithm optimization","Platform-native copy","Stripe secure billing","Auto-save sessions","Cancel anytime"].map(f=>(
             <div key={f} style={{display:"flex",alignItems:"center",gap:7}}>
               <div style={{width:5,height:5,borderRadius:"50%",background:"#f0b429",flexShrink:0}}/>
-              <span style={{fontSize:13,color:"#6a8aa8"}}>{f}</span>
+              <span style={{fontSize:13,color:"#82858C"}}>{f}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{fontSize:13,color:"#4a6a88",letterSpacing:1}}>© 2026 {DOMAIN} · All rights reserved</div>
+      <div style={{fontSize:13,color:"#565A64",letterSpacing:1}}>© 2026 {DOMAIN} · All rights reserved</div>
     </div>
   );
 }
@@ -638,12 +638,12 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
 function UpgradeModal({onClose,onUpgrade,featureName}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div style={{background:"#162030",border:"1px solid #f0b42944",borderRadius:12,padding:"32px 28px",maxWidth:400,width:"100%",textAlign:"center",fontFamily:"'DM Mono','Courier New',monospace"}}>
+      <div style={{background:"#15181D",border:"1px solid #f0b42944",borderRadius:12,padding:"32px 28px",maxWidth:400,width:"100%",textAlign:"center",fontFamily:"'DM Mono','Courier New',monospace"}}>
         <div style={{fontSize:11,letterSpacing:4,color:"#f0b429",textTransform:"uppercase",marginBottom:12}}>Pro Feature</div>
         <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:22,color:"#fff",marginBottom:10}}>Unlock {featureName}</div>
-        <div style={{fontSize:15,color:"#6a8aa8",lineHeight:1.8,marginBottom:24}}>This feature requires a Pro or Agency plan. Upgrade to access the full GENTAGAI engine.</div>
+        <div style={{fontSize:15,color:"#82858C",lineHeight:1.8,marginBottom:24}}>This feature requires a Pro or Agency plan. Upgrade to access the full GENTAGAI engine.</div>
         <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-          <button onClick={onClose} style={{padding:"10px 20px",border:"1px solid #2d4464",background:"transparent",color:"#6a8aa8",fontSize:13,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",borderRadius:4}}>Not now</button>
+          <button onClick={onClose} style={{padding:"10px 20px",border:"1px solid #2A2D33",background:"transparent",color:"#82858C",fontSize:13,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",borderRadius:4}}>Not now</button>
           <button onClick={onUpgrade} style={{padding:"10px 24px",border:"none",background:"linear-gradient(135deg,#f0b429,#ff8c00)",color:"#000",fontSize:13,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",fontWeight:500,borderRadius:4}}>Upgrade Now</button>
         </div>
       </div>
@@ -660,21 +660,21 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
   const pct=gensLimit===Infinity?0:Math.min(100,Math.round((gensUsed/gensLimit)*100));
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"flex-end"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#162030",border:"1px solid #2e4a64",borderLeft:"1px solid #2e4a64",width:300,height:"100vh",padding:"24px 20px",display:"flex",flexDirection:"column",fontFamily:"'DM Mono','Courier New',monospace",overflowY:"auto"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#15181D",border:"1px solid #2A2D33",borderLeft:"1px solid #2A2D33",width:300,height:"100vh",padding:"24px 20px",display:"flex",flexDirection:"column",fontFamily:"'DM Mono','Courier New',monospace",overflowY:"auto"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-          <div style={{fontSize:12,letterSpacing:4,color:"#6a8aa8",textTransform:"uppercase"}}>Account</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:"#5a7a98",cursor:"pointer",fontSize:18,lineHeight:1}}>✕</button>
+          <div style={{fontSize:12,letterSpacing:4,color:"#82858C",textTransform:"uppercase"}}>Account</div>
+          <button onClick={onClose} style={{background:"none",border:"none",color:"#6B6F7A",cursor:"pointer",fontSize:18,lineHeight:1}}>✕</button>
         </div>
 
         {/* SIGN IN — syncs real plan status from your Stripe subscription */}
         {!session&&(
-          <div style={{background:"#1e2d42",border:"1px solid #253a56",borderRadius:8,padding:"14px",marginBottom:20}}>
-            <div style={{fontSize:11,letterSpacing:2,color:"#6a8aa8",textTransform:"uppercase",marginBottom:8}}>Sign in</div>
+          <div style={{background:"#1a1d24",border:"1px solid #24272E",borderRadius:8,padding:"14px",marginBottom:20}}>
+            <div style={{fontSize:11,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:8}}>Sign in</div>
             {magicLinkSent?(
               <div style={{fontSize:13,color:"#00ff88",lineHeight:1.6}}>Check your email — click the link to sign in. Then come back and reopen this panel.</div>
             ):(
               <>
-                <div style={{fontSize:12,color:"#6a8aa8",lineHeight:1.5,marginBottom:10}}>Sign in with the email you used at checkout to sync your real plan and connect social accounts.</div>
+                <div style={{fontSize:12,color:"#82858C",lineHeight:1.5,marginBottom:10}}>Sign in with the email you used at checkout to sync your real plan and connect social accounts.</div>
                 <input className="inp" placeholder="you@email.com" value={authEmail}
                   onChange={e=>setAuthEmail(e.target.value)}
                   style={{fontSize:13,padding:"10px 12px",marginBottom:8}}/>
@@ -687,28 +687,28 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
           </div>
         )}
 
-        <div style={{background:"#1e2d42",border:`1px solid ${p.color}33`,borderRadius:8,padding:"16px",marginBottom:20}}>
+        <div style={{background:"#1a1d24",border:`1px solid ${p.color}33`,borderRadius:8,padding:"16px",marginBottom:20}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
             <span style={{fontSize:11,letterSpacing:3,color:p.color,textTransform:"uppercase"}}>{p.badge} Plan</span>
-            <span style={{fontSize:12,color:"#5a7a98"}}>{billing}</span>
+            <span style={{fontSize:12,color:"#6B6F7A"}}>{billing}</span>
           </div>
           <div style={{fontSize:18,color:"#fff",fontWeight:500,marginBottom:12}}>{p.name}</div>
-          <div style={{fontSize:12,color:"#6a8aa8",marginBottom:6,letterSpacing:1,textTransform:"uppercase"}}>Generations this month</div>
-          <div style={{height:3,background:"#253a56",borderRadius:2,marginBottom:5,overflow:"hidden"}}>
+          <div style={{fontSize:12,color:"#82858C",marginBottom:6,letterSpacing:1,textTransform:"uppercase"}}>Generations this month</div>
+          <div style={{height:3,background:"#24272E",borderRadius:2,marginBottom:5,overflow:"hidden"}}>
             <div style={{height:"100%",background:pct>80?"#ff2d2d":p.color,width:`${pct}%`,transition:"width .8s ease"}}/>
           </div>
-          <div style={{fontSize:12,color:"#6a8aa8"}}>{gensUsed} / {gensLimit===Infinity?"∞":gensLimit} used</div>
+          <div style={{fontSize:12,color:"#82858C"}}>{gensUsed} / {gensLimit===Infinity?"∞":gensLimit} used</div>
         </div>
 
         {/* POSTIZ CONNECTION — only relevant once signed in on a paid plan */}
         {session&&plan!=="free"&&(
-          <div style={{background:"#1e2d42",border:"1px solid #253a56",borderRadius:8,padding:"14px",marginBottom:20}}>
-            <div style={{fontSize:11,letterSpacing:2,color:"#6a8aa8",textTransform:"uppercase",marginBottom:8}}>Social Auto-Publish</div>
+          <div style={{background:"#1a1d24",border:"1px solid #24272E",borderRadius:8,padding:"14px",marginBottom:20}}>
+            <div style={{fontSize:11,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:8}}>Social Auto-Publish</div>
             {postizStatus?.connected?(
               <div style={{fontSize:13,color:"#00ff88"}}>✓ Postiz connected — {postizStatus.integrations?.length||0} account(s) linked</div>
             ):(
               <>
-                <div style={{fontSize:12,color:"#6a8aa8",lineHeight:1.5,marginBottom:10}}>Connect your Postiz account to auto-publish generated content instead of copy-pasting.</div>
+                <div style={{fontSize:12,color:"#82858C",lineHeight:1.5,marginBottom:10}}>Connect your Postiz account to auto-publish generated content instead of copy-pasting.</div>
                 <a href={`/api/postiz-connect?userId=${session.user.id}`}
                   style={{display:"block",textAlign:"center",padding:"9px",border:"1px solid #00ff8855",background:"transparent",color:"#00ff88",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",textDecoration:"none"}}>
                   Connect via Postiz
@@ -718,19 +718,19 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
           </div>
         )}
 
-        <div style={{fontSize:11,letterSpacing:3,color:"#4a6a88",textTransform:"uppercase",marginBottom:10}}>Plan Features</div>
+        <div style={{fontSize:11,letterSpacing:3,color:"#565A64",textTransform:"uppercase",marginBottom:10}}>Plan Features</div>
         {p.features.slice(0,5).map((f,i)=>(
           <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:7}}>
             <div style={{width:4,height:4,borderRadius:"50%",background:p.color,flexShrink:0}}/>
-            <span style={{fontSize:13,color:"#8bacc8"}}>{f}</span>
+            <span style={{fontSize:13,color:"#9BA0AC"}}>{f}</span>
           </div>
         ))}
 
         <div style={{flex:1}}/>
         <div style={{display:"flex",flexDirection:"column",gap:8,marginTop:20}}>
-          {plan!=="free"&&<button onClick={onManage} style={{padding:"10px",border:"1px solid #2e4a64",background:"transparent",color:"#8bacc8",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit"}}>Manage Billing ↗</button>}
+          {plan!=="free"&&<button onClick={onManage} style={{padding:"10px",border:"1px solid #2A2D33",background:"transparent",color:"#9BA0AC",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit"}}>Manage Billing ↗</button>}
           {plan==="free"&&<button onClick={onManage} style={{padding:"10px",border:`1px solid ${PLANS.pro.color}55`,background:"transparent",color:PLANS.pro.color,fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit"}}>Upgrade Plan</button>}
-          {session&&<button onClick={onLogout} style={{padding:"10px",border:"1px solid #253a56",background:"transparent",color:"#5a7a98",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit"}}>Sign Out</button>}
+          {session&&<button onClick={onLogout} style={{padding:"10px",border:"1px solid #24272E",background:"transparent",color:"#6B6F7A",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit"}}>Sign Out</button>}
         </div>
       </div>
     </div>
@@ -1584,25 +1584,25 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           return(
             <div key={b.id} style={{flex:1}}>
               <div onClick={()=>selectBrain(b.id)}
-                style={{padding:"8px 4px",border:`1px solid ${isActive?b.color+"88":"#2a3f5c"}`,background:isActive?`${b.color}10`:"#152033",cursor:"pointer",textAlign:"center",transition:"all .15s",borderRadius:4}}>
-                <div style={{fontSize:18,color:isActive?b.color:"#5a7a98",lineHeight:1}}>{b.icon}</div>
-                <div style={{fontSize:11,color:isActive?b.color:"#6a8aa8",marginTop:3,letterSpacing:.5}}>{b.label}</div>
-                <div style={{fontSize:10,color:hasKey&&b.id!=="claude"?"#00ff8866":"#3d5e7a",marginTop:1}}>{b.id==="claude"?"built-in":hasKey?"✓ key saved":"+ add key"}</div>
+                style={{padding:"8px 4px",border:`1px solid ${isActive?b.color+"88":"#24272E"}`,background:isActive?`${b.color}10`:"#0E1013",cursor:"pointer",textAlign:"center",transition:"all .15s",borderRadius:4}}>
+                <div style={{fontSize:18,color:isActive?b.color:"#6B6F7A",lineHeight:1}}>{b.icon}</div>
+                <div style={{fontSize:11,color:isActive?b.color:"#82858C",marginTop:3,letterSpacing:.5}}>{b.label}</div>
+                <div style={{fontSize:10,color:hasKey&&b.id!=="claude"?"#00ff8866":"#45484F",marginTop:1}}>{b.id==="claude"?"built-in":hasKey?"✓ key saved":"+ add key"}</div>
               </div>
               {showKeyInput===b.id&&(
-                <div style={{background:"#0f1928",border:`1px solid ${b.color}33`,padding:"8px",borderRadius:"0 0 4px 4px",marginTop:-1}}>
+                <div style={{background:"#08090B",border:`1px solid ${b.color}33`,padding:"8px",borderRadius:"0 0 4px 4px",marginTop:-1}}>
                   <div style={{fontSize:10,color:b.color,letterSpacing:1,textTransform:"uppercase",marginBottom:5}}>
                     <a href={b.link} target="_blank" rel="noreferrer" style={{color:b.color,textDecoration:"none"}}>Get {b.label} key ↗</a>
                   </div>
                   <input type="password" placeholder={`Paste ${b.label} API key`} value={keyDraft} onChange={e=>setKeyDraft(e.target.value)} className="inp" style={{marginBottom:5,fontSize:13,padding:"12px 14px"}}/>
                   <div style={{display:"flex",gap:4}}>
                     <button onClick={()=>saveKey(showKeyInput)} style={{flex:1,padding:"6px",border:`1px solid ${b.color}55`,background:`${b.color}11`,color:b.color,fontSize:11,cursor:"pointer",fontFamily:"inherit",textTransform:"uppercase",letterSpacing:1}}>Save</button>
-                    <button onClick={()=>setShowKeyInput(null)} style={{padding:"6px 8px",border:"1px solid #2a3f5c",background:"transparent",color:"#6a8aa8",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>✕</button>
+                    <button onClick={()=>setShowKeyInput(null)} style={{padding:"6px 8px",border:"1px solid #24272E",background:"transparent",color:"#82858C",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>✕</button>
                   </div>
                 </div>
               )}
               {hasKey&&b.id!=="claude"&&isActive&&(
-                <button onClick={()=>clearKey(b.id)} style={{width:"100%",background:"none",border:"none",color:"#3d5e7a",fontSize:10,cursor:"pointer",fontFamily:"inherit",marginTop:2,letterSpacing:1}}>clear key</button>
+                <button onClick={()=>clearKey(b.id)} style={{width:"100%",background:"none",border:"none",color:"#45484F",fontSize:10,cursor:"pointer",fontFamily:"inherit",marginTop:2,letterSpacing:1}}>clear key</button>
               )}
             </div>
           );
@@ -1620,7 +1620,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
   // ── APP SCREEN ──────────────────────────────
   return(
-    <div style={{minHeight:"100vh",height:"100vh",background:"radial-gradient(ellipse 900px 500px at 15% -10%, rgba(110,231,255,0.07), transparent 60%),radial-gradient(ellipse 700px 500px at 100% 0%, rgba(139,124,255,0.07), transparent 60%),#060708",color:"#e8edf8",fontFamily:"'DM Mono','Courier New',monospace",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+    <div style={{minHeight:"100vh",height:"100vh",background:"radial-gradient(ellipse 900px 500px at 15% -10%, rgba(110,231,255,0.07), transparent 60%),radial-gradient(ellipse 700px 500px at 100% 0%, rgba(139,124,255,0.07), transparent 60%),#060708",color:"#F5F6F8",fontFamily:"'DM Mono','Courier New',monospace",display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
         @media(max-width:768px){
@@ -1634,39 +1634,39 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           .nt{font-size:10px!important;padding:5px 9px!important;}
         }
         *{box-sizing:border-box;margin:0;padding:0;}
-        ::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-track{background:#0f1928;} ::-webkit-scrollbar-thumb{background:#2d4464;}
+        ::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-track{background:#08090B;} ::-webkit-scrollbar-thumb{background:#2A2D33;}
         .gbtn{border:none;font-family:'DM Mono',monospace;font-weight:600;font-size:14px;letter-spacing:3px;text-transform:uppercase;padding:18px 0;cursor:pointer;transition:all .2s;width:100%;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
-        .gbtn:hover{filter:brightness(1.18);transform:translateY(-1px);}
+        .gbtn:hover{filter:brightness(1.18);transform:translateY(-1px);box-shadow:0 8px 30px rgba(0,0,0,.55);}
         .gbtn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
-        .sm{background:transparent;border:1px solid #2e4a64;color:#6a8aa8;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:6px 12px;cursor:pointer;transition:all .15s;}
-        .sm:hover{border-color:#4a6a88;color:#a8c0d8;}
+        .sm{background:transparent;border:1px solid #2A2D33;color:#82858C;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:6px 12px;cursor:pointer;transition:all .15s;}
+        .sm:hover{border-color:#565A64;color:#a8c0d8;}
         .sm.on{border-color:#f0b429;color:#f0b429;background:rgba(201,168,76,.05);}
-        .chip{display:flex;align-items:center;border:1px solid #2a3f5c;background:#152033;color:#8bacc8;font-size:12px;letter-spacing:1px;padding:10px 14px;cursor:pointer;gap:7px;transition:all .15s;}
-        .chip:hover{border-color:#3d5e7a;color:#bccfe0;}
-        .chip.on{border-color:${mc};background:${mc}0a;color:${mc};}
-        .inp{background:#152033;border:1.5px solid #2a3f5c;color:#e8edf8;font-family:'DM Mono',monospace;font-size:14px;padding:14px 16px;width:100%;outline:none;transition:border-color .2s;}
-        .inp:focus{border-color:${mc}44;} .inp::placeholder{color:#4a6a88;}
+        .chip{display:flex;align-items:center;border:1px solid #24272E;background:#0E1013;color:#9BA0AC;font-size:12px;letter-spacing:1px;padding:10px 14px;cursor:pointer;gap:7px;transition:all .15s;}
+        .chip:hover{border-color:#45484F;color:#bccfe0;}
+        .chip.on{border-color:${mc};background:${mc}0a;color:${mc};box-shadow:0 0 16px ${mc}33;}
+        .inp{background:#0E1013;border:1.5px solid #24272E;color:#F5F6F8;font-family:'DM Mono',monospace;font-size:14px;padding:14px 16px;width:100%;outline:none;transition:border-color .2s;}
+        .inp:focus{border-color:${mc}44;} .inp::placeholder{color:#565A64;}
         .sl{font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-weight:500;}
-        .sl::after{content:'';flex:1;height:1px;background:#1a2538;}
-        .ctc{background:#152033;border:1px solid #253a56;border-left:3px solid transparent;padding:14px 16px;cursor:pointer;transition:all .14s;}
-        .ctc:hover{background:#162030;}
-        .ctc.on{border-left-color:${mc};background:${mc}06;}
+        .sl::after{content:'';flex:1;height:1px;background:#1a1d24;}
+        .ctc{background:#0E1013;border:1px solid #24272E;border-left:3px solid transparent;padding:14px 16px;cursor:pointer;transition:all .14s;}
+        .ctc:hover{background:#15181D;}
+        .ctc.on{border-left-color:${mc};background:${mc}06;box-shadow:inset 0 0 20px ${mc}0d;}
         .ctc.locked{opacity:.35;cursor:not-allowed;}
-        .otext{font-size:14px;line-height:1.9;color:#c8d4e8;white-space:pre-wrap;font-family:'DM Mono',monospace;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
+        .otext{font-size:14px;line-height:1.9;color:#F0F1F4;white-space:pre-wrap;font-family:'DM Mono',monospace;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
         .blink::after{content:'█';animation:bl .7s steps(1) infinite;color:${mc};}
         @keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
         .gline{height:1px;animation:gl 1.1s linear infinite;margin:1px 0;}
         @keyframes gl{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
-        .mbtn{background:transparent;border:1px solid #253a56;color:#6a8aa8;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:all .2s;}
-        .mbtn:hover{border-color:#3a5572;color:#8bacc8;}
+        .mbtn{background:transparent;border:1px solid #24272E;color:#82858C;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:all .2s;}
+        .mbtn:hover{border-color:#3a5572;color:#9BA0AC;}
         .vp{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-        .hi{padding:12px 14px;border-bottom:1px solid #1e3050;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
-        .hi:hover{background:#162030;}
-        .nt{font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;background:transparent;border:1px solid #253a56;color:#6a8aa8;cursor:pointer;transition:all .15s;letter-spacing:1px;border-radius:4px;}
-        .nt:hover{border-color:#3d5e7a;color:#6a8aa8;}
-        .toolc{display:flex;align-items:center;border:1px solid #253a56;background:#152033;color:#8bacc8;font-size:12px;padding:10px 14px;cursor:pointer;gap:6px;transition:all .15s;}
-        .toolc:hover{border-color:#3d5e7a;color:#c8d8ea;}
-        .lock-icon{font-size:9px;color:#5a7a98;margin-left:4px;}
+        .hi{padding:12px 14px;border-bottom:1px solid #1a1d24;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
+        .hi:hover{background:#15181D;}
+        .nt{font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;background:transparent;border:1px solid #24272E;color:#82858C;cursor:pointer;transition:all .15s;letter-spacing:1px;border-radius:4px;}
+        .nt:hover{border-color:#45484F;color:#82858C;}
+        .toolc{display:flex;align-items:center;border:1px solid #24272E;background:#0E1013;color:#9BA0AC;font-size:12px;padding:10px 14px;cursor:pointer;gap:6px;transition:all .15s;}
+        .toolc:hover{border-color:#45484F;color:#F0F1F4;}
+        .lock-icon{font-size:9px;color:#6B6F7A;margin-left:4px;}
         .bishop-sidebar{background:linear-gradient(180deg,#0C0E12 0%,#08090B 100%);}
         .bishop-core-ring{fill:none;stroke:#6EE7FF;stroke-width:1.4;opacity:.5;animation:corePulse 2.6s ease-in-out infinite;transform-origin:center;}
         @keyframes corePulse{0%,100%{opacity:.25;transform:scale(.85);}50%{opacity:.9;transform:scale(1.05);}}
@@ -1709,7 +1709,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           {[{id:"copy",label:"◈ Copy",c:"#00e5ff",free:true},{id:"image",label:"⬡ Images",c:"#ff7c00",free:false},{id:"video",label:"▷ Video",c:"#f0b429",free:false},{id:"ab",label:"⇄ A/B Test",c:"#7c83fd",free:false},{id:"visibility",label:"◆ AI VIZ",c:"#00ff88",free:true}].map(m=>(
             <button key={m.id} className="mbtn" onClick={()=>handleModeSwitch(m.id)}
               style={{
-                ...(mode===m.id?{borderColor:m.c,color:m.c,background:`${m.c}08`}:{}),
+                ...(mode===m.id?{borderColor:m.c,color:m.c,background:`${m.c}08`,boxShadow:`0 0 14px ${m.c}33`}:{}),
                 fontSize:isMobile?11:12,
                 padding:isMobile?"8px 12px":"9px 16px",
                 whiteSpace:"nowrap",
@@ -1723,15 +1723,15 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         {/* Right side — gen meter + plan badge */}
         <div style={{display:"flex",alignItems:"center",gap:isMobile?6:8,flexShrink:0}}>
           {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} onClick={()=>setShowAccount(true)}>
-            <div style={{width:40,height:3,background:"#253a56",borderRadius:2,overflow:"hidden"}}>
+            <div style={{width:40,height:3,background:"#24272E",borderRadius:2,overflow:"hidden"}}>
               <div style={{height:"100%",background:genPct>80?"#ff2d2d":currentPlan.color,width:`${genPct}%`,transition:"width .5s"}}/>
             </div>
-            <div style={{fontSize:10,color:"#5a7a98"}}>{genLimit===Infinity?"∞":`${gensUsed}/${genLimit}`}</div>
+            <div style={{fontSize:10,color:"#6B6F7A"}}>{genLimit===Infinity?"∞":`${gensUsed}/${genLimit}`}</div>
           </div>}
           <div onClick={()=>setShowAccount(true)} style={{fontSize:isMobile?10:11,letterSpacing:1,padding:"4px 10px",border:`1px solid ${currentPlan.color}44`,color:currentPlan.color,textTransform:"uppercase",cursor:"pointer",borderRadius:3}}>{currentPlan.badge}</div>
           {running&&<div style={{display:"flex",alignItems:"center",gap:4,fontSize:10,color:mc}}><div style={{width:5,height:5,background:mc,borderRadius:"50%",animation:"bl .9s steps(1) infinite"}}/>GEN</div>}
           {step==="done"&&!running&&<div style={{width:6,height:6,background:"#00ff88",borderRadius:"50%"}}/>}
-          {!isMobile&&lastSaved&&<div style={{fontSize:9,color:saveFlash?"#00ff88":"#2d4464",transition:"color .3s"}}>● SAVED</div>}
+          {!isMobile&&lastSaved&&<div style={{fontSize:9,color:saveFlash?"#00ff88":"#2A2D33",transition:"color .3s"}}>● SAVED</div>}
         </div>
       </div>
 
@@ -1776,19 +1776,19 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
         {/* ── MOBILE BOTTOM TAB BAR ── */}
         {isMobile&&(
-          <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:200,background:"#0d1421",borderTop:"1px solid #253a56",display:"flex",padding:"0"}}>
+          <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:200,background:"#08090B",borderTop:"1px solid #24272E",display:"flex",padding:"0"}}>
             <button onClick={()=>setMobileTab("config")}
-              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="config"?"#152033":"transparent",color:mobileTab==="config"?"#00e5ff":"#5a7a98",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderTop:mobileTab==="config"?"2px solid #00e5ff":"2px solid transparent"}}>
+              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="config"?"#0E1013":"transparent",color:mobileTab==="config"?"#00e5ff":"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderTop:mobileTab==="config"?"2px solid #00e5ff":"2px solid transparent"}}>
               ⚙ Configure
             </button>
             <button onClick={()=>setMobileTab("output")}
-              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="output"?"#152033":"transparent",color:mobileTab==="output"?"#00e5ff":"#5a7a98",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderTop:mobileTab==="output"?"2px solid #00e5ff":"2px solid transparent",position:"relative"}}>
+              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="output"?"#0E1013":"transparent",color:mobileTab==="output"?"#00e5ff":"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderTop:mobileTab==="output"?"2px solid #00e5ff":"2px solid transparent",position:"relative"}}>
               {step==="running"&&<span style={{position:"absolute",top:8,right:"30%",width:6,height:6,borderRadius:"50%",background:"#00e5ff",animation:"bl .9s steps(1) infinite"}}/>}
               {step==="done"&&<span style={{position:"absolute",top:8,right:"30%",width:6,height:6,borderRadius:"50%",background:"#00ff88"}}/>}
               ▶ Output
             </button>
             <button onClick={()=>setMobileTab("sessions")}
-              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="sessions"?"#152033":"transparent",color:mobileTab==="sessions"?"#00e5ff":"#5a7a98",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderTop:mobileTab==="sessions"?"2px solid #00e5ff":"2px solid transparent"}}>
+              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="sessions"?"#0E1013":"transparent",color:mobileTab==="sessions"?"#00e5ff":"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderTop:mobileTab==="sessions"?"2px solid #00e5ff":"2px solid transparent"}}>
               ◈ Sessions
             </button>
           </div>
@@ -1798,10 +1798,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         <div style={{
           width:isMobile?"100%":370,
           maxWidth:isMobile?"100%":"35vw",
-          borderRight:isMobile?"none":"1px solid #253a56",
+          borderRight:isMobile?"none":"1px solid #24272E",
           overflowY:"auto",
           padding:isMobile?"16px 14px 80px":"24px 20px",
-          background:"#0f1928",
+          background:"#08090B",
           display:isMobile?(mobileTab==="config"?"flex":"none"):"flex",
           flexDirection:"column",
           gap:isMobile?20:28,
@@ -1813,18 +1813,18 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           <div>
             <div className="sl" style={{color:mc}}>01 — Brand Brief</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              <div><div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",marginBottom:8,fontWeight:500}}>BRAND NAME *</div>
+              <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>BRAND NAME *</div>
                 <input className="inp" placeholder="e.g. L' LEWCOR" value={brand} onChange={e=>setBrand(e.target.value)}/></div>
-              <div><div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",marginBottom:8,fontWeight:500}}>NICHE *</div>
+              <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>NICHE *</div>
                 <input className="inp" placeholder="e.g. Urban Streetwear" value={niche} onChange={e=>setNiche(e.target.value)}/>
                 <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:8}}>{NICHE_PRESETS.map(n=><button key={n} className="nt" onClick={()=>setNiche(n)}>{n}</button>)}</div>
               </div>
-              <div><div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",marginBottom:8,fontWeight:500}}>TARGET AUDIENCE</div>
+              <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>TARGET AUDIENCE</div>
                 <input className="inp" placeholder="Urban males 18-35" value={audience} onChange={e=>setAudience(e.target.value)}/></div>
               {mode!=="image"&&<>
-                <div><div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",marginBottom:8,fontWeight:500}}>CAMPAIGN GOAL</div>
+                <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>CAMPAIGN GOAL</div>
                   <input className="inp" placeholder="Drive sales, Launch Drop 001" value={goal} onChange={e=>setGoal(e.target.value)}/></div>
-                {(mode==="copy"||mode==="ab")&&<div><div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",marginBottom:8,fontWeight:500}}>SEO KEYWORDS</div>
+                {(mode==="copy"||mode==="ab")&&<div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>SEO KEYWORDS</div>
                   <input className="inp" placeholder="urban streetwear, limited drop" value={keywords} onChange={e=>setKeywords(e.target.value)}/></div>}
               </>}
             </div>
@@ -1835,11 +1835,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div className="sl" style={{color:mc}}>02 — Product Intel</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
 
-              <div><div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",marginBottom:8,fontWeight:500}}>PRODUCT NAME</div>
+              <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>PRODUCT NAME</div>
                 <input className="inp" placeholder="e.g. Urban Roots Tee Drop 001" value={productName} onChange={e=>setProductName(e.target.value)}/></div>
 
               <div>
-                <div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",marginBottom:8,fontWeight:500}}>PRODUCT TYPE</div>
+                <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>PRODUCT TYPE</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
                   {["T-Shirt","Hoodie","Sneakers","Pants","Jacket","Accessory","Course","Software","Service","App","Food / Drink","Skincare","Supplement","Digital Download","Event / Drop","NFT / Collection"].map(t=>(
                     <button key={t} className="nt"
@@ -1851,28 +1851,28 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
 
               <div>
-                <div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",marginBottom:8,fontWeight:500}}>PRODUCT DESCRIPTION *</div>
+                <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>PRODUCT DESCRIPTION *</div>
                 <textarea className="inp"
                   placeholder={`Describe what makes your product unique.\n\nExamples:\n- Materials, features, quality\n- The story behind it\n- What problem it solves\n- Why someone would want it\n- Limited edition / drop details`}
                   value={productDesc}
                   onChange={e=>setProductDesc(e.target.value)}
                   style={{resize:"vertical",minHeight:110,lineHeight:1.7}}/>
-                <div style={{fontSize:10,color:"#3d5e7a",marginTop:4,letterSpacing:.5}}>
+                <div style={{fontSize:10,color:"#45484F",marginTop:4,letterSpacing:.5}}>
                   {productDesc.length}/500 — {productDesc.length<30?"Add more detail for better results":productDesc.length<100?"Good — more detail = better AI output":"✓ Great detail — AI will nail this"}
                 </div>
               </div>
 
-              <div><div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",marginBottom:8,fontWeight:500}}>PRICE / VALUE PROP</div>
+              <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>PRICE / VALUE PROP</div>
                 <input className="inp" placeholder="e.g. $89 · Limited to 50 units" value={productPrice} onChange={e=>setProductPrice(e.target.value)}/></div>
 
               {/* Smart preview */}
               {(productName||productType||productDesc)&&(
-                <div style={{background:"#162030",border:`1px solid ${mc}22`,borderLeft:`2px solid ${mc}`,padding:"14px 16px",marginTop:2}}>
+                <div style={{background:"#15181D",border:`1px solid ${mc}22`,borderLeft:`2px solid ${mc}`,padding:"14px 16px",marginTop:2}}>
                   <div style={{fontSize:10,letterSpacing:3,color:mc,textTransform:"uppercase",marginBottom:6}}>AI will use this intel</div>
                   {productName&&<div style={{fontSize:12,color:"#bccfe0",marginBottom:2}}>📦 {productName}</div>}
-                  {productType&&<div style={{fontSize:12,color:"#8bacc8",marginBottom:2}}>🏷 {productType}</div>}
-                  {productPrice&&<div style={{fontSize:12,color:"#8bacc8",marginBottom:2}}>💰 {productPrice}</div>}
-                  {productDesc&&<div style={{fontSize:11,color:"#6a8aa8",lineHeight:1.6,marginTop:4}}>{productDesc.slice(0,100)}{productDesc.length>100?"...":""}</div>}
+                  {productType&&<div style={{fontSize:12,color:"#9BA0AC",marginBottom:2}}>🏷 {productType}</div>}
+                  {productPrice&&<div style={{fontSize:12,color:"#9BA0AC",marginBottom:2}}>💰 {productPrice}</div>}
+                  {productDesc&&<div style={{fontSize:11,color:"#82858C",lineHeight:1.6,marginTop:4}}>{productDesc.slice(0,100)}{productDesc.length>100?"...":""}</div>}
                 </div>
               )}
             </div>
@@ -1900,10 +1900,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   const locked=plan==="free"&&!ct.free;
                   return <div key={ct.id} className={`ctc ${contentType===ct.id&&!locked?"on":""} ${locked?"locked":""}`}
                     onClick={()=>locked?setUpgradeModal(`${ct.label} content`):setContentType(ct.id)}>
-                    <div style={{fontSize:13,color:contentType===ct.id&&!locked?mc:"#9ab8d0",display:"flex",justifyContent:"space-between"}}>
+                    <div style={{fontSize:13,color:contentType===ct.id&&!locked?mc:"#C9CDD3",display:"flex",justifyContent:"space-between"}}>
                       {ct.label}{locked&&<span className="lock-icon">🔒</span>}
                     </div>
-                    <div style={{fontSize:10,color:"#4a6a88",marginTop:1}}>{ct.desc}</div>
+                    <div style={{fontSize:10,color:"#565A64",marginTop:1}}>{ct.desc}</div>
                   </div>;
                 })}
               </div>
@@ -1913,10 +1913,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           {mode==="image"&&(
             <div>
               <div style={{display:"flex",gap:4,marginBottom:16}}>
-                <button onClick={()=>setImageFlow("generate")} style={{flex:1,padding:"10px 0",border:`1px solid ${imageFlow==="generate"?"#ff7c00":"#2a3f5c"}`,background:imageFlow==="generate"?"#ff7c0012":"#111c2e",color:imageFlow==="generate"?"#ff7c00":"#6a8aa8",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
+                <button onClick={()=>setImageFlow("generate")} style={{flex:1,padding:"10px 0",border:`1px solid ${imageFlow==="generate"?"#ff7c00":"#24272E"}`,background:imageFlow==="generate"?"#ff7c0012":"#111c2e",color:imageFlow==="generate"?"#ff7c00":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
                   ⬡ Generate
                 </button>
-                <button onClick={()=>setImageFlow("amplify")} style={{flex:1,padding:"10px 0",border:`1px solid ${imageFlow==="amplify"?"#00e5ff":"#2a3f5c"}`,background:imageFlow==="amplify"?"#00e5ff12":"#111c2e",color:imageFlow==="amplify"?"#00e5ff":"#6a8aa8",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
+                <button onClick={()=>setImageFlow("amplify")} style={{flex:1,padding:"10px 0",border:`1px solid ${imageFlow==="amplify"?"#00e5ff":"#24272E"}`,background:imageFlow==="amplify"?"#00e5ff12":"#111c2e",color:imageFlow==="amplify"?"#00e5ff":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
                   ◈ Upload & Amplify
                 </button>
               </div>
@@ -1925,12 +1925,12 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 <div className="sl" style={{color:"#ff7c00"}}>Image Subject</div>
                 <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:14}}>
                   {IMAGE_TYPES.map(it=><div key={it.id} className={`ctc ${imageType===it.id?"on":""}`} onClick={()=>setImageType(it.id)}>
-                    <div style={{fontSize:13,color:imageType===it.id?"#ff7c00":"#9ab8d0"}}>{it.label}</div>
-                    <div style={{fontSize:10,color:"#4a6a88",marginTop:1}}>{it.desc}</div>
+                    <div style={{fontSize:13,color:imageType===it.id?"#ff7c00":"#C9CDD3"}}>{it.label}</div>
+                    <div style={{fontSize:10,color:"#565A64",marginTop:1}}>{it.desc}</div>
                   </div>)}
                 </div>
                 <div className="sl" style={{color:"#ff7c00"}}>Prompt Target Tool</div>
-                <div style={{fontSize:11,color:"#4a6a88",marginBottom:6,lineHeight:1.6}}>Claude formats prompts for this tool. Nothing auto-runs — you paste the result.</div>
+                <div style={{fontSize:11,color:"#565A64",marginBottom:6,lineHeight:1.6}}>Claude formats prompts for this tool. Nothing auto-runs — you paste the result.</div>
                 {!imageTool&&<div style={{fontSize:11,color:"#ff7c0088",marginBottom:7,display:"flex",alignItems:"center",gap:6}}><div style={{width:5,height:5,borderRadius:"50%",background:"#ff7c00",animation:"bl .9s steps(1) infinite"}}/>Select a tool to continue</div>}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
                   {IMAGE_TOOLS.map(t=><div key={t.id} className="toolc" style={imageTool===t.id?{borderColor:t.color,color:t.color,background:`${t.color}10`}:{}} onClick={()=>setImageTool(t.id)}>{t.label}</div>)}
@@ -1941,17 +1941,17 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   {running?"⟳  GENERATING...":"⬡  GENERATE PROMPTS"}
                 </button>
                 {brand&&niche&&!imageTool&&<div style={{fontSize:11,color:"#ff7c00",textAlign:"center",marginTop:4}}>↑ Select a Prompt Target Tool first</div>}
-                {(!brand||!niche)&&<div style={{fontSize:11,color:"#3d5e7a",textAlign:"center",marginTop:4}}>Brand + Niche required</div>}
+                {(!brand||!niche)&&<div style={{fontSize:11,color:"#45484F",textAlign:"center",marginTop:4}}>Brand + Niche required</div>}
               </>)}
 
               {imageFlow==="amplify"&&(<>
                 {/* Upload Zone */}
                 {!uploadedImage?(
                   <div style={{marginBottom:20}}>
-                    <div style={{border:"2px dashed #2d4464",background:"#152033",padding:"28px 16px",textAlign:"center",borderRadius:12,marginBottom:10}}>
+                    <div style={{border:"2px dashed #2A2D33",background:"#0E1013",padding:"28px 16px",textAlign:"center",borderRadius:12,marginBottom:10}}>
                       <div style={{fontSize:40,marginBottom:10}}>🖼️</div>
-                      <div style={{fontSize:16,color:"#c8d8ea",fontWeight:700,marginBottom:6}}>Upload Your Image</div>
-                      <div style={{fontSize:13,color:"#6a8aa8",marginBottom:16}}>JPG · PNG · WEBP · GIF</div>
+                      <div style={{fontSize:16,color:"#F0F1F4",fontWeight:700,marginBottom:6}}>Upload Your Image</div>
+                      <div style={{fontSize:13,color:"#82858C",marginBottom:16}}>JPG · PNG · WEBP · GIF</div>
                       <input
                         type="file"
                         accept="image/*"
@@ -1976,11 +1976,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 ):(
                   <div style={{marginBottom:20,borderRadius:10,overflow:"hidden",border:"2px solid #00e5ff44",position:"relative"}}>
                     <img src={uploadedImage.url} alt="upload" style={{width:"100%",maxHeight:160,objectFit:"cover",display:"block"}}/>
-                    <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,#0d1421ee,transparent)"}}/>
+                    <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,#08090Bee,transparent)"}}/>
                     <div style={{position:"absolute",bottom:10,left:12,right:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <div>
                         <div style={{fontSize:11,color:"#00e5ff",letterSpacing:1,marginBottom:2}}>✓ IMAGE UPLOADED</div>
-                        <div style={{fontSize:12,color:"#c8d8ea",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedImage.name}</div>
+                        <div style={{fontSize:12,color:"#F0F1F4",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedImage.name}</div>
                         <div style={{fontSize:10,color:uploadedImage.uploading?"#f0b429":uploadedImage.storageUrl?"#5ce88a":"#ff6a6a",marginTop:2}}>{uploadedImage.uploading?"☁ Saving to cloud...":uploadedImage.storageUrl?"☁ Saved":"☁ Save failed — using local copy"}</div>
                       </div>
                       <button onClick={e=>{e.stopPropagation();setUploadedImage(null);}} style={{background:"#ff2d2d",border:"none",color:"#fff",fontSize:14,width:24,height:24,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
@@ -1991,7 +1991,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 {/* Content Type Tiles */}
                 <div style={{fontSize:12,letterSpacing:3,color:"#00e5ff",textTransform:"uppercase",marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
                   <span>Choose What to Generate</span>
-                  <div style={{flex:1,height:1,background:"#1e3050"}}/>
+                  <div style={{flex:1,height:1,background:"#1a1d24"}}/>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"1fr 1fr",gap:8,marginBottom:18}}>
                   {[
@@ -2003,28 +2003,28 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {id:"full_suite",emoji:"⚡",label:"FULL SUITE",desc:"Everything at once"},
                   ].map(a=>(
                     <div key={a.id} onClick={()=>setAmplifyType(a.id)}
-                      style={{padding:"12px 10px",border:`1.5px solid ${amplifyType===a.id?"#00e5ff":"#1e3050"}`,background:amplifyType===a.id?"rgba(0,229,255,.08)":"#152033",cursor:"pointer",borderRadius:8,textAlign:"center",transition:"all .15s",position:"relative"}}>
+                      style={{padding:"12px 10px",border:`1.5px solid ${amplifyType===a.id?"#00e5ff":"#1a1d24"}`,background:amplifyType===a.id?"rgba(0,229,255,.08)":"#0E1013",cursor:"pointer",borderRadius:8,textAlign:"center",transition:"all .15s",position:"relative"}}>
                       {amplifyType===a.id&&<div style={{position:"absolute",top:6,right:6,width:6,height:6,borderRadius:"50%",background:"#00e5ff"}}/>}
                       <div style={{fontSize:22,marginBottom:5}}>{a.emoji}</div>
-                      <div style={{fontSize:13,color:amplifyType===a.id?"#00e5ff":"#c8d8ea",fontWeight:500,marginBottom:2}}>{a.label}</div>
-                      <div style={{fontSize:11,color:"#5a7a98",lineHeight:1.4}}>{a.desc}</div>
+                      <div style={{fontSize:13,color:amplifyType===a.id?"#00e5ff":"#F0F1F4",fontWeight:500,marginBottom:2}}>{a.label}</div>
+                      <div style={{fontSize:11,color:"#6B6F7A",lineHeight:1.4}}>{a.desc}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* AI Brain */}
                 <div style={{fontSize:12,letterSpacing:3,color:"#00e5ff",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
-                  <span>AI Brain</span><div style={{flex:1,height:1,background:"#1e3050"}}/>
+                  <span>AI Brain</span><div style={{flex:1,height:1,background:"#1a1d24"}}/>
                 </div>
                 {renderBrainPicker("#00e5ff")}
 
                 {/* Generate Button */}
                 <button className="gbtn" disabled={!uploadedImage||running||!brand||!niche} onClick={amplifyGenerate}
-                  style={{background:uploadedImage&&brand&&niche?"linear-gradient(135deg,#00e5ff,#0055ff)":"#1e2d42",color:uploadedImage&&brand&&niche?"#000":"#3d5e7a",marginTop:4,fontSize:15,padding:"15px 0",letterSpacing:3}}>
+                  style={{background:uploadedImage&&brand&&niche?"linear-gradient(135deg,#00e5ff,#0055ff)":"#1a1d24",color:uploadedImage&&brand&&niche?"#000":"#45484F",marginTop:4,fontSize:15,padding:"15px 0",letterSpacing:3}}>
                   {running?"⟳  GENERATING...":`◈  ${AI_BRAINS.find(b=>b.id===aiBrain)?.label||"AI"} GENERATE`}
                 </button>
-                {!brand||!niche?<div style={{textAlign:"center",fontSize:12,color:"#3d5e7a",marginTop:6}}>↑ Add Brand + Niche in Section 01</div>
-                :!uploadedImage?<div style={{textAlign:"center",fontSize:12,color:"#3d5e7a",marginTop:6}}>↑ Upload an image above to begin</div>:null}
+                {!brand||!niche?<div style={{textAlign:"center",fontSize:12,color:"#45484F",marginTop:6}}>↑ Add Brand + Niche in Section 01</div>
+                :!uploadedImage?<div style={{textAlign:"center",fontSize:12,color:"#45484F",marginTop:6}}>↑ Upload an image above to begin</div>:null}
               </>)}
             </div>
           )}
@@ -2032,10 +2032,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           {mode==="video"&&(
             <div>
               <div style={{display:"flex",gap:4,marginBottom:16}}>
-                <button onClick={()=>setVideoFlow("generate")} style={{flex:1,padding:"10px 0",border:`1px solid ${videoFlow==="generate"?"#f0b429":"#2a3f5c"}`,background:videoFlow==="generate"?"#f0b42912":"#111c2e",color:videoFlow==="generate"?"#f0b429":"#6a8aa8",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
+                <button onClick={()=>setVideoFlow("generate")} style={{flex:1,padding:"10px 0",border:`1px solid ${videoFlow==="generate"?"#f0b429":"#24272E"}`,background:videoFlow==="generate"?"#f0b42912":"#111c2e",color:videoFlow==="generate"?"#f0b429":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
                   ▷ Generate Script
                 </button>
-                <button onClick={()=>setVideoFlow("amplify")} style={{flex:1,padding:"10px 0",border:`1px solid ${videoFlow==="amplify"?"#00e5ff":"#2a3f5c"}`,background:videoFlow==="amplify"?"#00e5ff12":"#111c2e",color:videoFlow==="amplify"?"#00e5ff":"#6a8aa8",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
+                <button onClick={()=>setVideoFlow("amplify")} style={{flex:1,padding:"10px 0",border:`1px solid ${videoFlow==="amplify"?"#00e5ff":"#24272E"}`,background:videoFlow==="amplify"?"#00e5ff12":"#111c2e",color:videoFlow==="amplify"?"#00e5ff":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
                   ◈ Upload & Amplify
                 </button>
               </div>
@@ -2045,12 +2045,12 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 {!videoAdType&&<div style={{fontSize:11,color:"#f0b42988",marginBottom:7,display:"flex",alignItems:"center",gap:6}}><div style={{width:5,height:5,borderRadius:"50%",background:"#f0b429",animation:"bl .9s steps(1) infinite"}}/>Pick a format to continue</div>}
                 <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:14}}>
                   {VIDEO_AD_TYPES.map(vt=><div key={vt.id} className={`ctc ${videoAdType===vt.id?"on":""}`} onClick={()=>setVideoAdType(vt.id)}>
-                    <div style={{fontSize:13,color:videoAdType===vt.id?"#f0b429":"#9ab8d0"}}>{vt.label}</div>
-                    <div style={{fontSize:10,color:"#4a6a88",marginTop:1}}>{vt.desc}</div>
+                    <div style={{fontSize:13,color:videoAdType===vt.id?"#f0b429":"#C9CDD3"}}>{vt.label}</div>
+                    <div style={{fontSize:10,color:"#565A64",marginTop:1}}>{vt.desc}</div>
                   </div>)}
                 </div>
                 <div className="sl" style={{color:"#f0b429"}}>Prompt Target Tool</div>
-                <div style={{fontSize:11,color:"#4a6a88",marginBottom:6,lineHeight:1.6}}>Claude writes the script for this tool. Nothing auto-runs.</div>
+                <div style={{fontSize:11,color:"#565A64",marginBottom:6,lineHeight:1.6}}>Claude writes the script for this tool. Nothing auto-runs.</div>
                 {!videoTool&&videoAdType&&<div style={{fontSize:11,color:"#f0b42988",marginBottom:7,display:"flex",alignItems:"center",gap:6}}><div style={{width:5,height:5,borderRadius:"50%",background:"#f0b429",animation:"bl .9s steps(1) infinite"}}/>Now pick your target tool</div>}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
                   {VIDEO_TOOLS.map(t=><div key={t.id} className="toolc" style={videoTool===t.id?{borderColor:t.color,color:t.color,background:`${t.color}10`}:{}} onClick={()=>setVideoTool(t.id)}>{t.label}</div>)}
@@ -2062,17 +2062,17 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 </button>
                 {brand&&niche&&!videoAdType&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",marginTop:4}}>↑ Select a Video Ad Format first</div>}
                 {brand&&niche&&videoAdType&&!videoTool&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",marginTop:4}}>↑ Select a Prompt Target Tool</div>}
-                {(!brand||!niche)&&<div style={{fontSize:11,color:"#3d5e7a",textAlign:"center",marginTop:4}}>Brand + Niche required</div>}
+                {(!brand||!niche)&&<div style={{fontSize:11,color:"#45484F",textAlign:"center",marginTop:4}}>Brand + Niche required</div>}
               </>)}
 
               {videoFlow==="amplify"&&(<>
                 {/* Upload Zone */}
                 {!uploadedVideo?(
                   <div style={{marginBottom:20}}>
-                    <div style={{border:"2px dashed #2d4464",background:"#152033",padding:"28px 16px",textAlign:"center",borderRadius:12,marginBottom:10}}>
+                    <div style={{border:"2px dashed #2A2D33",background:"#0E1013",padding:"28px 16px",textAlign:"center",borderRadius:12,marginBottom:10}}>
                       <div style={{fontSize:40,marginBottom:10}}>🎬</div>
-                      <div style={{fontSize:16,color:"#c8d8ea",fontWeight:700,marginBottom:6}}>Upload Your Video</div>
-                      <div style={{fontSize:13,color:"#6a8aa8",marginBottom:16}}>MP4 · MOV · WEBM · AVI</div>
+                      <div style={{fontSize:16,color:"#F0F1F4",fontWeight:700,marginBottom:6}}>Upload Your Video</div>
+                      <div style={{fontSize:13,color:"#82858C",marginBottom:16}}>MP4 · MOV · WEBM · AVI</div>
                       <input
                         type="file"
                         accept="video/*"
@@ -2097,11 +2097,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 ):(
                   <div style={{marginBottom:20,borderRadius:10,overflow:"hidden",border:"2px solid #00e5ff44"}}>
                     <video src={uploadedVideo.url} style={{width:"100%",maxHeight:150,display:"block",objectFit:"cover"}} muted playsInline preload="metadata"/>
-                    <div style={{padding:"14px 16px",background:"#152033",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{padding:"14px 16px",background:"#0E1013",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <div>
                         <div style={{fontSize:11,color:"#00e5ff",letterSpacing:1,marginBottom:2}}>✓ VIDEO UPLOADED</div>
-                        <div style={{fontSize:12,color:"#c8d8ea",maxWidth:190,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedVideo.name}</div>
-                        <div style={{fontSize:11,color:"#5a7a98",marginTop:1}}>{uploadedVideo.size} MB</div>
+                        <div style={{fontSize:12,color:"#F0F1F4",maxWidth:190,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedVideo.name}</div>
+                        <div style={{fontSize:11,color:"#6B6F7A",marginTop:1}}>{uploadedVideo.size} MB</div>
                         <div style={{fontSize:10,color:uploadedVideo.uploading?"#f0b429":uploadedVideo.storageUrl?"#5ce88a":"#ff6a6a",marginTop:2}}>{uploadedVideo.uploading?"☁ Saving to cloud...":uploadedVideo.storageUrl?"☁ Saved":"☁ Save failed — using local copy"}</div>
                       </div>
                       <button onClick={()=>setUploadedVideo(null)} style={{background:"#ff2d2d",border:"none",color:"#fff",fontSize:14,width:24,height:24,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
@@ -2112,7 +2112,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 {/* Content Type Tiles */}
                 <div style={{fontSize:12,letterSpacing:3,color:"#00e5ff",textTransform:"uppercase",marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
                   <span>Choose What to Generate</span>
-                  <div style={{flex:1,height:1,background:"#1e3050"}}/>
+                  <div style={{flex:1,height:1,background:"#1a1d24"}}/>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"1fr 1fr",gap:8,marginBottom:18}}>
                   {[
@@ -2124,28 +2124,28 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {id:"full_suite",emoji:"⚡",label:"FULL SUITE",desc:"Everything at once"},
                   ].map(a=>(
                     <div key={a.id} onClick={()=>setAmplifyType(a.id)}
-                      style={{padding:"12px 10px",border:`1.5px solid ${amplifyType===a.id?"#00e5ff":"#1e3050"}`,background:amplifyType===a.id?"rgba(0,229,255,.08)":"#152033",cursor:"pointer",borderRadius:8,textAlign:"center",transition:"all .15s",position:"relative"}}>
+                      style={{padding:"12px 10px",border:`1.5px solid ${amplifyType===a.id?"#00e5ff":"#1a1d24"}`,background:amplifyType===a.id?"rgba(0,229,255,.08)":"#0E1013",cursor:"pointer",borderRadius:8,textAlign:"center",transition:"all .15s",position:"relative"}}>
                       {amplifyType===a.id&&<div style={{position:"absolute",top:6,right:6,width:6,height:6,borderRadius:"50%",background:"#00e5ff"}}/>}
                       <div style={{fontSize:22,marginBottom:5}}>{a.emoji}</div>
-                      <div style={{fontSize:13,color:amplifyType===a.id?"#00e5ff":"#c8d8ea",fontWeight:500,marginBottom:2}}>{a.label}</div>
-                      <div style={{fontSize:11,color:"#5a7a98",lineHeight:1.4}}>{a.desc}</div>
+                      <div style={{fontSize:13,color:amplifyType===a.id?"#00e5ff":"#F0F1F4",fontWeight:500,marginBottom:2}}>{a.label}</div>
+                      <div style={{fontSize:11,color:"#6B6F7A",lineHeight:1.4}}>{a.desc}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* AI Brain */}
                 <div style={{fontSize:12,letterSpacing:3,color:"#00e5ff",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
-                  <span>AI Brain</span><div style={{flex:1,height:1,background:"#1e3050"}}/>
+                  <span>AI Brain</span><div style={{flex:1,height:1,background:"#1a1d24"}}/>
                 </div>
                 {renderBrainPicker("#00e5ff")}
 
                 {/* Generate Button */}
                 <button className="gbtn" disabled={!uploadedVideo||running||!brand||!niche} onClick={amplifyGenerate}
-                  style={{background:uploadedVideo&&brand&&niche?"linear-gradient(135deg,#00e5ff,#0055ff)":"#1e2d42",color:uploadedVideo&&brand&&niche?"#000":"#3d5e7a",marginTop:4,fontSize:15,padding:"15px 0",letterSpacing:3}}>
+                  style={{background:uploadedVideo&&brand&&niche?"linear-gradient(135deg,#00e5ff,#0055ff)":"#1a1d24",color:uploadedVideo&&brand&&niche?"#000":"#45484F",marginTop:4,fontSize:15,padding:"15px 0",letterSpacing:3}}>
                   {running?"⟳  GENERATING...":`◈  ${AI_BRAINS.find(b=>b.id===aiBrain)?.label||"AI"} GENERATE`}
                 </button>
-                {!brand||!niche?<div style={{textAlign:"center",fontSize:12,color:"#3d5e7a",marginTop:6}}>↑ Add Brand + Niche in Section 01</div>
-                :!uploadedVideo?<div style={{textAlign:"center",fontSize:12,color:"#3d5e7a",marginTop:6}}>↑ Upload a video above to begin</div>:null}
+                {!brand||!niche?<div style={{textAlign:"center",fontSize:12,color:"#45484F",marginTop:6}}>↑ Add Brand + Niche in Section 01</div>
+                :!uploadedVideo?<div style={{textAlign:"center",fontSize:12,color:"#45484F",marginTop:6}}>↑ Upload a video above to begin</div>:null}
               </>)}
             </div>
           )}
@@ -2155,8 +2155,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               <div className="sl" style={{color:"#7c83fd"}}>05 — A/B Variable</div>
               <div style={{display:"flex",flexDirection:"column",gap:4}}>
                 {AB_VARIABLES.map(v=><div key={v.id} className={`ctc ${abVar===v.id?"on":""}`} onClick={()=>setAbVar(v.id)}>
-                  <div style={{fontSize:13,color:abVar===v.id?"#7c83fd":"#9ab8d0"}}>{v.label}</div>
-                  <div style={{fontSize:10,color:"#4a6a88",marginTop:1}}>{v.desc}</div>
+                  <div style={{fontSize:13,color:abVar===v.id?"#7c83fd":"#C9CDD3"}}>{v.label}</div>
+                  <div style={{fontSize:10,color:"#565A64",marginTop:1}}>{v.desc}</div>
                 </div>)}
               </div>
             </div>
@@ -2197,7 +2197,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               {TONES.map(t=>{
                 const locked=plan==="free"&&!t.free;
                 return <div key={t.id} onClick={()=>locked?setUpgradeModal(`${t.label} tone`):setTone(t.id)}
-                  style={{padding:"5px 10px",border:`1px solid ${tone===t.id&&!locked?t.color:"#2a3f5c"}`,background:tone===t.id&&!locked?`${t.color}12`:"#152033",cursor:locked?"not-allowed":"pointer",color:tone===t.id&&!locked?t.color:"#6a8aa8",fontSize:12,letterSpacing:1,transition:"all .15s",opacity:locked?.45:1}}>
+                  style={{padding:"5px 10px",border:`1px solid ${tone===t.id&&!locked?t.color:"#24272E"}`,background:tone===t.id&&!locked?`${t.color}12`:"#0E1013",cursor:locked?"not-allowed":"pointer",color:tone===t.id&&!locked?t.color:"#82858C",fontSize:12,letterSpacing:1,transition:"all .15s",opacity:locked?.45:1}}>
                   {t.label}{locked&&<span className="lock-icon">🔒</span>}
                 </div>;
               })}
@@ -2214,7 +2214,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           )}
 
           {/* Required selection hints */}
-          {mode!=="visibility"&&(!brand||!niche)&&<div style={{fontSize:11,color:"#3d5e7a",textAlign:"center",letterSpacing:1,marginTop:-10}}>Brand + Niche required</div>}
+          {mode!=="visibility"&&(!brand||!niche)&&<div style={{fontSize:11,color:"#45484F",textAlign:"center",letterSpacing:1,marginTop:-10}}>Brand + Niche required</div>}
           {mode==="image"&&brand&&niche&&!imageTool&&<div style={{fontSize:11,color:"#ff7c00",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Prompt Target Tool above</div>}
           {mode==="video"&&brand&&niche&&!videoAdType&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Video Ad Format above</div>}
           {mode==="video"&&brand&&niche&&videoAdType&&!videoTool&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Prompt Target Tool above</div>}
@@ -2235,18 +2235,18 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           minHeight:0,
           paddingBottom:isMobile?"80px":0,
         }}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 18px",borderBottom:"1px solid #1e2d42",background:"#0d1421",flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 18px",borderBottom:"1px solid #1a1d24",background:"#08090B",flexShrink:0}}>
             <div style={{display:"flex",alignItems:"center",gap:9,flexWrap:"wrap"}}>
               {mode==="ab"?(
                 <><button className={`sm ${abTab==="variants"?"on":""}`} onClick={()=>setAbTab("variants")}>⇄ Variants</button>
                 <button className={`sm ${abTab==="scores"?"on":""}`} onClick={()=>setAbTab("scores")} disabled={!abA||!abB}>◈ Scores</button></>
               ):(
-                <><div style={{fontSize:10,letterSpacing:3,color:"#4a6a88",textTransform:"uppercase"}}>
+                <><div style={{fontSize:10,letterSpacing:3,color:"#565A64",textTransform:"uppercase"}}>
                   {mode==="image"?(IMAGE_TYPES.find(c=>c.id===imageType)?.label):mode==="video"?(VIDEO_AD_TYPES.find(c=>c.id===videoAdType)?.label):(CONTENT_TYPES.find(c=>c.id===contentType)?.label)}
                 </div>
-                <div style={{fontSize:10,letterSpacing:2,padding:"2px 7px",border:`1px solid ${selTone?.color||"#2d4464"}33`,color:selTone?.color||"#5a7a98",textTransform:"uppercase"}}>{selTone?.label}</div>
-                {mode==="image"&&<div style={{fontSize:10,letterSpacing:2,padding:"2px 7px",border:`1px solid ${IMAGE_TOOLS.find(t=>t.id===imageTool)?.color||"#2d4464"}44`,color:IMAGE_TOOLS.find(t=>t.id===imageTool)?.color||"#5a7a98",textTransform:"uppercase"}}>{IMAGE_TOOLS.find(t=>t.id===imageTool)?.label}</div>}
-                {mode==="video"&&<div style={{fontSize:10,letterSpacing:2,padding:"2px 7px",border:`1px solid ${VIDEO_TOOLS.find(t=>t.id===videoTool)?.color||"#2d4464"}44`,color:VIDEO_TOOLS.find(t=>t.id===videoTool)?.color||"#5a7a98",textTransform:"uppercase"}}>{VIDEO_TOOLS.find(t=>t.id===videoTool)?.label}</div>}
+                <div style={{fontSize:10,letterSpacing:2,padding:"2px 7px",border:`1px solid ${selTone?.color||"#2A2D33"}33`,color:selTone?.color||"#6B6F7A",textTransform:"uppercase"}}>{selTone?.label}</div>
+                {mode==="image"&&<div style={{fontSize:10,letterSpacing:2,padding:"2px 7px",border:`1px solid ${IMAGE_TOOLS.find(t=>t.id===imageTool)?.color||"#2A2D33"}44`,color:IMAGE_TOOLS.find(t=>t.id===imageTool)?.color||"#6B6F7A",textTransform:"uppercase"}}>{IMAGE_TOOLS.find(t=>t.id===imageTool)?.label}</div>}
+                {mode==="video"&&<div style={{fontSize:10,letterSpacing:2,padding:"2px 7px",border:`1px solid ${VIDEO_TOOLS.find(t=>t.id===videoTool)?.color||"#2A2D33"}44`,color:VIDEO_TOOLS.find(t=>t.id===videoTool)?.color||"#6B6F7A",textTransform:"uppercase"}}>{VIDEO_TOOLS.find(t=>t.id===videoTool)?.label}</div>}
                 {(mode==="image"||mode==="video")&&(uploadedImage||uploadedVideo)&&(()=>{const b=AI_BRAINS.find(x=>x.id===aiBrain);return b?<div style={{fontSize:10,letterSpacing:2,padding:"2px 7px",border:`1px solid ${b.color}55`,color:b.color,background:`${b.color}0a`,textTransform:"uppercase"}}>{b.icon} {b.label}</div>:null;})()}
                 </>
               )}
@@ -2266,41 +2266,41 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           <div ref={outRef} style={{flex:1,overflowY:"auto",padding:mode==="ab"?"0":isMobile?"20px 16px":"32px 36px",minHeight:0,wordBreak:"break-word"}}>
             {step==="idle"&&(
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:14,userSelect:"none"}}>
-                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:64,color:"#162030",letterSpacing:4,lineHeight:1}}>GENTAGAI</div>
-                <div style={{fontSize:11,letterSpacing:4,color:"#2e4a64",textTransform:"uppercase"}}>Configure → Generate</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:64,color:"#15181D",letterSpacing:4,lineHeight:1}}>GENTAGAI</div>
+                <div style={{fontSize:11,letterSpacing:4,color:"#2A2D33",textTransform:"uppercase"}}>Configure → Generate</div>
               </div>
             )}
 
             {(mode==="copy"||mode==="image"||mode==="video")&&(step==="running"||step==="done"||output.length>0||outputRef.current.length>0)&&(
               <div>
-                {brand&&<div style={{marginBottom:20,paddingBottom:14,borderBottom:"1px solid #1e2d42"}}>
-                  <div style={{fontSize:10,letterSpacing:4,color:"#3d5e7a",textTransform:"uppercase",marginBottom:5}}>
+                {brand&&<div style={{marginBottom:20,paddingBottom:14,borderBottom:"1px solid #1a1d24"}}>
+                  <div style={{fontSize:10,letterSpacing:4,color:"#45484F",textTransform:"uppercase",marginBottom:5}}>
                     {uploadedImage||uploadedVideo?"Analyzing":"Generating"} for
                   </div>
                   <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:20,color:"#fff",letterSpacing:2}}>{brand}</div>
-                  <div style={{fontSize:12,color:"#4a6a88",marginTop:3}}>{niche}{mode==="video"&&` · ${VIDEO_AD_TYPES.find(v=>v.id===videoAdType)?.label}`}</div>
+                  <div style={{fontSize:12,color:"#565A64",marginTop:3}}>{niche}{mode==="video"&&` · ${VIDEO_AD_TYPES.find(v=>v.id===videoAdType)?.label}`}</div>
                 </div>}
 
                 {/* Uploaded image preview */}
                 {mode==="image"&&uploadedImage&&imageFlow==="amplify"&&(
-                  <div style={{marginBottom:20,display:"flex",gap:14,alignItems:"flex-start",padding:"14px",background:"#162030",border:"1px solid #ff7c0033",borderRadius:6}}>
+                  <div style={{marginBottom:20,display:"flex",gap:14,alignItems:"flex-start",padding:"14px",background:"#15181D",border:"1px solid #ff7c0033",borderRadius:6}}>
                     <img src={uploadedImage.url} alt="uploaded" style={{width:80,height:80,objectFit:"cover",borderRadius:4,flexShrink:0,border:"1px solid #ff7c0055"}}/>
                     <div style={{flex:1}}>
                       <div style={{fontSize:12,letterSpacing:2,color:"#ff7c00",textTransform:"uppercase",marginBottom:4}}>Analyzing This Image</div>
                       <div style={{fontSize:13,color:"#bccfe0",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedImage.name}</div>
-                      <div style={{fontSize:11,color:"#5a7a98"}}>{uploadedImage.size} KB</div>
+                      <div style={{fontSize:11,color:"#6B6F7A"}}>{uploadedImage.size} KB</div>
                     </div>
                   </div>
                 )}
 
                 {/* Uploaded video preview */}
                 {mode==="video"&&uploadedVideo&&videoFlow==="amplify"&&(
-                  <div style={{marginBottom:20,background:"#162030",border:"1px solid #f0b42933",borderRadius:6,overflow:"hidden"}}>
+                  <div style={{marginBottom:20,background:"#15181D",border:"1px solid #f0b42933",borderRadius:6,overflow:"hidden"}}>
                     <video src={uploadedVideo.url} controls style={{width:"100%",maxHeight:160,display:"block",background:"#000"}}/>
                     <div style={{padding:"10px 14px",display:"flex",gap:12,alignItems:"center"}}>
                       <div style={{flex:1}}>
                         <div style={{fontSize:12,letterSpacing:2,color:"#f0b429",textTransform:"uppercase",marginBottom:2}}>Analyzing This Video</div>
-                        <div style={{fontSize:12,color:"#6a8aa8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedVideo.name} · {uploadedVideo.size} MB</div>
+                        <div style={{fontSize:12,color:"#82858C",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedVideo.name} · {uploadedVideo.size} MB</div>
                       </div>
                     </div>
                   </div>
@@ -2310,7 +2310,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
                 {/* ── PUBLISH PANEL ── */}
                 {step==="done"&&output&&(
-                  <div style={{marginTop:32,borderTop:"2px solid #253a56",paddingTop:24}}>
+                  <div style={{marginTop:32,borderTop:"2px solid #24272E",paddingTop:24}}>
 
                     {/* Header */}
                     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
@@ -2318,28 +2318,28 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:18,color:"#fff",letterSpacing:1,marginBottom:4}}>
                           📤 Publish Your {mode==="image"?"Image":"Video"}
                         </div>
-                        <div style={{fontSize:13,color:"#6a8aa8",lineHeight:1.6}}>
+                        <div style={{fontSize:13,color:"#82858C",lineHeight:1.6}}>
                           {uploadedImage?"Your image is ready to post."
                           :uploadedVideo?"Your video is ready to post."
                           :mode==="image"?"Use the AI prompts above to generate your image, then come back to post it."
                           :"Use the script above to create your video, then come back to post it."}
                         </div>
                       </div>
-                      <button onClick={downloadFile} style={{padding:"10px 16px",border:"1px solid #253a56",background:"transparent",color:"#6a8aa8",fontSize:12,letterSpacing:1,cursor:"pointer",fontFamily:"'DM Mono',monospace",borderRadius:4,flexShrink:0,display:uploadedImage||uploadedVideo?"block":"none"}}>↓ Download</button>
+                      <button onClick={downloadFile} style={{padding:"10px 16px",border:"1px solid #24272E",background:"transparent",color:"#82858C",fontSize:12,letterSpacing:1,cursor:"pointer",fontFamily:"'DM Mono',monospace",borderRadius:4,flexShrink:0,display:uploadedImage||uploadedVideo?"block":"none"}}>↓ Download</button>
                     </div>
 
                     {/* Upload your finished image/video if not already uploaded */}
                     {!uploadedImage&&!uploadedVideo&&(
                       <div style={{marginBottom:24}}>
-                        <div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",textTransform:"uppercase",marginBottom:10,fontWeight:500}}>
+                        <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",textTransform:"uppercase",marginBottom:10,fontWeight:500}}>
                           Upload Your Finished {mode==="image"?"Image":"Video"} to Publish
                         </div>
                         {mode==="image"?(
                           <>
-                            <div style={{border:"2px dashed #2d4464",background:"#152033",padding:"20px 16px",textAlign:"center",borderRadius:10,marginBottom:8}}>
+                            <div style={{border:"2px dashed #2A2D33",background:"#0E1013",padding:"20px 16px",textAlign:"center",borderRadius:10,marginBottom:8}}>
                               <div style={{fontSize:30,marginBottom:8}}>🖼️</div>
-                              <div style={{fontSize:14,color:"#c8d8ea",fontWeight:600,marginBottom:4}}>Upload Your Image</div>
-                              <div style={{fontSize:12,color:"#5a7a98",marginBottom:14}}>JPG · PNG · WEBP · GIF</div>
+                              <div style={{fontSize:14,color:"#F0F1F4",fontWeight:600,marginBottom:4}}>Upload Your Image</div>
+                              <div style={{fontSize:12,color:"#6B6F7A",marginBottom:14}}>JPG · PNG · WEBP · GIF</div>
                               <input type="file" accept="image/*"
                                 onChange={e=>{if(e.target.files&&e.target.files[0])handleImageFile(e.target.files[0]);}}
                                 style={{display:"block",width:"100%",padding:"12px",background:"#00e5ff",color:"#000",border:"none",borderRadius:7,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'DM Mono',monospace"}}
@@ -2348,10 +2348,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                           </>
                         ):(
                           <>
-                            <div style={{border:"2px dashed #2d4464",background:"#152033",padding:"20px 16px",textAlign:"center",borderRadius:10,marginBottom:8}}>
+                            <div style={{border:"2px dashed #2A2D33",background:"#0E1013",padding:"20px 16px",textAlign:"center",borderRadius:10,marginBottom:8}}>
                               <div style={{fontSize:30,marginBottom:8}}>🎬</div>
-                              <div style={{fontSize:14,color:"#c8d8ea",fontWeight:600,marginBottom:4}}>Upload Your Video</div>
-                              <div style={{fontSize:12,color:"#5a7a98",marginBottom:14}}>MP4 · MOV · WEBM · AVI</div>
+                              <div style={{fontSize:14,color:"#F0F1F4",fontWeight:600,marginBottom:4}}>Upload Your Video</div>
+                              <div style={{fontSize:12,color:"#6B6F7A",marginBottom:14}}>MP4 · MOV · WEBM · AVI</div>
                               <input type="file" accept="video/*"
                                 onChange={e=>{if(e.target.files&&e.target.files[0])handleVideoFile(e.target.files[0]);}}
                                 style={{display:"block",width:"100%",padding:"12px",background:"#f0b429",color:"#000",border:"none",borderRadius:7,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'DM Mono',monospace"}}
@@ -2364,49 +2364,49 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
                     {/* Show uploaded file preview in publish panel */}
                     {uploadedImage&&(
-                      <div style={{marginBottom:20,display:"flex",gap:14,alignItems:"center",padding:"14px",background:"#0f1928",border:"1px solid #00e5ff33",borderRadius:8}}>
+                      <div style={{marginBottom:20,display:"flex",gap:14,alignItems:"center",padding:"14px",background:"#08090B",border:"1px solid #00e5ff33",borderRadius:8}}>
                         <img src={uploadedImage.url} alt="ready" style={{width:80,height:80,objectFit:"cover",borderRadius:6,flexShrink:0,border:"2px solid #00e5ff44"}}/>
                         <div style={{flex:1}}>
                           <div style={{fontSize:12,color:"#00e5ff",letterSpacing:1,marginBottom:3}}>✓ IMAGE READY TO PUBLISH</div>
-                          <div style={{fontSize:13,color:"#c8d8ea",marginBottom:4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedImage.name}</div>
-                          <div style={{fontSize:11,color:"#4a6a88"}}>{uploadedImage.size} KB</div>
+                          <div style={{fontSize:13,color:"#F0F1F4",marginBottom:4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedImage.name}</div>
+                          <div style={{fontSize:11,color:"#565A64"}}>{uploadedImage.size} KB</div>
                         </div>
-                        <button onClick={()=>setUploadedImage(null)} style={{background:"none",border:"1px solid #253a56",color:"#6a8aa8",fontSize:11,padding:"5px 10px",cursor:"pointer",fontFamily:"inherit",borderRadius:4}}>Change</button>
+                        <button onClick={()=>setUploadedImage(null)} style={{background:"none",border:"1px solid #24272E",color:"#82858C",fontSize:11,padding:"5px 10px",cursor:"pointer",fontFamily:"inherit",borderRadius:4}}>Change</button>
                       </div>
                     )}
                     {uploadedVideo&&(
-                      <div style={{marginBottom:20,background:"#0f1928",border:"1px solid #00e5ff33",borderRadius:8,overflow:"hidden"}}>
+                      <div style={{marginBottom:20,background:"#08090B",border:"1px solid #00e5ff33",borderRadius:8,overflow:"hidden"}}>
                         <video src={uploadedVideo.url} style={{width:"100%",maxHeight:160,display:"block",objectFit:"cover"}} muted playsInline preload="metadata"/>
                         <div style={{padding:"12px 14px",display:"flex",alignItems:"center",gap:12}}>
                           <div style={{flex:1}}>
                             <div style={{fontSize:12,color:"#00e5ff",letterSpacing:1,marginBottom:2}}>✓ VIDEO READY TO PUBLISH</div>
-                            <div style={{fontSize:13,color:"#c8d8ea",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedVideo.name}</div>
-                            <div style={{fontSize:11,color:"#4a6a88",marginTop:2}}>{uploadedVideo.size} MB</div>
+                            <div style={{fontSize:13,color:"#F0F1F4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedVideo.name}</div>
+                            <div style={{fontSize:11,color:"#565A64",marginTop:2}}>{uploadedVideo.size} MB</div>
                           </div>
-                          <button onClick={()=>setUploadedVideo(null)} style={{background:"none",border:"1px solid #253a56",color:"#6a8aa8",fontSize:11,padding:"5px 10px",cursor:"pointer",fontFamily:"inherit",borderRadius:4}}>Change</button>
+                          <button onClick={()=>setUploadedVideo(null)} style={{background:"none",border:"1px solid #24272E",color:"#82858C",fontSize:11,padding:"5px 10px",cursor:"pointer",fontFamily:"inherit",borderRadius:4}}>Change</button>
                         </div>
                       </div>
                     )}
 
                     {/* Caption */}
                     <div style={{marginBottom:20}}>
-                      <div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",textTransform:"uppercase",marginBottom:8,fontWeight:500}}>Your Post Caption</div>
+                      <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",textTransform:"uppercase",marginBottom:8,fontWeight:500}}>Your Post Caption</div>
                       <textarea value={publishCaption} onChange={e=>setPublishCaption(e.target.value)}
                         placeholder={output.slice(0,200)||`${brand} — ${productName||niche} #newdrop`}
-                        style={{width:"100%",background:"#152033",border:"1.5px solid #2d4464",color:"#e8edf8",fontFamily:"'DM Mono',monospace",fontSize:14,padding:"14px 16px",resize:"vertical",minHeight:90,outline:"none",lineHeight:1.8,borderRadius:6}}/>
-                      <div style={{fontSize:11,color:"#4a6a88",marginTop:4}}>{publishCaption.length>0?`${publishCaption.length} chars — copy-paste ready`:"Leave blank to use the AI-generated content above"}</div>
+                        style={{width:"100%",background:"#0E1013",border:"1.5px solid #2A2D33",color:"#F5F6F8",fontFamily:"'DM Mono',monospace",fontSize:14,padding:"14px 16px",resize:"vertical",minHeight:90,outline:"none",lineHeight:1.8,borderRadius:6}}/>
+                      <div style={{fontSize:11,color:"#565A64",marginTop:4}}>{publishCaption.length>0?`${publishCaption.length} chars — copy-paste ready`:"Leave blank to use the AI-generated content above"}</div>
                     </div>
 
                     {/* Platform URL Setup */}
                     <div style={{marginBottom:20}}>
                       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-                        <div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",textTransform:"uppercase",fontWeight:500}}>Your Platform Profiles</div>
+                        <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",textTransform:"uppercase",fontWeight:500}}>Your Platform Profiles</div>
                         <button onClick={()=>setShowURLSetup(s=>!s)}
-                          style={{fontSize:11,padding:"5px 12px",border:"1px solid #253a56",background:showURLSetup?"#1e3050":"transparent",color:"#6a8aa8",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderRadius:4,letterSpacing:1}}>
+                          style={{fontSize:11,padding:"5px 12px",border:"1px solid #24272E",background:showURLSetup?"#1a1d24":"transparent",color:"#82858C",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderRadius:4,letterSpacing:1}}>
                           {showURLSetup?"Hide":"⚙ Setup URLs"}
                         </button>
                       </div>
-                      <div style={{fontSize:12,color:"#4a6a88",marginBottom:showURLSetup?12:0,lineHeight:1.6}}>
+                      <div style={{fontSize:12,color:"#565A64",marginBottom:showURLSetup?12:0,lineHeight:1.6}}>
                         {showURLSetup?"Enter your profile URLs below. Saved in your browser — enter once, use forever.":"Enter your URLs once and we'll direct-link you to post instantly on any platform."}
                       </div>
                       {showURLSetup&&(
@@ -2423,7 +2423,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                                     setPlatformURLs(u=>({...u,[pf.id]:v}));
                                     try{const s=JSON.parse(localStorage.getItem("gentagai_platform_urls")||"{}");s[pf.id]=v;localStorage.setItem("gentagai_platform_urls",JSON.stringify(s));}catch{}
                                   }}
-                                  style={{width:"100%",background:"#0f1928",border:"1px solid #253a56",color:"#c8d8ea",fontFamily:"'DM Mono',monospace",fontSize:12,padding:"10px 12px",outline:"none",borderRadius:4}}
+                                  style={{width:"100%",background:"#08090B",border:"1px solid #24272E",color:"#F0F1F4",fontFamily:"'DM Mono',monospace",fontSize:12,padding:"10px 12px",outline:"none",borderRadius:4}}
                                 />
                               </div>
                               {platformURLs[pf.id]&&<div style={{width:8,height:8,borderRadius:"50%",background:"#00ff88",flexShrink:0}}/>}
@@ -2435,9 +2435,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
                     {/* ── REAL AUTO-POST via connected Postiz accounts ── */}
                     {postizStatus.connected&&postizStatus.integrations?.length>0&&(
-                      <div style={{marginBottom:22,background:"#0f1928",border:"1px solid #00ff8844",borderRadius:8,padding:"14px 16px"}}>
+                      <div style={{marginBottom:22,background:"#08090B",border:"1px solid #00ff8844",borderRadius:8,padding:"14px 16px"}}>
                         <div style={{fontSize:12,letterSpacing:2,color:"#00ff88",textTransform:"uppercase",marginBottom:4,fontWeight:600}}>🚀 Auto-Post — Live Accounts</div>
-                        <div style={{fontSize:11,color:"#5a7a98",marginBottom:12,lineHeight:1.5}}>
+                        <div style={{fontSize:11,color:"#6B6F7A",marginBottom:12,lineHeight:1.5}}>
                           {(uploadedImage?.storageUrl||uploadedVideo?.storageUrl)
                             ?"Posts directly to your connected account — no copy-paste, no new tab."
                             :(uploadedImage||uploadedVideo)
@@ -2453,11 +2453,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                             const isExpired=status==="expired";
                             const isError=status==="error";
                             return(
-                              <div key={intg.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"#152033",border:"1px solid #253a56",borderRadius:6}}>
+                              <div key={intg.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"#0E1013",border:"1px solid #24272E",borderRadius:6}}>
                                 {intg.picture&&<img src={intg.picture} alt="" style={{width:26,height:26,borderRadius:"50%",flexShrink:0}}/>}
                                 <div style={{flex:1,minWidth:0}}>
-                                  <div style={{fontSize:13,color:"#c8d8ea",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{intg.name||intg.username||intg.platform}</div>
-                                  <div style={{fontSize:10,color:"#4a6a88",textTransform:"uppercase",letterSpacing:1}}>{intg.platform||""}</div>
+                                  <div style={{fontSize:13,color:"#F0F1F4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{intg.name||intg.username||intg.platform}</div>
+                                  <div style={{fontSize:10,color:"#565A64",textTransform:"uppercase",letterSpacing:1}}>{intg.platform||""}</div>
                                 </div>
                                 {isExpired?(
                                   <a href={`/api/postiz-connect?userId=${session.user.id}`}
@@ -2469,8 +2469,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                                     disabled={!mediaReady||isBusy}
                                     onClick={()=>postizPublishNow(intg)}
                                     style={{fontSize:11,padding:"7px 14px",border:"none",borderRadius:4,fontWeight:600,cursor:mediaReady&&!isBusy?"pointer":"not-allowed",flexShrink:0,fontFamily:"'DM Mono',monospace",
-                                      background:isDone?"#00ff8822":!mediaReady||isBusy?"#1e2d42":"linear-gradient(135deg,#00ff88,#00b894)",
-                                      color:isDone?"#00ff88":!mediaReady||isBusy?"#3d5e7a":"#000"}}>
+                                      background:isDone?"#00ff8822":!mediaReady||isBusy?"#1a1d24":"linear-gradient(135deg,#00ff88,#00b894)",
+                                      color:isDone?"#00ff88":!mediaReady||isBusy?"#45484F":"#000"}}>
                                     {isDone?"✓ Posted":isBusy?"Posting...":"Post Now"}
                                   </button>
                                 )}
@@ -2484,8 +2484,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     )}
 
                     {/* Platform Picker — select up to 3 */}
-                    <div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",textTransform:"uppercase",marginBottom:12,fontWeight:500}}>
-                      Select Platforms <span style={{color:"#4a6a88",fontSize:11,fontWeight:400,letterSpacing:1}}>(up to 3)</span>
+                    <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",textTransform:"uppercase",marginBottom:12,fontWeight:500}}>
+                      Select Platforms <span style={{color:"#565A64",fontSize:11,fontWeight:400,letterSpacing:1}}>(up to 3)</span>
                     </div>
                     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
                       {PUBLISH_PLATFORMS.map(pf=>{
@@ -2494,11 +2494,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         const isDone=publishStatus[pf.id]==="done";
                         return(
                           <div key={pf.id} onClick={()=>!isDone&&togglePublishPick(pf.id)}
-                            style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",border:`1.5px solid ${isPicked?pf.color+"88":"#253a56"}`,background:isPicked?`${pf.color}0d`:"#152033",cursor:publishPicks.length>=3&&!isPicked?"not-allowed":"pointer",transition:"all .15s",borderRadius:6,opacity:publishPicks.length>=3&&!isPicked?.4:1,position:"relative"}}>
+                            style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",border:`1.5px solid ${isPicked?pf.color+"88":"#24272E"}`,background:isPicked?`${pf.color}0d`:"#0E1013",cursor:publishPicks.length>=3&&!isPicked?"not-allowed":"pointer",transition:"all .15s",borderRadius:6,opacity:publishPicks.length>=3&&!isPicked?.4:1,position:"relative"}}>
                             <span style={{fontSize:18}}>{pf.icon}</span>
                             <div style={{flex:1}}>
-                              <div style={{fontSize:13,color:isPicked?pf.color:"#c8d8ea",fontWeight:isPicked?500:400}}>{pf.label}</div>
-                              <div style={{fontSize:10,color:hasURL?"#00ff8866":"#3d5e7a",marginTop:1}}>{hasURL?"✓ URL saved":"No URL yet"}</div>
+                              <div style={{fontSize:13,color:isPicked?pf.color:"#F0F1F4",fontWeight:isPicked?500:400}}>{pf.label}</div>
+                              <div style={{fontSize:10,color:hasURL?"#00ff8866":"#45484F",marginTop:1}}>{hasURL?"✓ URL saved":"No URL yet"}</div>
                             </div>
                             {isDone&&<span style={{fontSize:13,color:"#00ff88"}}>✓</span>}
                             {isPicked&&!isDone&&<div style={{width:8,height:8,borderRadius:"50%",background:pf.color}}/>}
@@ -2516,17 +2516,17 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                             ?`↗ POST TO ${PUBLISH_PLATFORMS.find(p=>p.id===publishPicks[0])?.label.toUpperCase()}`
                             :`↗ POST TO ${publishPicks.length} PLATFORMS AT ONCE`}
                         </button>
-                        <div style={{background:"#0f1928",border:"1px solid #1e3050",borderRadius:6,padding:"12px 16px"}}>
-                          <div style={{fontSize:11,color:"#4a6a88",marginBottom:8,letterSpacing:1,textTransform:"uppercase"}}>What happens when you click:</div>
+                        <div style={{background:"#08090B",border:"1px solid #1a1d24",borderRadius:6,padding:"12px 16px"}}>
+                          <div style={{fontSize:11,color:"#565A64",marginBottom:8,letterSpacing:1,textTransform:"uppercase"}}>What happens when you click:</div>
                           {publishPicks.map(id=>{
                             const pf=PUBLISH_PLATFORMS.find(p=>p.id===id);
                             const hasURL=!!platformURLs[id];
                             return(
-                              <div key={id} style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:8,paddingBottom:8,borderBottom:"1px solid #1a2840"}}>
+                              <div key={id} style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:8,paddingBottom:8,borderBottom:"1px solid #1a1d24"}}>
                                 <span style={{fontSize:15,flexShrink:0}}>{pf?.icon}</span>
                                 <div>
-                                  <div style={{fontSize:13,color:pf?.color||"#8bacc8",fontWeight:500,marginBottom:2}}>{pf?.label}</div>
-                                  <div style={{fontSize:11,color:"#5a7a98",lineHeight:1.6}}>
+                                  <div style={{fontSize:13,color:pf?.color||"#9BA0AC",fontWeight:500,marginBottom:2}}>{pf?.label}</div>
+                                  <div style={{fontSize:11,color:"#6B6F7A",lineHeight:1.6}}>
                                     {pf?.shareUrl
                                       ?"Caption auto-attached → Opens share page in new tab"
                                       :hasURL
@@ -2541,8 +2541,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       </div>
                     )}
                     {publishPicks.length===0&&(
-                      <div style={{textAlign:"center",padding:"20px",border:"1px dashed #1e3050",borderRadius:6}}>
-                        <div style={{fontSize:13,color:"#4a6a88"}}>↑ Select at least one platform above to publish</div>
+                      <div style={{textAlign:"center",padding:"20px",border:"1px dashed #1a1d24",borderRadius:6}}>
+                        <div style={{fontSize:13,color:"#565A64"}}>↑ Select at least one platform above to publish</div>
                       </div>
                     )}
 
@@ -2550,36 +2550,36 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {activePlatformGuide&&PLATFORM_STEPS[activePlatformGuide]&&(()=>{
                       const guide=PLATFORM_STEPS[activePlatformGuide];
                       return(
-                        <div style={{marginTop:20,background:"#0f1928",border:`2px solid ${guide.color}55`,borderRadius:10,overflow:"hidden"}}>
+                        <div style={{marginTop:20,background:"#08090B",border:`2px solid ${guide.color}55`,borderRadius:10,overflow:"hidden"}}>
                           <div style={{background:`${guide.color}22`,padding:"14px 18px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                             <div style={{display:"flex",alignItems:"center",gap:10}}>
                               <span style={{fontSize:22}}>{guide.icon}</span>
                               <div>
                                 <div style={{fontSize:14,color:guide.color,fontWeight:600,letterSpacing:1}}>How to Post on {guide.name}</div>
-                                <div style={{fontSize:11,color:"#6a8aa8",marginTop:2}}>Follow these steps — takes under 30 seconds</div>
+                                <div style={{fontSize:11,color:"#82858C",marginTop:2}}>Follow these steps — takes under 30 seconds</div>
                               </div>
                             </div>
                             <button onClick={()=>setActivePlatformGuide(null)}
-                              style={{background:"none",border:"none",color:"#6a8aa8",fontSize:18,cursor:"pointer",padding:"4px 8px",lineHeight:1}}>✕</button>
+                              style={{background:"none",border:"none",color:"#82858C",fontSize:18,cursor:"pointer",padding:"4px 8px",lineHeight:1}}>✕</button>
                           </div>
                           <div style={{padding:"18px"}}>
                             {guide.steps.map((step,i)=>(
                               <div key={i} style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:12}}>
-                                <div style={{width:24,height:24,borderRadius:"50%",background:i===0?`${guide.color}33`:"#152033",border:`1px solid ${i===0?guide.color:"#253a56"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
-                                  <span style={{fontSize:11,color:i===0?guide.color:"#6a8aa8",fontWeight:600}}>{i+1}</span>
+                                <div style={{width:24,height:24,borderRadius:"50%",background:i===0?`${guide.color}33`:"#0E1013",border:`1px solid ${i===0?guide.color:"#24272E"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                                  <span style={{fontSize:11,color:i===0?guide.color:"#82858C",fontWeight:600}}>{i+1}</span>
                                 </div>
-                                <div style={{fontSize:13,color:i===0?"#00ff88":"#c8d8ea",lineHeight:1.6,fontWeight:i===0?500:400}}>{step}</div>
+                                <div style={{fontSize:13,color:i===0?"#00ff88":"#F0F1F4",lineHeight:1.6,fontWeight:i===0?500:400}}>{step}</div>
                               </div>
                             ))}
-                            <div style={{marginTop:16,padding:"12px 14px",background:"#152033",borderRadius:6,border:`1px solid ${guide.color}33`}}>
-                              <div style={{fontSize:11,color:"#5a7a98",letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>💡 Pro Tip</div>
-                              <div style={{fontSize:12,color:"#8bacc8",lineHeight:1.6}}>{guide.tip}</div>
+                            <div style={{marginTop:16,padding:"12px 14px",background:"#0E1013",borderRadius:6,border:`1px solid ${guide.color}33`}}>
+                              <div style={{fontSize:11,color:"#6B6F7A",letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>💡 Pro Tip</div>
+                              <div style={{fontSize:12,color:"#9BA0AC",lineHeight:1.6}}>{guide.tip}</div>
                             </div>
                             <div style={{marginTop:14,padding:"10px 14px",background:`${guide.color}11`,borderRadius:6,display:"flex",alignItems:"center",gap:10}}>
                               <span style={{fontSize:16}}>📋</span>
                               <div>
                                 <div style={{fontSize:12,color:guide.color,fontWeight:500}}>Caption copied to clipboard!</div>
-                                <div style={{fontSize:11,color:"#6a8aa8",marginTop:2}}>Just paste it (Ctrl+V or hold → Paste) in the {guide.name} app or website</div>
+                                <div style={{fontSize:11,color:"#82858C",marginTop:2}}>Just paste it (Ctrl+V or hold → Paste) in the {guide.name} app or website</div>
                               </div>
                             </div>
                           </div>
@@ -2590,16 +2590,16 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {/* Mobile share button */}
                     <div style={{marginTop:16,textAlign:"center"}}>
                       <button onClick={webShare}
-                        style={{padding:"12px 24px",border:"1px solid #253a56",background:"transparent",color:"#6a8aa8",fontSize:12,letterSpacing:2,cursor:"pointer",fontFamily:"'DM Mono',monospace",borderRadius:6,textTransform:"uppercase"}}>
+                        style={{padding:"12px 24px",border:"1px solid #24272E",background:"transparent",color:"#82858C",fontSize:12,letterSpacing:2,cursor:"pointer",fontFamily:"'DM Mono',monospace",borderRadius:6,textTransform:"uppercase"}}>
                         📱 Mobile Share (iOS/Android)
                       </button>
-                      <div style={{fontSize:11,color:"#3d5e7a",marginTop:6}}>Opens native share sheet on mobile devices</div>
+                      <div style={{fontSize:11,color:"#45484F",marginTop:6}}>Opens native share sheet on mobile devices</div>
                     </div>
 
                     {/* Phase 2 notice */}
-                    <div style={{marginTop:16,padding:"14px 16px",background:"#0d1421",border:"1px solid #1e3050",borderRadius:6}}>
-                      <div style={{fontSize:11,color:"#3d5e7a",lineHeight:1.8}}>
-                        🔒 <span style={{color:"#4a6a88"}}>Auto-posting coming in Phase 2</span> — direct API posting to Instagram, TikTok & YouTube requires platform API approval. Currently the fastest manual flow: caption copies instantly, platform opens, paste & post in under 30 seconds.
+                    <div style={{marginTop:16,padding:"14px 16px",background:"#08090B",border:"1px solid #1a1d24",borderRadius:6}}>
+                      <div style={{fontSize:11,color:"#45484F",lineHeight:1.8}}>
+                        🔒 <span style={{color:"#565A64"}}>Auto-posting coming in Phase 2</span> — direct API posting to Instagram, TikTok & YouTube requires platform API approval. Currently the fastest manual flow: caption copies instantly, platform opens, paste & post in under 30 seconds.
                       </div>
                     </div>
                   </div>
@@ -2609,15 +2609,15 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
             {mode==="ab"&&step!=="idle"&&abTab==="variants"&&(
               <div style={{display:"flex",height:"100%"}}>
-                <div className="vp" style={{borderRight:"1px solid #1e2d42"}}>
-                  <div style={{padding:"10px 15px",borderBottom:"1px solid #1e2d42",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#0f1928",flexShrink:0}}>
+                <div className="vp" style={{borderRight:"1px solid #1a1d24"}}>
+                  <div style={{padding:"10px 15px",borderBottom:"1px solid #1a1d24",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#08090B",flexShrink:0}}>
                     <div style={{fontSize:12,letterSpacing:3,color:"#00e5ff",textTransform:"uppercase"}}>Variant A</div>
                     {abA&&<button className="sm" style={{padding:"3px 9px",fontSize:11,color:copied==="A"?"#00ff88":""}} onClick={()=>copy(abA,"A")}>{copied==="A"?"✓":"COPY"}</button>}
                   </div>
                   <div style={{flex:1,overflowY:"auto",padding:"24px 20px"}}><div className={`otext ${running&&!abA?"blink":""}`} style={{fontSize:14.5}}>{abA}</div></div>
                 </div>
                 <div className="vp">
-                  <div style={{padding:"10px 15px",borderBottom:"1px solid #1e2d42",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#0f1928",flexShrink:0}}>
+                  <div style={{padding:"10px 15px",borderBottom:"1px solid #1a1d24",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#08090B",flexShrink:0}}>
                     <div style={{fontSize:12,letterSpacing:3,color:"#7c83fd",textTransform:"uppercase"}}>Variant B</div>
                     {abB&&<button className="sm" style={{padding:"3px 9px",fontSize:11,color:copied==="B"?"#00ff88":""}} onClick={()=>copy(abB,"B")}>{copied==="B"?"✓":"COPY"}</button>}
                   </div>
@@ -2633,16 +2633,16 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 </div>}
                 {scores&&!scores.error&&(
                   <div>
-                    <div style={{marginBottom:20,paddingBottom:14,borderBottom:"1px solid #1e2d42"}}>
+                    <div style={{marginBottom:20,paddingBottom:14,borderBottom:"1px solid #1a1d24"}}>
                       <div style={{fontSize:10,letterSpacing:4,color:"#f0b429",textTransform:"uppercase",marginBottom:6}}>Analysis Complete</div>
                       <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:20,color:"#fff"}}>Variant {scores.winner} Wins</div>
-                      <div style={{fontSize:14,color:"#6a8aa8",marginTop:5,lineHeight:1.7}}>{scores.winnerReason}</div>
+                      <div style={{fontSize:14,color:"#82858C",marginTop:5,lineHeight:1.7}}>{scores.winnerReason}</div>
                     </div>
                     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                       {["A","B"].map(v=>{
                         const s=v==="A"?scores.variantA:scores.variantB;
                         const isW=scores.winner===v;const ac=v==="A"?"#00e5ff":"#7c83fd";
-                        return(<div key={v} style={{background:isW?`${ac}05`:"#152033",border:`1px solid ${isW?ac+"44":"#243650"}`,padding:"16px"}}>
+                        return(<div key={v} style={{background:isW?`${ac}05`:"#0E1013",border:`1px solid ${isW?ac+"44":"#243650"}`,padding:"16px"}}>
                           {isW&&<div style={{display:"inline-flex",alignItems:"center",gap:5,background:`${ac}0f`,border:`1px solid ${ac}33`,color:ac,fontSize:10,letterSpacing:3,padding:"3px 10px",textTransform:"uppercase",marginBottom:10}}>✦ WINNER</div>}
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:14}}>
                             <div style={{fontSize:12,color:ac,letterSpacing:3,textTransform:"uppercase"}}>Variant {v}</div>
@@ -2653,7 +2653,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                           <ScoreBar label="Clarity" value={s.clarity} color={ac}/>
                           <ScoreBar label="CTA" value={s.cta} color={ac}/>
                           <ScoreBar label="Algorithm" value={s.algorithm} color={ac}/>
-                          <div style={{marginTop:10,padding:"12px 14px",background:"#172236",borderLeft:`2px solid ${ac}44`,fontSize:12,color:"#6a8aa8",lineHeight:1.6}}>{s.verdict}</div>
+                          <div style={{marginTop:10,padding:"12px 14px",background:"#172236",borderLeft:`2px solid ${ac}44`,fontSize:12,color:"#82858C",lineHeight:1.6}}>{s.verdict}</div>
                           <button className="sm" style={{marginTop:10,width:"100%",borderColor:`${ac}33`,color:copied===`v${v}`?"#00ff88":ac}} onClick={()=>copy(v==="A"?abA:abB,`v${v}`)}>
                             {copied===`v${v}`?"✓ COPIED":`USE VARIANT ${v}`}
                           </button>
@@ -2671,8 +2671,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         {/* RIGHT HISTORY */}
         <div style={{
           width:isMobile?"100%":200,
-          borderLeft:isMobile?"none":"1px solid #1e2d42",
-          background:"#0f1928",
+          borderLeft:isMobile?"none":"1px solid #1a1d24",
+          background:"#08090B",
           display:isMobile?(mobileTab==="sessions"?"flex":"none"):"flex",
           flexDirection:"column",
           overflow:"hidden",
@@ -2682,28 +2682,28 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           inset:isMobile?"0":"auto",
           zIndex:isMobile?100:"auto",
         }}>
-          <div style={{padding:"14px 16px",borderBottom:"1px solid #1e2d42",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{padding:"14px 16px",borderBottom:"1px solid #1a1d24",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div style={{fontSize:10,letterSpacing:4,color:"#3a5572",textTransform:"uppercase"}}>Sessions</div>
-            {history.length>0&&<button onClick={()=>{if(window.confirm("Clear all sessions?"))setHistory([]);}} style={{background:"none",border:"none",color:"#3d5e7a",cursor:"pointer",fontSize:11,fontFamily:"inherit"}}>CLEAR</button>}
+            {history.length>0&&<button onClick={()=>{if(window.confirm("Clear all sessions?"))setHistory([]);}} style={{background:"none",border:"none",color:"#45484F",cursor:"pointer",fontSize:11,fontFamily:"inherit"}}>CLEAR</button>}
           </div>
           <div style={{overflowY:"auto",flex:1}}>
             {history.length===0
-              ?<div style={{padding:14,fontSize:11,color:"#2e4a64",letterSpacing:.5,lineHeight:2}}>Auto-saved sessions appear here.</div>
+              ?<div style={{padding:14,fontSize:11,color:"#2A2D33",letterSpacing:.5,lineHeight:2}}>Auto-saved sessions appear here.</div>
               :history.map(e=>{
-                const mColor={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd",visibility:"#00ff88"}[mode]||"#5a7a98";
+                const mColor={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd",visibility:"#00ff88"}[mode]||"#6B6F7A";
                 const mIcon={copy:"◈",image:"⬡",video:"▷",ab:"⇄"}[e.mode]||"·";
                 const label=e.mode==="image"?(IMAGE_TYPES.find(c=>c.id===e.contentType)?.label):e.mode==="video"?(VIDEO_AD_TYPES.find(c=>c.id===e.contentType)?.label):(CONTENT_TYPES.find(c=>c.id===e.contentType)?.label)||e.contentType;
                 return(<div key={e.id} className="hi" onClick={()=>loadHist(e)} style={{borderLeftColor:histActive?.id===e.id?mColor:"transparent"}}>
                   <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:2}}><span style={{fontSize:11,color:mColor}}>{mIcon}</span><span style={{fontSize:12,color:"#a8c0d8"}}>{e.brand}</span></div>
-                  <div style={{fontSize:10,color:"#4a6a88",letterSpacing:1,textTransform:"uppercase",marginBottom:1}}>{label}</div>
-                  <div style={{fontSize:10,color:"#2d4464"}}>{e.ts}</div>
+                  <div style={{fontSize:10,color:"#565A64",letterSpacing:1,textTransform:"uppercase",marginBottom:1}}>{label}</div>
+                  <div style={{fontSize:10,color:"#2A2D33"}}>{e.ts}</div>
                 </div>);
               })
             }
           </div>
-          <div style={{padding:"12px",borderTop:"1px solid #1e2d42",fontSize:10,letterSpacing:1,lineHeight:2.4,textTransform:"uppercase"}}>
+          <div style={{padding:"12px",borderTop:"1px solid #1a1d24",fontSize:10,letterSpacing:1,lineHeight:2.4,textTransform:"uppercase"}}>
             <div style={{color:"#f0b429",marginBottom:4,fontSize:11}}>GENTAGAI v{VERSION}</div>
-            <div style={{color:"#2e4a64"}}>{DOMAIN}</div>
+            <div style={{color:"#2A2D33"}}>{DOMAIN}</div>
             <div style={{color:"#00e5ff44"}}>◈ Copy Engine</div>
             <div style={{color:"#ff7c0044"}}>⬡ Image Prompts</div>
             <div style={{color:"#f0b42944"}}>▷ Video Ads</div>
