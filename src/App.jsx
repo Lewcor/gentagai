@@ -878,6 +878,12 @@ export default function Gentagai(){
   const [postizPublishing,setPostizPublishing]=useState({});
   const [nicheOpen,setNicheOpen]=useState(false);
   const [productTypeOpen,setProductTypeOpen]=useState(false);
+  const [vizUrl,setVizUrl]=useState("");
+  const [vizScanning,setVizScanning]=useState(false);
+  const [vizResult,setVizResult]=useState(null);
+  const [vizError,setVizError]=useState("");
+  const [vizFixOutput,setVizFixOutput]=useState("");
+  const [vizFixing,setVizFixing]=useState(false);
 
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>setSession(data.session||null));
@@ -1230,6 +1236,40 @@ export default function Gentagai(){
   // ── Real auto-publish via the user's own connected Postiz account ──
   // Uses the permanent Supabase storage URL from the upload we wired in,
   // not the local base64/blob copy, since Postiz needs a real public link.
+  // ── Real AI-visibility scan — actually fetches robots.txt + homepage ──
+  async function scanVisibility(){
+    if(!vizUrl.trim())return;
+    setVizScanning(true);setVizResult(null);setVizError("");setVizFixOutput("");
+    try{
+      const res=await fetch("/api/ai-visibility-check",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({url:vizUrl.trim()}),
+      });
+      const data=await res.json();
+      if(!res.ok||data.error){setVizError(data.error||"Scan failed — try again.");}
+      else{setVizResult(data);}
+    }catch(e){setVizError("Connection error: "+e.message);}
+    setVizScanning(false);
+  }
+
+  // ── BISHOP writes the actual fixes, in the brand's own voice ──
+  async function generateVizFixes(){
+    if(!vizResult)return;
+    setVizFixing(true);setVizFixOutput("");
+    const prompt=`You are BISHOP, an AI marketing assistant. A brand called "${brand||"this brand"}" (niche: ${niche||"general business"}) just ran an AI-visibility scan on ${vizResult.url} and scored ${vizResult.score}/100.
+
+Issues found:
+${vizResult.issues.map(i=>"- "+i).join("\n")}
+
+Write a clear, practical fix guide for a non-technical business owner. For each issue:
+1. One or two sentences on why it matters for how ChatGPT, Claude, Gemini, and Perplexity understand their site.
+2. The exact code or text to add — real robots.txt lines to allow AI crawlers, a working JSON-LD schema snippet, and a meta description written in a tone that fits "${niche||"their brand"}".
+
+Keep everything copy-paste ready. No filler, no disclaimers.`;
+    await streamAPI(prompt,chunk=>setVizFixOutput(chunk));
+    setVizFixing(false);
+  }
+
   async function postizPublishNow(integration){
     if(!session?.user)return;
     const caption=publishCaption||output.slice(0,500)||`${brand} — ${productName||niche}`;
@@ -1849,9 +1889,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           <div>
             <div className="sl" style={{color:mc}}>01 — Brand Brief</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>BRAND NAME *</div>
+              <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>BRAND NAME *</div>
                 <input className="inp" placeholder="e.g. L' LEWCOR" value={brand} onChange={e=>setBrand(e.target.value)}/></div>
-              <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>NICHE *</div>
+              <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>NICHE *</div>
                 <input className="inp" placeholder="e.g. Urban Streetwear" value={niche} onChange={e=>setNiche(e.target.value)}/>
                 <div style={{position:"relative",marginTop:8}}>
                   <button type="button" className="chip" onClick={()=>{setNicheOpen(o=>!o);setProductTypeOpen(false);}}
@@ -1873,12 +1913,12 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   )}
                 </div>
               </div>
-              <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>TARGET AUDIENCE</div>
+              <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>TARGET AUDIENCE</div>
                 <input className="inp" placeholder="Urban males 18-35" value={audience} onChange={e=>setAudience(e.target.value)}/></div>
               {mode!=="image"&&<>
-                <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>CAMPAIGN GOAL</div>
+                <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>CAMPAIGN GOAL</div>
                   <input className="inp" placeholder="Drive sales, Launch Drop 001" value={goal} onChange={e=>setGoal(e.target.value)}/></div>
-                {(mode==="copy"||mode==="ab")&&<div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>SEO KEYWORDS</div>
+                {(mode==="copy"||mode==="ab")&&<div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>SEO KEYWORDS</div>
                   <input className="inp" placeholder="urban streetwear, limited drop" value={keywords} onChange={e=>setKeywords(e.target.value)}/></div>}
               </>}
             </div>
@@ -1889,11 +1929,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div className="sl" style={{color:mc}}>02 — Product Intel</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
 
-              <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>PRODUCT NAME</div>
+              <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRODUCT NAME</div>
                 <input className="inp" placeholder="e.g. Urban Roots Tee Drop 001" value={productName} onChange={e=>setProductName(e.target.value)}/></div>
 
               <div>
-                <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>PRODUCT TYPE</div>
+                <div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRODUCT TYPE</div>
                 <div style={{position:"relative",marginBottom:10}}>
                   <button type="button" className="chip" onClick={()=>{setProductTypeOpen(o=>!o);setNicheOpen(false);}}
                     style={{width:"100%",justifyContent:"space-between",padding:"11px 14px"}}>
@@ -1917,7 +1957,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
 
               <div>
-                <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>PRODUCT DESCRIPTION *</div>
+                <div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRODUCT DESCRIPTION *</div>
                 <textarea className="inp"
                   placeholder={`Describe what makes your product unique.\n\nExamples:\n- Materials, features, quality\n- The story behind it\n- What problem it solves\n- Why someone would want it\n- Limited edition / drop details`}
                   value={productDesc}
@@ -1928,7 +1968,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 </div>
               </div>
 
-              <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>PRICE / VALUE PROP</div>
+              <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRICE / VALUE PROP</div>
                 <input className="inp" placeholder="e.g. $89 · Limited to 50 units" value={productPrice} onChange={e=>setProductPrice(e.target.value)}/></div>
 
               {/* Smart preview */}
@@ -2228,33 +2268,92 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             </div>
           )}
 {mode==="visibility"&&(
-  <div style={{maxWidth:760,margin:"0 auto",padding:"0 16px"}}>
-    <div style={{textAlign:"center",marginBottom:32}}>
+  <div style={{maxWidth:680,margin:"0 auto",padding:"0 16px"}}>
+    <div style={{textAlign:"center",marginBottom:28}}>
       <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:22,color:"#00ff88",letterSpacing:2,marginBottom:8}}>◆ AI SEARCH VISIBILITY</div>
-      <div style={{fontSize:11,color:"#555",letterSpacing:3,textTransform:"uppercase",marginBottom:16}}>Powered by Alli AI</div>
-      <div style={{fontSize:12,color:"#888",lineHeight:1.8,maxWidth:500,margin:"0 auto"}}>28% of most websites are invisible to ChatGPT, Claude and Gemini. Fix your AI visibility before it costs you traffic.</div>
+      <div style={{fontSize:12,color:"#82858C",lineHeight:1.7,maxWidth:480,margin:"0 auto"}}>Check whether ChatGPT, Claude, Gemini, and Perplexity can actually read and understand your site — then have BISHOP write the real fixes.</div>
     </div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:24}}>
-      {[{stat:"527%",label:"AI Search Traffic Growth YoY",color:"#00ff88"},{stat:"28%",label:"Avg Content Invisible to AI",color:"#ff4500"},{stat:"50+",label:"AI Crawlers Supported",color:"#00e5ff"}].map((s,i)=>(
-        <div key={i} style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:8,padding:"16px 12px",textAlign:"center"}}>
-          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:24,color:s.color,marginBottom:4}}>{s.stat}</div>
-          <div style={{fontSize:9,color:"#555",letterSpacing:1,textTransform:"uppercase",lineHeight:1.4}}>{s.label}</div>
+
+    <div style={{display:"flex",gap:8,marginBottom:20}}>
+      <input className="inp" placeholder="yourbrand.com" value={vizUrl}
+        onChange={e=>setVizUrl(e.target.value)}
+        onKeyDown={e=>e.key==="Enter"&&scanVisibility()}
+        style={{flex:1}}/>
+      <button className="gbtn" disabled={!vizUrl.trim()||vizScanning}
+        onClick={scanVisibility}
+        style={{width:"auto",padding:"0 24px",background:"linear-gradient(135deg,#00ff88,#00b894)",color:"#000",flexShrink:0}}>
+        {vizScanning?"⟳ SCANNING":"SCAN"}
+      </button>
+    </div>
+
+    {vizError&&<div style={{background:"#1a0f0f",border:"1px solid #ff6a6a44",borderRadius:10,padding:"12px 14px",color:"#ff6a6a",fontSize:12,marginBottom:20}}>{vizError}</div>}
+
+    {vizScanning&&(
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14,padding:"30px 0"}}>
+        <div style={{width:52,height:52}}>
+          <svg viewBox="0 0 40 40"><circle className="bishop-core-ring" cx="20" cy="20" r="17" style={{stroke:"#00ff88",animationDuration:"1s"}}/><circle cx="20" cy="20" r="3.4" fill="#00ff88"/></svg>
         </div>
-      ))}
-    </div>
-    <div style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:8,padding:20,marginBottom:16}}>
-      <div style={{fontSize:9,letterSpacing:3,color:"#555",textTransform:"uppercase",marginBottom:14}}>What Alli AI Does For Your Brand</div>
-      {["Makes your entire site readable by ChatGPT, Claude and Gemini","Deploys AEO + GEO + SEO optimizations across thousands of pages instantly","No code rewrites, no migrations — one snippet does it all","Real-time analytics showing which AI crawlers visit your site","Schema markup and structured data deployed automatically"].map((f,i)=>(
-        <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:10}}>
-          <span style={{color:"#00ff88",fontSize:10,marginTop:2,flexShrink:0}}>◆</span>
-          <span style={{fontSize:11,color:"#bbb",lineHeight:1.6}}>{f}</span>
+        <div style={{fontSize:11,letterSpacing:2,color:"#82858C",textTransform:"uppercase"}}>Checking robots.txt and homepage signals...</div>
+      </div>
+    )}
+
+    {vizResult&&!vizScanning&&(
+      <>
+        <div style={{display:"flex",alignItems:"center",gap:20,background:"rgba(255,255,255,.025)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:14,padding:20,marginBottom:16}}>
+          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:40,color:vizResult.score>=70?"#00ff88":vizResult.score>=40?"#f0b429":"#ff6a6a",flexShrink:0}}>{vizResult.score}</div>
+          <div>
+            <div style={{fontSize:12,fontWeight:700,color:"#F5F6F8",marginBottom:3}}>AI Visibility Score</div>
+            <div style={{fontSize:11,color:"#82858C",lineHeight:1.5}}>{vizResult.url}</div>
+          </div>
         </div>
-      ))}
-    </div>
-    <div style={{textAlign:"center"}}>
-      <a href="https://www.alliai.com" target="_blank" rel="noopener noreferrer" style={{display:"inline-block",padding:"14px 40px",background:"linear-gradient(135deg,#00ff88,#00e5ff)",color:"#000",fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:12,letterSpacing:3,textTransform:"uppercase",borderRadius:4,textDecoration:"none"}}>Check Your AI Visibility at alliai.com</a>
-      <div style={{fontSize:9,color:"#444",letterSpacing:1,marginTop:8}}>Free audit available · No code required</div>
-    </div>
+
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:9.5,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:10}}>AI Crawlers</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            {vizResult.crawlers.map(c=>(
+              <div key={c.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 12px",borderRadius:10,border:"1px solid rgba(255,255,255,.08)",background:c.blocked?"#1a0f0f":"rgba(255,255,255,.02)"}}>
+                <div>
+                  <div style={{fontSize:11.5,fontWeight:600,color:"#F0F1F4"}}>{c.label}</div>
+                  <div style={{fontSize:9.5,color:"#565A64"}}>{c.org}</div>
+                </div>
+                <div style={{fontSize:9,fontWeight:700,letterSpacing:1,color:c.blocked?"#ff6a6a":"#00ff88"}}>{c.blocked?"BLOCKED":"OK"}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {vizResult.issues.length>0&&(
+          <div style={{background:"rgba(255,255,255,.025)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:14,padding:18,marginBottom:16}}>
+            <div style={{fontSize:9.5,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:12}}>Issues Found</div>
+            {vizResult.issues.map((iss,i)=>(
+              <div key={i} style={{display:"flex",gap:9,marginBottom:9,alignItems:"flex-start"}}>
+                <span style={{color:"#f0b429",fontSize:10,marginTop:2,flexShrink:0}}>◆</span>
+                <span style={{fontSize:12,color:"#C9CDD3",lineHeight:1.6}}>{iss}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {vizResult.issues.length>0&&!vizFixOutput&&(
+          <button className="gbtn" disabled={vizFixing} onClick={generateVizFixes}
+            style={{background:"linear-gradient(135deg,#00ff88,#00b894)",color:"#000",marginBottom:16}}>
+            {vizFixing?"⟳ BISHOP IS WRITING FIXES...":"◆ GENERATE FIXES WITH BISHOP"}
+          </button>
+        )}
+
+        {vizResult.issues.length===0&&(
+          <div style={{textAlign:"center",padding:"20px 0",color:"#00ff88",fontSize:13,fontWeight:600}}>✓ No issues found — this site is AI-visible.</div>
+        )}
+
+        {vizFixOutput&&(
+          <div style={{background:"rgba(255,255,255,.025)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:14,padding:20,marginBottom:20}}>
+            <div style={{fontSize:9.5,letterSpacing:2,color:"#00ff88",textTransform:"uppercase",marginBottom:12}}>BISHOP's Fixes</div>
+            <div className={`otext ${vizFixing?"blink":""}`} style={{fontSize:13,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{vizFixOutput}</div>
+            {!vizFixing&&<button className="sm" style={{marginTop:14}} onClick={()=>copy(vizFixOutput,"viz")}>{copied==="viz"?"✓ COPIED":"COPY FIXES"}</button>}
+          </div>
+        )}
+      </>
+    )}
   </div>
 )}
           <div>
