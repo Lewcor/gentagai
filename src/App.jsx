@@ -11,6 +11,32 @@ const supabase = createClient(
 );
 
 // ─────────────────────────────────────────────
+// Storage — persists uploaded reference images/video to Supabase
+// so they survive beyond this browser session instead of living
+// only as local base64/blob data.
+// ─────────────────────────────────────────────
+const UPLOAD_BUCKET = "gentagai-uploads";
+
+async function uploadFileToStorage(file, folder) {
+  try {
+    const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage
+      .from(UPLOAD_BUCKET)
+      .upload(path, file, { cacheControl: "3600", upsert: false });
+    if (error) {
+      console.error("Storage upload failed:", error.message);
+      return null;
+    }
+    const { data } = supabase.storage.from(UPLOAD_BUCKET).getPublicUrl(path);
+    return data?.publicUrl || null;
+  } catch (err) {
+    console.error("Storage upload error:", err);
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────
 // CONFIG — paste your Stripe Payment Links here
 // ─────────────────────────────────────────────
 const STRIPE_LINKS = {
@@ -818,6 +844,7 @@ export default function Gentagai(){
   const [magicLinkSent,setMagicLinkSent]=useState(false);
   const [authLoading,setAuthLoading]=useState(false);
   const [postizStatus,setPostizStatus]=useState({connected:false,integrations:[]});
+  const [postizPublishing,setPostizPublishing]=useState({});
 
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>setSession(data.session||null));
@@ -980,14 +1007,20 @@ export default function Gentagai(){
     const reader=new FileReader();
     reader.onload=e=>{
       const base64=e.target.result.split(",")[1];
-      setUploadedImage({name:file.name,url:e.target.result,base64,size:(file.size/1024).toFixed(0),type:file.type});
+      setUploadedImage({name:file.name,url:e.target.result,base64,size:(file.size/1024).toFixed(0),type:file.type,storageUrl:null,uploading:true});
+      uploadFileToStorage(file,"images").then(storageUrl=>{
+        setUploadedImage(prev=>prev&&prev.name===file.name?{...prev,storageUrl,uploading:false}:prev);
+      });
     };
     reader.readAsDataURL(file);
   }
   function handleVideoFile(file){
     if(!file||!file.type.startsWith("video/"))return;
     const url=URL.createObjectURL(file);
-    setUploadedVideo({name:file.name,url,size:(file.size/1024/1024).toFixed(1),type:file.type});
+    setUploadedVideo({name:file.name,url,size:(file.size/1024/1024).toFixed(1),type:file.type,storageUrl:null,uploading:true});
+    uploadFileToStorage(file,"videos").then(storageUrl=>{
+      setUploadedVideo(prev=>prev&&prev.name===file.name?{...prev,storageUrl,uploading:false}:prev);
+    });
   }
   function handleImgDrop(e){e.preventDefault();setImgDrag(false);handleImageFile(e.dataTransfer.files[0]);}
   function handleVidDrop(e){e.preventDefault();setVidDrag(false);handleVideoFile(e.dataTransfer.files[0]);}
@@ -1159,6 +1192,43 @@ export default function Gentagai(){
       const pf=PUBLISH_PLATFORMS.find(p=>p.id===id);
       if(pf) publishToplatform(pf);
     });
+  }
+
+  // ── Real auto-publish via the user's own connected Postiz account ──
+  // Uses the permanent Supabase storage URL from the upload we wired in,
+  // not the local base64/blob copy, since Postiz needs a real public link.
+  async function postizPublishNow(integration){
+    if(!session?.user)return;
+    const caption=publishCaption||output.slice(0,500)||`${brand} — ${productName||niche}`;
+    const mediaUrl=uploadedImage?.storageUrl||uploadedVideo?.storageUrl||null;
+
+    setPostizPublishing(s=>({...s,[integration.id]:"publishing"}));
+    try{
+      const res=await fetch("/api/postiz-publish",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          userId:session.user.id,
+          integrationId:integration.id,
+          content:caption,
+          imageUrl:mediaUrl,
+        }),
+      });
+      const data=await res.json();
+      if(!res.ok){
+        if(res.status===401){
+          setPostizPublishing(s=>({...s,[integration.id]:"expired"}));
+        }else{
+          setPostizPublishing(s=>({...s,[integration.id]:"error"}));
+          console.error("Postiz publish failed:",data);
+        }
+        return;
+      }
+      setPostizPublishing(s=>({...s,[integration.id]:"done"}));
+    }catch(err){
+      setPostizPublishing(s=>({...s,[integration.id]:"error"}));
+      console.error("Postiz publish error:",err);
+    }
   }
 
   function downloadFile(){
@@ -1870,6 +1940,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       <div>
                         <div style={{fontSize:11,color:"#00e5ff",letterSpacing:1,marginBottom:2}}>✓ IMAGE UPLOADED</div>
                         <div style={{fontSize:12,color:"#c8d8ea",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedImage.name}</div>
+                        <div style={{fontSize:10,color:uploadedImage.uploading?"#f0b429":uploadedImage.storageUrl?"#5ce88a":"#ff6a6a",marginTop:2}}>{uploadedImage.uploading?"☁ Saving to cloud...":uploadedImage.storageUrl?"☁ Saved":"☁ Save failed — using local copy"}</div>
                       </div>
                       <button onClick={e=>{e.stopPropagation();setUploadedImage(null);}} style={{background:"#ff2d2d",border:"none",color:"#fff",fontSize:14,width:24,height:24,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
                     </div>
@@ -1990,6 +2061,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         <div style={{fontSize:11,color:"#00e5ff",letterSpacing:1,marginBottom:2}}>✓ VIDEO UPLOADED</div>
                         <div style={{fontSize:12,color:"#c8d8ea",maxWidth:190,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedVideo.name}</div>
                         <div style={{fontSize:11,color:"#5a7a98",marginTop:1}}>{uploadedVideo.size} MB</div>
+                        <div style={{fontSize:10,color:uploadedVideo.uploading?"#f0b429":uploadedVideo.storageUrl?"#5ce88a":"#ff6a6a",marginTop:2}}>{uploadedVideo.uploading?"☁ Saving to cloud...":uploadedVideo.storageUrl?"☁ Saved":"☁ Save failed — using local copy"}</div>
                       </div>
                       <button onClick={()=>setUploadedVideo(null)} style={{background:"#ff2d2d",border:"none",color:"#fff",fontSize:14,width:24,height:24,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
                     </div>
@@ -2319,6 +2391,56 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         </div>
                       )}
                     </div>
+
+                    {/* ── REAL AUTO-POST via connected Postiz accounts ── */}
+                    {postizStatus.connected&&postizStatus.integrations?.length>0&&(
+                      <div style={{marginBottom:22,background:"#0f1928",border:"1px solid #00ff8844",borderRadius:8,padding:"14px 16px"}}>
+                        <div style={{fontSize:12,letterSpacing:2,color:"#00ff88",textTransform:"uppercase",marginBottom:4,fontWeight:600}}>🚀 Auto-Post — Live Accounts</div>
+                        <div style={{fontSize:11,color:"#5a7a98",marginBottom:12,lineHeight:1.5}}>
+                          {(uploadedImage?.storageUrl||uploadedVideo?.storageUrl)
+                            ?"Posts directly to your connected account — no copy-paste, no new tab."
+                            :(uploadedImage||uploadedVideo)
+                            ?"Still saving your file to the cloud — one sec, then Post Now will unlock."
+                            :"Upload an image or video above first, so there's media to attach."}
+                        </div>
+                        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                          {postizStatus.integrations.map(intg=>{
+                            const status=postizPublishing[intg.id];
+                            const mediaReady=!!(uploadedImage?.storageUrl||uploadedVideo?.storageUrl);
+                            const isBusy=status==="publishing";
+                            const isDone=status==="done";
+                            const isExpired=status==="expired";
+                            const isError=status==="error";
+                            return(
+                              <div key={intg.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"#152033",border:"1px solid #253a56",borderRadius:6}}>
+                                {intg.picture&&<img src={intg.picture} alt="" style={{width:26,height:26,borderRadius:"50%",flexShrink:0}}/>}
+                                <div style={{flex:1,minWidth:0}}>
+                                  <div style={{fontSize:13,color:"#c8d8ea",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{intg.name||intg.username||intg.platform}</div>
+                                  <div style={{fontSize:10,color:"#4a6a88",textTransform:"uppercase",letterSpacing:1}}>{intg.platform||""}</div>
+                                </div>
+                                {isExpired?(
+                                  <a href={`/api/postiz-connect?userId=${session.user.id}`}
+                                    style={{fontSize:11,padding:"7px 12px",background:"#f0b429",color:"#000",borderRadius:4,fontWeight:600,textDecoration:"none",flexShrink:0}}>
+                                    Reconnect
+                                  </a>
+                                ):(
+                                  <button
+                                    disabled={!mediaReady||isBusy}
+                                    onClick={()=>postizPublishNow(intg)}
+                                    style={{fontSize:11,padding:"7px 14px",border:"none",borderRadius:4,fontWeight:600,cursor:mediaReady&&!isBusy?"pointer":"not-allowed",flexShrink:0,fontFamily:"'DM Mono',monospace",
+                                      background:isDone?"#00ff8822":!mediaReady||isBusy?"#1e2d42":"linear-gradient(135deg,#00ff88,#00b894)",
+                                      color:isDone?"#00ff88":!mediaReady||isBusy?"#3d5e7a":"#000"}}>
+                                    {isDone?"✓ Posted":isBusy?"Posting...":"Post Now"}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {Object.values(postizPublishing).some(s=>s==="error")&&
+                          <div style={{fontSize:11,color:"#ff6a6a",marginTop:10}}>Something didn't go through on one account — try again in a moment.</div>}
+                      </div>
+                    )}
 
                     {/* Platform Picker — select up to 3 */}
                     <div style={{fontSize:12,letterSpacing:2,color:"#8bacc8",textTransform:"uppercase",marginBottom:12,fontWeight:500}}>
