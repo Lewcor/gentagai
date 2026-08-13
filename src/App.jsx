@@ -140,10 +140,12 @@ const VIDEO_AD_TYPES = [
 const VIDEO_TOOLS = [
   {id:"runway",label:"Runway Gen-4",color:"#00e5ff"},
   {id:"pika",label:"Pika 2.0",color:"#ff6eb4"},
-  {id:"sora",label:"Sora",color:"#00ff88"},
+  {id:"sora",label:"Sora 2",color:"#00ff88"},
   {id:"kling",label:"Kling AI",color:"#f0b429"},
+  {id:"higgsfield",label:"Higgsfield",color:"#ff4500"},
+  {id:"google_flow",label:"Google Flow",color:"#4285f4"},
   {id:"heygen",label:"HeyGen",color:"#7c83fd"},
-  {id:"capcut",label:"CapCut AI",color:"#ff4500"},
+  {id:"capcut",label:"CapCut AI",color:"#a855f7"},
 ];
 
 // ─────────────────────────────────────────────
@@ -190,6 +192,12 @@ const NICHE_PRESETS = [
   "Streetwear / Fashion","Fitness & Wellness","Tech & SaaS","Food & Beverage",
   "Real Estate","Beauty & Skincare","Music & Entertainment","E-Commerce / DTC",
   "Finance & Crypto","Travel & Lifestyle","Education & Coaching","NFT & Web3",
+  "Photographer","Writing / Books / Scripts",
+];
+const PRODUCT_TYPES = [
+  "T-Shirt","Hoodie","Sneakers","Pants","Jacket","Accessory","Course","Software",
+  "Service","App","Food / Drink","Skincare","Supplement","Digital Download",
+  "Event / Drop","NFT / Collection",
 ];
 
 // ─────────────────────────────────────────────
@@ -868,6 +876,8 @@ export default function Gentagai(){
   const [authLoading,setAuthLoading]=useState(false);
   const [postizStatus,setPostizStatus]=useState({connected:false,integrations:[]});
   const [postizPublishing,setPostizPublishing]=useState({});
+  const [nicheOpen,setNicheOpen]=useState(false);
+  const [productTypeOpen,setProductTypeOpen]=useState(false);
 
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>setSession(data.session||null));
@@ -1843,7 +1853,25 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 <input className="inp" placeholder="e.g. L' LEWCOR" value={brand} onChange={e=>setBrand(e.target.value)}/></div>
               <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>NICHE *</div>
                 <input className="inp" placeholder="e.g. Urban Streetwear" value={niche} onChange={e=>setNiche(e.target.value)}/>
-                <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:8}}>{NICHE_PRESETS.map(n=><button key={n} className="nt" onClick={()=>setNiche(n)}>{n}</button>)}</div>
+                <div style={{position:"relative",marginTop:8}}>
+                  <button type="button" className="chip" onClick={()=>{setNicheOpen(o=>!o);setProductTypeOpen(false);}}
+                    style={{width:"100%",justifyContent:"space-between",padding:"11px 14px"}}>
+                    <span style={{color:"#9BA0AC"}}>Browse niche presets</span>
+                    <span style={{fontSize:10,color:mc,transform:nicheOpen?"rotate(180deg)":"none",transition:"transform .2s",display:"inline-block"}}>▾</span>
+                  </button>
+                  {nicheOpen&&(
+                    <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:40,background:"rgba(14,16,19,.97)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:7,maxHeight:260,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.65)"}}>
+                      {NICHE_PRESETS.map(n=>(
+                        <div key={n} onClick={()=>{setNiche(n);setNicheOpen(false);}}
+                          style={{padding:"10px 12px",borderRadius:9,cursor:"pointer",fontSize:12.5,color:niche===n?mc:"#F0F1F4",background:niche===n?`${mc}14`:"transparent",transition:"background .12s"}}
+                          onMouseEnter={e=>{if(niche!==n)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
+                          onMouseLeave={e=>{if(niche!==n)e.currentTarget.style.background="transparent";}}>
+                          {n}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div><div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>TARGET AUDIENCE</div>
                 <input className="inp" placeholder="Urban males 18-35" value={audience} onChange={e=>setAudience(e.target.value)}/></div>
@@ -1866,12 +1894,24 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
               <div>
                 <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",marginBottom:8,fontWeight:500}}>PRODUCT TYPE</div>
-                <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
-                  {["T-Shirt","Hoodie","Sneakers","Pants","Jacket","Accessory","Course","Software","Service","App","Food / Drink","Skincare","Supplement","Digital Download","Event / Drop","NFT / Collection"].map(t=>(
-                    <button key={t} className="nt"
-                      style={productType===t?{borderColor:mc,color:mc}:{}}
-                      onClick={()=>setProductType(productType===t?"":t)}>{t}</button>
-                  ))}
+                <div style={{position:"relative",marginBottom:10}}>
+                  <button type="button" className="chip" onClick={()=>{setProductTypeOpen(o=>!o);setNicheOpen(false);}}
+                    style={{width:"100%",justifyContent:"space-between",padding:"11px 14px"}}>
+                    <span style={{color:productType?mc:"#9BA0AC"}}>{productType||"Browse product types"}</span>
+                    <span style={{fontSize:10,color:mc,transform:productTypeOpen?"rotate(180deg)":"none",transition:"transform .2s",display:"inline-block"}}>▾</span>
+                  </button>
+                  {productTypeOpen&&(
+                    <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:40,background:"rgba(14,16,19,.97)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:7,maxHeight:260,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.65)"}}>
+                      {PRODUCT_TYPES.map(t=>(
+                        <div key={t} onClick={()=>{setProductType(productType===t?"":t);setProductTypeOpen(false);}}
+                          style={{padding:"10px 12px",borderRadius:9,cursor:"pointer",fontSize:12.5,color:productType===t?mc:"#F0F1F4",background:productType===t?`${mc}14`:"transparent",transition:"background .12s"}}
+                          onMouseEnter={e=>{if(productType!==t)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
+                          onMouseLeave={e=>{if(productType!==t)e.currentTarget.style.background="transparent";}}>
+                          {t}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <input className="inp" placeholder="Or type your own product type..." value={productType} onChange={e=>setProductType(e.target.value)}/>
               </div>
