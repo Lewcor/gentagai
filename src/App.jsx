@@ -239,12 +239,61 @@ const buildScoring=(vA,vB,ct,p)=>`Senior marketing strategist. Score two variant
 // ── AMPLIFY PROMPT BUILDER ─────────────────────
 // Used when customer uploads an already-made image or video
 // AI Brain generates marketing content FROM the uploaded asset
-function buildAmplifyPrompt({type,brand,niche,platform,tone,audience,goal,keywords,productName,productDesc,productType,productPrice,mediaType,mediaName,mediaSize}){
+const VIDEO_FRAME_COUNT=3;
+
+// Actually samples real frames from the uploaded video file via a hidden
+// <video> + <canvas>, so vision-capable calls can genuinely see the
+// content instead of the model being asked to fake an analysis.
+function extractVideoFrames(file){
+  return new Promise((resolve)=>{
+    try{
+      const video=document.createElement("video");
+      video.preload="metadata";
+      video.muted=true;
+      video.playsInline=true;
+      const url=URL.createObjectURL(file);
+      video.src=url;
+      const frames=[];
+      let timestamps=[];
+      let idx=0;
+
+      const cleanup=()=>{URL.revokeObjectURL(url);};
+      const finish=()=>{cleanup();resolve(frames);};
+
+      video.onloadedmetadata=()=>{
+        const dur=video.duration||1;
+        timestamps=[dur*0.15,dur*0.5,dur*0.85].filter(t=>isFinite(t)&&t>=0);
+        if(!timestamps.length){finish();return;}
+        video.currentTime=timestamps[0];
+      };
+      video.onseeked=()=>{
+        try{
+          const canvas=document.createElement("canvas");
+          canvas.width=video.videoWidth||640;
+          canvas.height=video.videoHeight||360;
+          const ctx=canvas.getContext("2d");
+          ctx.drawImage(video,0,0,canvas.width,canvas.height);
+          const dataUrl=canvas.toDataURL("image/jpeg",0.7);
+          frames.push(dataUrl.split(",")[1]);
+        }catch{}
+        idx++;
+        if(idx<timestamps.length){video.currentTime=timestamps[idx];}
+        else{finish();}
+      };
+      video.onerror=()=>finish();
+      setTimeout(()=>{if(frames.length<timestamps.length)finish();},8000);
+    }catch{resolve([]);}
+  });
+}
+
+function buildAmplifyPrompt({type,brand,niche,platform,tone,audience,goal,keywords,productName,productDesc,productType,productPrice,mediaType,mediaName,mediaSize,hasVideoFrames}){
   const brandCtx=`BRAND: ${brand||"The Brand"} | NICHE: ${niche||"Fashion & Lifestyle"} | PLATFORM: ${platform} | TONE: ${toneDesc[tone]||"hype"} | AUDIENCE: ${audience||"18-35 urban"}`;
   const productCtx=productDesc?`\nPRODUCT: ${productName||"Product"}${productType?` (${productType})`:""} — ${productDesc}${productPrice?` · ${productPrice}`:""}`:goal?`\nGOAL: ${goal}`:"";
   const mediaCtx=mediaType==="image"
     ?`\nUPLOADED IMAGE: "${mediaName||"image"}" — The customer's actual finished image. Study every detail: subject, colors, lighting, composition, mood, and energy before generating.`
-    :`\nUPLOADED VIDEO: "${mediaName||"video"}" (${mediaSize||"?"}MB) — The customer's actual finished video. Base everything on this specific video's context, brand, and product.`;
+    :hasVideoFrames
+    ?`\nUPLOADED VIDEO: "${mediaName||"video"}" (${mediaSize||"?"}MB) — Attached below are ${VIDEO_FRAME_COUNT} still frames sampled evenly across this video's actual timeline. Study what's visible in them (subjects, setting, colors, mood, on-screen text) and base your response on what you can actually see. These are sampled frames, not full playback — don't describe motion or audio you can't observe.`
+    :`\nUPLOADED VIDEO: "${mediaName||"video"}" (${mediaSize||"?"}MB) — No visual frames were available for this file, so write based on the brand, product, and platform context only. Do not invent or guess what's shown in the video.`;
   const seoKW=keywords?`\nSEO KEYWORDS: ${keywords}`:"";
 
   const tasks={
@@ -878,6 +927,10 @@ export default function Gentagai(){
   const [postizPublishing,setPostizPublishing]=useState({});
   const [nicheOpen,setNicheOpen]=useState(false);
   const [productTypeOpen,setProductTypeOpen]=useState(false);
+  const [platformOpen,setPlatformOpen]=useState(false);
+  const [contentTypeOpen,setContentTypeOpen]=useState(false);
+  const [imageTypeOpen,setImageTypeOpen]=useState(false);
+  const [videoTypeOpen,setVideoTypeOpen]=useState(false);
   const [vizUrl,setVizUrl]=useState("");
   const [vizScanning,setVizScanning]=useState(false);
   const [vizResult,setVizResult]=useState(null);
@@ -1056,9 +1109,12 @@ export default function Gentagai(){
   function handleVideoFile(file){
     if(!file||!file.type.startsWith("video/"))return;
     const url=URL.createObjectURL(file);
-    setUploadedVideo({name:file.name,url,size:(file.size/1024/1024).toFixed(1),type:file.type,storageUrl:null,uploading:true});
+    setUploadedVideo({name:file.name,url,size:(file.size/1024/1024).toFixed(1),type:file.type,storageUrl:null,uploading:true,frames:null,extractingFrames:true});
     uploadFileToStorage(file,"videos").then(storageUrl=>{
       setUploadedVideo(prev=>prev&&prev.name===file.name?{...prev,storageUrl,uploading:false}:prev);
+    });
+    extractVideoFrames(file).then(frames=>{
+      setUploadedVideo(prev=>prev&&prev.name===file.name?{...prev,frames,extractingFrames:false}:prev);
     });
   }
   function handleImgDrop(e){e.preventDefault();setImgDrag(false);handleImageFile(e.dataTransfer.files[0]);}
@@ -1542,10 +1598,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
     if(gensUsed>=limit&&limit!==Infinity){setUpgradeModal("more generations");return;}
     reset();setStep("running");
     const mediaType=uploadedImage?"image":"video";
+    const hasVideoFrames=!!(uploadedVideo?.frames&&uploadedVideo.frames.length);
     const prompt=buildAmplifyPrompt({
       type:amplifyType,brand,niche,platform,tone,audience,goal,keywords,
       productName,productDesc,productType,productPrice,
-      mediaType,mediaName:file.name,mediaSize:file.size||uploadedVideo?.size,
+      mediaType,mediaName:file.name,mediaSize:file.size||uploadedVideo?.size,hasVideoFrames,
     });
     try{
       let full="";
@@ -1566,8 +1623,19 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             for(const line of dec.decode(value).split("\n")){if(!line.startsWith("data: "))continue;const d=line.slice(6);if(d==="[DONE]")continue;
               try{const p=JSON.parse(d);if(p.type==="content_block_delta"&&p.delta?.text){full+=p.delta.text;setOutput(full);}}catch{}}}
         }
+      }else if(hasVideoFrames&&!(aiBrain==="gemini"&&geminiKey)&&!(aiBrain==="chatgpt"&&chatgptKey)){
+        // Real vision — send the actual sampled frames from the video, not just its filename
+        const msg={role:"user",content:[
+          ...uploadedVideo.frames.map(f=>({type:"image",source:{type:"base64",media_type:"image/jpeg",data:f}})),
+          {type:"text",text:prompt}
+        ]};
+        const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-3-5-sonnet-20241022",max_tokens:4096,messages:[msg]})});
+        const reader=res.body.getReader(),dec=new TextDecoder();
+        while(true){const{done,value}=await reader.read();if(done)break;
+          for(const line of dec.decode(value).split("\n")){if(!line.startsWith("data: "))continue;const d=line.slice(6);if(d==="[DONE]")continue;
+            try{const p=JSON.parse(d);if(p.type==="content_block_delta"&&p.delta?.text){full+=p.delta.text;setOutput(full);}}catch{}}}
       }else{
-        // Video — text only (no vision for video files)
+        // Video — no frames available, or using a brain without vision wired for video yet
         if(aiBrain==="gemini"&&geminiKey) full=await callGemini(prompt,geminiKey,setOutput);
         else if(aiBrain==="chatgpt"&&chatgptKey) full=await callChatGPT(prompt,chatgptKey,setOutput);
         else full=await streamAPI(prompt,setOutput);
@@ -1719,13 +1787,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         .chip.on{border-color:${mc};background:${mc}0a;color:${mc};box-shadow:0 0 16px ${mc}33;}
         .inp{background:rgba(255,255,255,.025);backdrop-filter:blur(16px);border:1.5px solid rgba(255,255,255,.08);color:#F5F6F8;font-family:'DM Mono',monospace;font-size:14px;padding:14px 16px;width:100%;outline:none;transition:border-color .2s;border-radius:12px;}
         .inp:focus{border-color:${mc}44;} .inp::placeholder{color:#565A64;}
-        .sl{font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-weight:500;}
+        .sl{font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-weight:500;}
         .sl::after{content:'';flex:1;height:1px;background:#1a1d24;}
         .ctc{background:rgba(255,255,255,.025);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);padding:14px 16px;cursor:pointer;transition:all .18s;border-radius:14px;}
         .ctc:hover{background:#15181D;border-color:${mc}44;box-shadow:0 0 16px ${mc}1a;}
         .ctc.on{border-color:${mc};background:${mc}0d;box-shadow:0 0 24px ${mc}22, inset 0 0 20px ${mc}0d;}
         .ctc.locked{opacity:.35;cursor:not-allowed;}
-        .otext{font-size:14px;line-height:1.9;color:#F0F1F4;white-space:pre-wrap;font-family:'DM Mono',monospace;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
+        .otext{font-size:15px;line-height:1.9;color:#F0F1F4;white-space:pre-wrap;font-family:'DM Mono',monospace;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
         .blink::after{content:'█';animation:bl .7s steps(1) infinite;color:${mc};}
         @keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
         .gline{height:1px;animation:gl 1.1s linear infinite;margin:1px 0;}
@@ -1835,6 +1903,19 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
             </div>
 
+            <div style={{marginBottom:14}}>
+              <div style={{fontSize:9,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",marginBottom:6}}>Campaign Goal</div>
+              <input value={goal} onChange={e=>setGoal(e.target.value)} placeholder="Drive sales, Launch Drop 001"
+                style={{width:"100%",background:"rgba(255,255,255,.025)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 11px",color:"#F0F1F4",fontSize:12,fontFamily:"'DM Mono',monospace",outline:"none"}}/>
+            </div>
+            {(mode==="copy"||mode==="ab")&&(
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:9,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",marginBottom:6}}>SEO Keywords</div>
+                <input value={keywords} onChange={e=>setKeywords(e.target.value)} placeholder="urban streetwear, limited drop"
+                  style={{width:"100%",background:"rgba(255,255,255,.025)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 11px",color:"#F0F1F4",fontSize:12,fontFamily:"'DM Mono',monospace",outline:"none"}}/>
+              </div>
+            )}
+
             {[{id:"copy",label:"◆ BISHOP",m:"copy",c:"#00e5ff"},{id:"content",label:"▣ Content Studio",m:"copy",c:"#00e5ff"},{id:"campaigns",label:"⬡ Campaigns",m:"video",c:"#f0b429"},{id:"analytics",label:"◈ Analytics",m:"visibility",c:"#00ff88"},{id:"bridge",label:"⌁ Bridge",m:"ab",c:"#7c83fd"}].map(n=>(
               <div key={n.id} className="bishop-navitem" onClick={()=>handleModeSwitch(n.m)}
                 style={mode===n.m?{background:`${n.c}14`,color:"#F5F6F8",boxShadow:`0 0 16px ${n.c}22`}:{color:n.c+"99"}}>
@@ -1889,9 +1970,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           <div>
             <div className="sl" style={{color:mc}}>01 — Brand Brief</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>BRAND NAME *</div>
+              <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>BRAND NAME *</div>
                 <input className="inp" placeholder="e.g. L' LEWCOR" value={brand} onChange={e=>setBrand(e.target.value)}/></div>
-              <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>NICHE *</div>
+              <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>NICHE *</div>
                 <input className="inp" placeholder="e.g. Urban Streetwear" value={niche} onChange={e=>setNiche(e.target.value)}/>
                 <div style={{position:"relative",marginTop:8}}>
                   <button type="button" className="chip" onClick={()=>{setNicheOpen(o=>!o);setProductTypeOpen(false);}}
@@ -1913,13 +1994,15 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   )}
                 </div>
               </div>
-              <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>TARGET AUDIENCE</div>
+              <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>TARGET AUDIENCE</div>
                 <input className="inp" placeholder="Urban males 18-35" value={audience} onChange={e=>setAudience(e.target.value)}/></div>
               {mode!=="image"&&<>
-                <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>CAMPAIGN GOAL</div>
+                {isMobile&&(<>
+                <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>CAMPAIGN GOAL</div>
                   <input className="inp" placeholder="Drive sales, Launch Drop 001" value={goal} onChange={e=>setGoal(e.target.value)}/></div>
-                {(mode==="copy"||mode==="ab")&&<div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>SEO KEYWORDS</div>
+                {(mode==="copy"||mode==="ab")&&<div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>SEO KEYWORDS</div>
                   <input className="inp" placeholder="urban streetwear, limited drop" value={keywords} onChange={e=>setKeywords(e.target.value)}/></div>}
+                </>)}
               </>}
             </div>
           </div>
@@ -1929,11 +2012,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div className="sl" style={{color:mc}}>02 — Product Intel</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
 
-              <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRODUCT NAME</div>
+              <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRODUCT NAME</div>
                 <input className="inp" placeholder="e.g. Urban Roots Tee Drop 001" value={productName} onChange={e=>setProductName(e.target.value)}/></div>
 
               <div>
-                <div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRODUCT TYPE</div>
+                <div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRODUCT TYPE</div>
                 <div style={{position:"relative",marginBottom:10}}>
                   <button type="button" className="chip" onClick={()=>{setProductTypeOpen(o=>!o);setNicheOpen(false);}}
                     style={{width:"100%",justifyContent:"space-between",padding:"11px 14px"}}>
@@ -1957,7 +2040,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
 
               <div>
-                <div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRODUCT DESCRIPTION *</div>
+                <div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRODUCT DESCRIPTION *</div>
                 <textarea className="inp"
                   placeholder={`Describe what makes your product unique.\n\nExamples:\n- Materials, features, quality\n- The story behind it\n- What problem it solves\n- Why someone would want it\n- Limited edition / drop details`}
                   value={productDesc}
@@ -1968,7 +2051,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 </div>
               </div>
 
-              <div><div style={{fontSize:12,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRICE / VALUE PROP</div>
+              <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRICE / VALUE PROP</div>
                 <input className="inp" placeholder="e.g. $89 · Limited to 50 units" value={productPrice} onChange={e=>setProductPrice(e.target.value)}/></div>
 
               {/* Smart preview */}
@@ -1986,32 +2069,58 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
           <div>
             <div className="sl" style={{color:mc}}>03 — Platform</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              {PLATFORMS.map(p=>{
-                const locked=plan==="free"&&!p.free;
-                return <div key={p.id} className={`chip ${platform===p.id&&!locked?"on":""}`}
-                  onClick={()=>locked?setUpgradeModal(`${p.label} platform`):setPlatform(p.id)}
-                  style={locked?{opacity:.4,cursor:"not-allowed"}:{}}>
-                  <span style={{opacity:.4,fontSize:11}}>{p.icon}</span><span>{p.label}</span>{locked&&<span className="lock-icon">🔒</span>}
-                </div>;
-              })}
+            <div style={{position:"relative"}}>
+              <button type="button" className="chip" onClick={()=>{setPlatformOpen(o=>!o);setNicheOpen(false);setProductTypeOpen(false);setContentTypeOpen(false);}}
+                style={{width:"100%",justifyContent:"space-between",padding:"11px 14px"}}>
+                <span>{platform?<><span style={{opacity:.5,marginRight:6}}>{PLATFORMS.find(p=>p.id===platform)?.icon}</span>{PLATFORMS.find(p=>p.id===platform)?.label}</>:<span style={{color:"#9BA0AC"}}>Select platform</span>}</span>
+                <span style={{fontSize:10,color:mc,transform:platformOpen?"rotate(180deg)":"none",transition:"transform .2s",display:"inline-block"}}>▾</span>
+              </button>
+              {platformOpen&&(
+                <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:40,background:"rgba(14,16,19,.97)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.65)"}}>
+                  {PLATFORMS.map(p=>{
+                    const locked=plan==="free"&&!p.free;
+                    return (
+                      <div key={p.id} onClick={()=>{if(locked){setUpgradeModal(`${p.label} platform`);}else{setPlatform(p.id);}setPlatformOpen(false);}}
+                        style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:9,cursor:"pointer",fontSize:13,color:locked?"#565A64":platform===p.id?mc:"#F0F1F4",background:platform===p.id&&!locked?`${mc}14`:"transparent",opacity:locked?.55:1,transition:"background .12s"}}
+                        onMouseEnter={e=>{if(platform!==p.id&&!locked)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
+                        onMouseLeave={e=>{e.currentTarget.style.background=platform===p.id&&!locked?`${mc}14`:"transparent";}}>
+                        <span><span style={{opacity:.5,marginRight:8}}>{p.icon}</span>{p.label}</span>
+                        {locked&&<span className="lock-icon">🔒</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
           {(mode==="copy"||mode==="ab")&&(
             <div>
               <div className="sl" style={{color:mc}}>04 — Content Type</div>
-              <div style={{display:"flex",flexDirection:"column",gap:4}}>
-                {CONTENT_TYPES.map(ct=>{
-                  const locked=plan==="free"&&!ct.free;
-                  return <div key={ct.id} className={`ctc ${contentType===ct.id&&!locked?"on":""} ${locked?"locked":""}`}
-                    onClick={()=>locked?setUpgradeModal(`${ct.label} content`):setContentType(ct.id)}>
-                    <div style={{fontSize:13,color:contentType===ct.id&&!locked?mc:"#C9CDD3",display:"flex",justifyContent:"space-between"}}>
-                      {ct.label}{locked&&<span className="lock-icon">🔒</span>}
-                    </div>
-                    <div style={{fontSize:10,color:"#565A64",marginTop:1}}>{ct.desc}</div>
-                  </div>;
-                })}
+              <div style={{position:"relative"}}>
+                <button type="button" className="chip" onClick={()=>{setContentTypeOpen(o=>!o);setNicheOpen(false);setProductTypeOpen(false);setPlatformOpen(false);}}
+                  style={{width:"100%",justifyContent:"space-between",padding:"11px 14px"}}>
+                  <span style={{color:contentType?mc:"#9BA0AC"}}>{CONTENT_TYPES.find(c=>c.id===contentType)?.label||"Select content type"}</span>
+                  <span style={{fontSize:10,color:mc,transform:contentTypeOpen?"rotate(180deg)":"none",transition:"transform .2s",display:"inline-block"}}>▾</span>
+                </button>
+                {contentTypeOpen&&(
+                  <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:40,background:"rgba(14,16,19,.97)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:7,maxHeight:320,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.65)"}}>
+                    {CONTENT_TYPES.map(ct=>{
+                      const locked=plan==="free"&&!ct.free;
+                      return (
+                        <div key={ct.id} onClick={()=>{if(locked){setUpgradeModal(`${ct.label} content`);}else{setContentType(ct.id);}setContentTypeOpen(false);}}
+                          style={{padding:"10px 12px",borderRadius:9,cursor:"pointer",background:contentType===ct.id&&!locked?`${mc}14`:"transparent",opacity:locked?.55:1,transition:"background .12s"}}
+                          onMouseEnter={e=>{if(contentType!==ct.id&&!locked)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
+                          onMouseLeave={e=>{e.currentTarget.style.background=contentType===ct.id&&!locked?`${mc}14`:"transparent";}}>
+                          <div style={{fontSize:13,color:contentType===ct.id&&!locked?mc:"#F0F1F4",display:"flex",justifyContent:"space-between"}}>
+                            {ct.label}{locked&&<span className="lock-icon">🔒</span>}
+                          </div>
+                          <div style={{fontSize:10.5,color:"#565A64",marginTop:1}}>{ct.desc}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -2029,11 +2138,25 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
               {imageFlow==="generate"&&(<>
                 <div className="sl" style={{color:"#ff7c00"}}>Image Subject</div>
-                <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:14}}>
-                  {IMAGE_TYPES.map(it=><div key={it.id} className={`ctc ${imageType===it.id?"on":""}`} onClick={()=>setImageType(it.id)}>
-                    <div style={{fontSize:13,color:imageType===it.id?"#ff7c00":"#C9CDD3"}}>{it.label}</div>
-                    <div style={{fontSize:10,color:"#565A64",marginTop:1}}>{it.desc}</div>
-                  </div>)}
+                <div style={{position:"relative",marginBottom:14}}>
+                  <button type="button" className="chip" onClick={()=>setImageTypeOpen(o=>!o)}
+                    style={{width:"100%",justifyContent:"space-between",padding:"11px 14px",borderColor:imageType?"#ff7c0055":undefined}}>
+                    <span style={{color:imageType?"#ff7c00":"#9BA0AC"}}>{IMAGE_TYPES.find(c=>c.id===imageType)?.label||"Select image subject"}</span>
+                    <span style={{fontSize:10,color:"#ff7c00",transform:imageTypeOpen?"rotate(180deg)":"none",transition:"transform .2s",display:"inline-block"}}>▾</span>
+                  </button>
+                  {imageTypeOpen&&(
+                    <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:40,background:"rgba(14,16,19,.97)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.65)"}}>
+                      {IMAGE_TYPES.map(it=>(
+                        <div key={it.id} onClick={()=>{setImageType(it.id);setImageTypeOpen(false);}}
+                          style={{padding:"10px 12px",borderRadius:9,cursor:"pointer",background:imageType===it.id?"#ff7c0014":"transparent",transition:"background .12s"}}
+                          onMouseEnter={e=>{if(imageType!==it.id)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
+                          onMouseLeave={e=>{e.currentTarget.style.background=imageType===it.id?"#ff7c0014":"transparent";}}>
+                          <div style={{fontSize:13,color:imageType===it.id?"#ff7c00":"#F0F1F4"}}>{it.label}</div>
+                          <div style={{fontSize:10.5,color:"#565A64",marginTop:1}}>{it.desc}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="sl" style={{color:"#ff7c00"}}>Prompt Target Tool</div>
                 <div style={{fontSize:11,color:"#565A64",marginBottom:6,lineHeight:1.6}}>Claude formats prompts for this tool. Nothing auto-runs — you paste the result.</div>
@@ -2148,12 +2271,25 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
               {videoFlow==="generate"&&(<>
                 <div className="sl" style={{color:"#f0b429"}}>Video Ad Format</div>
-                {!videoAdType&&<div style={{fontSize:11,color:"#f0b42988",marginBottom:7,display:"flex",alignItems:"center",gap:6}}><div style={{width:5,height:5,borderRadius:"50%",background:"#f0b429",animation:"bl .9s steps(1) infinite"}}/>Pick a format to continue</div>}
-                <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:14}}>
-                  {VIDEO_AD_TYPES.map(vt=><div key={vt.id} className={`ctc ${videoAdType===vt.id?"on":""}`} onClick={()=>setVideoAdType(vt.id)}>
-                    <div style={{fontSize:13,color:videoAdType===vt.id?"#f0b429":"#C9CDD3"}}>{vt.label}</div>
-                    <div style={{fontSize:10,color:"#565A64",marginTop:1}}>{vt.desc}</div>
-                  </div>)}
+                <div style={{position:"relative",marginBottom:14}}>
+                  <button type="button" className="chip" onClick={()=>setVideoTypeOpen(o=>!o)}
+                    style={{width:"100%",justifyContent:"space-between",padding:"11px 14px",borderColor:videoAdType?"#f0b42955":undefined}}>
+                    <span style={{color:videoAdType?"#f0b429":"#9BA0AC"}}>{VIDEO_AD_TYPES.find(c=>c.id===videoAdType)?.label||"Select video ad format"}</span>
+                    <span style={{fontSize:10,color:"#f0b429",transform:videoTypeOpen?"rotate(180deg)":"none",transition:"transform .2s",display:"inline-block"}}>▾</span>
+                  </button>
+                  {videoTypeOpen&&(
+                    <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:40,background:"rgba(14,16,19,.97)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.65)"}}>
+                      {VIDEO_AD_TYPES.map(vt=>(
+                        <div key={vt.id} onClick={()=>{setVideoAdType(vt.id);setVideoTypeOpen(false);}}
+                          style={{padding:"10px 12px",borderRadius:9,cursor:"pointer",background:videoAdType===vt.id?"#f0b42914":"transparent",transition:"background .12s"}}
+                          onMouseEnter={e=>{if(videoAdType!==vt.id)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
+                          onMouseLeave={e=>{e.currentTarget.style.background=videoAdType===vt.id?"#f0b42914":"transparent";}}>
+                          <div style={{fontSize:13,color:videoAdType===vt.id?"#f0b429":"#F0F1F4"}}>{vt.label}</div>
+                          <div style={{fontSize:10.5,color:"#565A64",marginTop:1}}>{vt.desc}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="sl" style={{color:"#f0b429"}}>Prompt Target Tool</div>
                 <div style={{fontSize:11,color:"#565A64",marginBottom:6,lineHeight:1.6}}>Claude writes the script for this tool. Nothing auto-runs.</div>
@@ -2209,6 +2345,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         <div style={{fontSize:12,color:"#F0F1F4",maxWidth:190,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedVideo.name}</div>
                         <div style={{fontSize:11,color:"#6B6F7A",marginTop:1}}>{uploadedVideo.size} MB</div>
                         <div style={{fontSize:10,color:uploadedVideo.uploading?"#f0b429":uploadedVideo.storageUrl?"#5ce88a":"#ff6a6a",marginTop:2}}>{uploadedVideo.uploading?"☁ Saving to cloud...":uploadedVideo.storageUrl?"☁ Saved":"☁ Save failed — using local copy"}</div>
+                        <div style={{fontSize:10,color:uploadedVideo.extractingFrames?"#f0b429":uploadedVideo.frames?.length?"#5ce88a":"#ff6a6a",marginTop:2}}>{uploadedVideo.extractingFrames?"🎞 Sampling frames...":uploadedVideo.frames?.length?`🎞 ${uploadedVideo.frames.length} frames ready for BISHOP`:"🎞 No frames captured — will use text context only"}</div>
                       </div>
                       <button onClick={()=>setUploadedVideo(null)} style={{background:"#ff2d2d",border:"none",color:"#fff",fontSize:14,width:24,height:24,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
                     </div>
@@ -2471,7 +2608,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     <video src={uploadedVideo.url} controls style={{width:"100%",maxHeight:160,display:"block",background:"#000"}}/>
                     <div style={{padding:"10px 14px",display:"flex",gap:12,alignItems:"center"}}>
                       <div style={{flex:1}}>
-                        <div style={{fontSize:12,letterSpacing:2,color:"#f0b429",textTransform:"uppercase",marginBottom:2}}>Analyzing This Video</div>
+                        <div style={{fontSize:12,letterSpacing:2,color:"#f0b429",textTransform:"uppercase",marginBottom:2}}>{uploadedVideo.frames?.length?`Analyzing ${uploadedVideo.frames.length} Sampled Frames`:"Using Brand Context Only"}</div>
                         <div style={{fontSize:12,color:"#82858C",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedVideo.name} · {uploadedVideo.size} MB</div>
                       </div>
                     </div>
