@@ -576,6 +576,16 @@ async function callAPI(prompt){
     return data.content?.map(b=>b.text||"").join("")||"";
   }catch(e){return "⚠ Error: "+e.message;}
 }
+// Same as callAPI but accepts a full Claude content array (text + images),
+// non-streaming — used for one-shot structured analysis, not generation.
+async function callAPIContent(content,maxTokens=2048){
+  try{
+    const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:maxTokens,messages:[{role:"user",content}]})});
+    if(!res.ok){const err=await res.text();return "⚠ Error: "+err.slice(0,100);}
+    const data=await res.json();
+    return data.content?.map(b=>b.text||"").join("")||"";
+  }catch(e){return "⚠ Error: "+e.message;}
+}
 // Real vision call — was previously parsed as SSE against an endpoint that
 // actually returns one JSON blob, so it silently produced zero output.
 // Now matches streamAPI's real response shape and surfaces real errors.
@@ -1021,6 +1031,13 @@ export default function Gentagai(){
   const [vizBrandSuggestion,setVizBrandSuggestion]=useState(null);
   const [vizAnalyzingBrand,setVizAnalyzingBrand]=useState(false);
   const [vizBrandError,setVizBrandError]=useState("");
+  const [learnOpen,setLearnOpen]=useState(false);
+  const [learnMode,setLearnMode]=useState("text"); // text | photo | instagram
+  const [learnText,setLearnText]=useState("");
+  const [learnImage,setLearnImage]=useState(null);
+  const [learnAnalyzing,setLearnAnalyzing]=useState(false);
+  const [learnError,setLearnError]=useState("");
+  const [learnSuggestion,setLearnSuggestion]=useState(null);
 
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>setSession(data.session||null));
@@ -1451,6 +1468,91 @@ Site text:
     if(Array.isArray(vizBrandSuggestion.tones)&&vizBrandSuggestion.tones.length){
       setTone(vizBrandSuggestion.tones.filter(t=>TONES.some(x=>x.id===t)).slice(0,2));
     }
+  }
+
+  const brandJsonInstructions=(source)=>`Respond with ONLY valid JSON, nothing else, no markdown fences, in exactly this shape:
+{"brandName":"best guess at the actual brand/business name","niche":"closest match from this list: ${NICHE_PRESETS.join(", ")}","audience":"a short target audience description like 'urban males 18-35'","tones":["one or two tone ids from this list: ${TONES.map(t=>t.id).join(", ")}"],"voiceSummary":"2 sentences describing how this brand actually sounds, in plain language, based on the ${source}"}`;
+
+  function parseBrandJson(raw){
+    return JSON.parse(raw.replace(/```json|```/g,"").trim());
+  }
+
+  // ── PATH 1: Paste a description — for anyone with no site and no socials connected ──
+  async function analyzeBrandFromText(){
+    if(!learnText.trim())return;
+    setLearnAnalyzing(true);setLearnSuggestion(null);setLearnError("");
+    const prompt=`You are BISHOP. Read this description a business owner wrote about their own brand and infer their identity.\n\n${brandJsonInstructions("description below")}\n\nDescription:\n"""${learnText.trim()}"""`;
+    try{
+      const raw=await callAPI(prompt);
+      setLearnSuggestion(parseBrandJson(raw));
+    }catch{
+      setLearnError("Couldn't read a clear brand identity from that — try adding a bit more detail.");
+    }
+    setLearnAnalyzing(false);
+  }
+
+  // ── PATH 2: Upload a photo — product, flyer, storefront, business card ──
+  function handleLearnImageFile(file){
+    if(!file||!file.type.startsWith("image/"))return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      setLearnImage({name:file.name,url:e.target.result,base64:e.target.result.split(",")[1],type:file.type});
+    };
+    reader.readAsDataURL(file);
+  }
+  async function analyzeBrandFromPhoto(){
+    if(!learnImage)return;
+    setLearnAnalyzing(true);setLearnSuggestion(null);setLearnError("");
+    const content=[
+      {type:"image",source:{type:"base64",media_type:learnImage.type,data:learnImage.base64}},
+      {type:"text",text:`You are BISHOP. Look at this real photo of a business — a product, flyer, storefront, or business card — and infer the brand's identity from what's actually visible (style, colors, text on the image, vibe, quality level).\n\n${brandJsonInstructions("visual details in the image")}`}
+    ];
+    try{
+      const raw=await callAPIContent(content,2048);
+      setLearnSuggestion(parseBrandJson(raw));
+    }catch{
+      setLearnError("Couldn't read a clear brand identity from that photo — try a clearer shot or a different one.");
+    }
+    setLearnAnalyzing(false);
+  }
+
+  // ── PATH 3: Pull real captions from their connected Instagram via Postiz ──
+  async function analyzeBrandFromInstagram(){
+    if(!session?.user)return;
+    setLearnAnalyzing(true);setLearnSuggestion(null);setLearnError("");
+    try{
+      const igIntegration=postizStatus.integrations?.find(i=>(i.platform||"").toLowerCase().includes("instagram"));
+      const res=await fetch("/api/postiz-posts",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({userId:session.user.id,integrationId:igIntegration?.id}),
+      });
+      const data=await res.json();
+      if(!res.ok||data.error){
+        setLearnError(typeof data.error==="string"?data.error:"Couldn't pull posts from Instagram — try reconnecting in Account.");
+        setLearnAnalyzing(false);return;
+      }
+      if(!data.captions?.length){
+        setLearnError("No real captions found on the connected account yet — post a few times, or try Paste a Description instead.");
+        setLearnAnalyzing(false);return;
+      }
+      const prompt=`You are BISHOP. Here are real captions from a brand's own recent Instagram posts. Infer their identity from their actual writing.\n\n${brandJsonInstructions("captions below")}\n\nCaptions:\n"""${data.captions.join("\n---\n").slice(0,3000)}"""`;
+      const raw=await callAPI(prompt);
+      setLearnSuggestion(parseBrandJson(raw));
+    }catch{
+      setLearnError("Something went wrong reading Instagram — try again in a moment.");
+    }
+    setLearnAnalyzing(false);
+  }
+
+  function applyLearnSuggestion(){
+    if(!learnSuggestion)return;
+    if(learnSuggestion.brandName)setBrand(learnSuggestion.brandName);
+    if(learnSuggestion.niche)setNiche(learnSuggestion.niche);
+    if(learnSuggestion.audience)setAudience(learnSuggestion.audience);
+    if(Array.isArray(learnSuggestion.tones)&&learnSuggestion.tones.length){
+      setTone(learnSuggestion.tones.filter(t=>TONES.some(x=>x.id===t)).slice(0,2));
+    }
+    setLearnOpen(false);
   }
 
   async function postizPublishNow(integration){
@@ -2082,6 +2184,79 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           minHeight:0,
           flex:isMobile?1:"unset",
         }}>
+
+          {mode==="copy"&&(
+            <div style={{background:"rgba(0,255,136,.04)",border:"1px solid #00ff8833",borderRadius:14,padding:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}} onClick={()=>setLearnOpen(o=>!o)}>
+                <div>
+                  <div style={{fontSize:12,fontWeight:700,color:"#00ff88"}}>◆ No website? Let BISHOP learn your brand</div>
+                  <div style={{fontSize:10.5,color:"#82858C",marginTop:2}}>Paste a description, upload a photo, or pull from Instagram</div>
+                </div>
+                <span style={{fontSize:11,color:"#00ff88",transform:learnOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+              </div>
+
+              {learnOpen&&(
+                <div style={{marginTop:14}}>
+                  <div style={{display:"flex",gap:6,marginBottom:12}}>
+                    {[{id:"text",label:"Paste"},{id:"photo",label:"Photo"},{id:"instagram",label:"Instagram"}].map(t=>(
+                      <button key={t.id} onClick={()=>{setLearnMode(t.id);setLearnSuggestion(null);setLearnError("");}}
+                        style={{flex:1,padding:"7px 0",fontSize:11,fontWeight:700,borderRadius:8,border:`1px solid ${learnMode===t.id?"#00ff8855":"#24272E"}`,background:learnMode===t.id?"#00ff8812":"transparent",color:learnMode===t.id?"#00ff88":"#82858C",cursor:"pointer",fontFamily:"'DM Mono',monospace"}}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {learnMode==="text"&&(<>
+                    <textarea className="inp" rows={4} placeholder="Tell BISHOP about your brand — what you sell, who it's for, how you talk about it..." value={learnText} onChange={e=>setLearnText(e.target.value)} style={{marginBottom:10,resize:"vertical"}}/>
+                    <button className="sm" disabled={!learnText.trim()||learnAnalyzing} onClick={analyzeBrandFromText} style={{borderColor:"#00ff8855",color:"#00ff88",width:"100%",padding:"9px 0"}}>
+                      {learnAnalyzing?"⟳ READING...":"◆ LEARN MY BRAND"}
+                    </button>
+                  </>)}
+
+                  {learnMode==="photo"&&(<>
+                    {!learnImage?(
+                      <label style={{display:"block",border:"1.5px dashed #24272E",borderRadius:10,padding:"18px 12px",textAlign:"center",cursor:"pointer",marginBottom:10}}>
+                        <div style={{fontSize:11.5,color:"#82858C"}}>Tap to upload a product photo, flyer, or storefront shot</div>
+                        <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])handleLearnImageFile(e.target.files[0]);}}/>
+                      </label>
+                    ):(
+                      <div style={{marginBottom:10,borderRadius:10,overflow:"hidden",position:"relative"}}>
+                        <img src={learnImage.url} alt="" style={{width:"100%",maxHeight:120,objectFit:"cover",display:"block"}}/>
+                        <button onClick={()=>setLearnImage(null)} style={{position:"absolute",top:6,right:6,background:"#ff2d2d",border:"none",color:"#fff",width:22,height:22,borderRadius:"50%",cursor:"pointer"}}>✕</button>
+                      </div>
+                    )}
+                    <button className="sm" disabled={!learnImage||learnAnalyzing} onClick={analyzeBrandFromPhoto} style={{borderColor:"#00ff8855",color:"#00ff88",width:"100%",padding:"9px 0"}}>
+                      {learnAnalyzing?"⟳ READING...":"◆ LEARN MY BRAND"}
+                    </button>
+                  </>)}
+
+                  {learnMode==="instagram"&&(<>
+                    <div style={{fontSize:11,color:"#82858C",lineHeight:1.6,marginBottom:10}}>
+                      {postizStatus.connected?"BISHOP will read your real recent captions to learn your voice.":"Connect Instagram via Postiz in Account first, then come back here."}
+                    </div>
+                    <button className="sm" disabled={!postizStatus.connected||learnAnalyzing} onClick={analyzeBrandFromInstagram} style={{borderColor:"#00ff8855",color:"#00ff88",width:"100%",padding:"9px 0",opacity:postizStatus.connected?1:.5}}>
+                      {learnAnalyzing?"⟳ READING YOUR POSTS...":"◆ LEARN FROM MY INSTAGRAM"}
+                    </button>
+                  </>)}
+
+                  {learnError&&<div style={{fontSize:11,color:"#ff6a6a",marginTop:10,lineHeight:1.5}}>{learnError}</div>}
+
+                  {learnSuggestion&&(
+                    <div style={{marginTop:14,paddingTop:14,borderTop:"1px solid #00ff8822"}}>
+                      <div style={{fontSize:12.5,color:"#F0F1F4",lineHeight:1.6,marginBottom:10,fontStyle:"italic"}}>"{learnSuggestion.voiceSummary}"</div>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:12}}>
+                        <div style={{background:"rgba(255,255,255,.02)",borderRadius:8,padding:"7px 9px"}}><div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase"}}>Brand</div><div style={{fontSize:11.5,color:"#F0F1F4"}}>{learnSuggestion.brandName||"—"}</div></div>
+                        <div style={{background:"rgba(255,255,255,.02)",borderRadius:8,padding:"7px 9px"}}><div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase"}}>Niche</div><div style={{fontSize:11.5,color:"#F0F1F4"}}>{learnSuggestion.niche||"—"}</div></div>
+                        <div style={{background:"rgba(255,255,255,.02)",borderRadius:8,padding:"7px 9px"}}><div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase"}}>Audience</div><div style={{fontSize:11.5,color:"#F0F1F4"}}>{learnSuggestion.audience||"—"}</div></div>
+                        <div style={{background:"rgba(255,255,255,.02)",borderRadius:8,padding:"7px 9px"}}><div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase"}}>Tone</div><div style={{fontSize:11.5,color:"#F0F1F4"}}>{(learnSuggestion.tones||[]).map(t=>TONES.find(x=>x.id===t)?.label).filter(Boolean).join(" + ")||"—"}</div></div>
+                      </div>
+                      <button className="gbtn" onClick={applyLearnSuggestion} style={{background:"linear-gradient(135deg,#00ff88,#00b894)",color:"#000",padding:"10px 0",fontSize:12}}>◆ APPLY TO BRAND BRIEF</button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <div>
             <div className="sl" style={{color:mc}}>01 — Brand Brief</div>
