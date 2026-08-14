@@ -1038,6 +1038,7 @@ export default function Gentagai(){
   const [learnAnalyzing,setLearnAnalyzing]=useState(false);
   const [learnError,setLearnError]=useState("");
   const [learnSuggestion,setLearnSuggestion]=useState(null);
+  const brandInputRef=useRef(null);
 
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>setSession(data.session||null));
@@ -2262,7 +2263,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div className="sl" style={{color:mc}}>01 — Brand Brief</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>BRAND NAME *</div>
-                <input className="inp" placeholder="e.g. L' LEWCOR" value={brand} onChange={e=>setBrand(e.target.value)}/></div>
+                <input ref={brandInputRef} className="inp" placeholder="e.g. L' LEWCOR" value={brand} onChange={e=>setBrand(e.target.value)}/></div>
               <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>NICHE *</div>
                 <input className="inp" placeholder="e.g. Urban Streetwear" value={niche} onChange={e=>setNiche(e.target.value)}/>
                 <div style={{position:"relative",marginTop:8}}>
@@ -2893,19 +2894,54 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           {running&&<div style={{flexShrink:0}}>{[0,1,2].map(i=><div key={i} className="gline" style={{background:`linear-gradient(90deg,${mc},${mc}44)`,animationDelay:`${i*.28}s`}}/>)}</div>}
 
           <div ref={outRef} style={{flex:1,overflowY:"auto",padding:mode==="ab"?"0":isMobile?"20px 16px":"32px 36px",minHeight:0,wordBreak:"break-word"}}>
-            {step==="idle"&&(
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:18,userSelect:"none"}}>
-                <div style={{width:72,height:72}}>
-                  <svg viewBox="0 0 40 40">
-                    <circle className="bishop-core-ring" cx="20" cy="20" r="17" style={{stroke:mc}}/>
-                    <circle className="bishop-core-ring" cx="20" cy="20" r="11" style={{stroke:mc,animationDelay:".4s"}}/>
-                    <circle cx="20" cy="20" r="3.4" fill={mc} style={{filter:`drop-shadow(0 0 10px ${mc})`}}/>
-                  </svg>
+            {step==="idle"&&(()=>{
+              const checks=[
+                {label:"Brand Voice",ok:tone&&tone.length>0},
+                {label:"Target Audience",ok:!!audience.trim()},
+                {label:"Product Info",ok:!!(productDesc.trim()||goal.trim())},
+                {label:"Keywords",ok:!!keywords.trim()},
+                {label:"Social Accounts",ok:postizStatus.connected},
+              ];
+              const readyCount=checks.filter(c=>c.ok).length;
+              const configured=!!(brand.trim()&&niche.trim());
+              return(
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:16,userSelect:"none",padding:"0 20px"}}>
+                  <div style={{width:64,height:64}}>
+                    <svg viewBox="0 0 40 40">
+                      <circle className="bishop-core-ring" cx="20" cy="20" r="17" style={{stroke:mc,animationDuration:configured?"2.6s":"4s"}}/>
+                      <circle className="bishop-core-ring" cx="20" cy="20" r="11" style={{stroke:mc,animationDelay:".4s",animationDuration:configured?"2.6s":"4s"}}/>
+                      <circle cx="20" cy="20" r="3.4" fill={mc} style={{filter:`drop-shadow(0 0 10px ${mc})`}}/>
+                    </svg>
+                  </div>
+                  <div style={{fontSize:10.5,letterSpacing:3,color:mc,textTransform:"uppercase",fontWeight:700}}>BISHOP CORE {configured?"ONLINE":"STANDBY"}</div>
+
+                  {!configured?(
+                    <>
+                      <div style={{fontSize:13,color:"#82858C",textAlign:"center",lineHeight:1.6,maxWidth:280}}>Brand not configured yet — BISHOP needs a name and niche before it can work.</div>
+                      <button className="sm" onClick={()=>{if(isMobile)setMobileTab("config");brandInputRef.current?.focus();}} style={{borderColor:`${mc}55`,color:mc,padding:"9px 18px"}}>COMPLETE BRAND BRIEF →</button>
+                    </>
+                  ):(
+                    <>
+                      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:26,letterSpacing:1,color:"#F5F6F8",textAlign:"center",marginTop:-4}}>{brand.toUpperCase()} LOADED</div>
+                      <div style={{display:"flex",flexDirection:"column",gap:6,width:"100%",maxWidth:260}}>
+                        {checks.map(c=>(
+                          <div key={c.label} style={{display:"flex",alignItems:"center",gap:8,fontSize:12}}>
+                            <span style={{color:c.ok?"#00ff88":"#45484F",width:14,flexShrink:0}}>{c.ok?"✓":"○"}</span>
+                            <span style={{color:c.ok?"#C9CDD3":"#565A64"}}>{c.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{fontSize:10.5,letterSpacing:2,color:readyCount>=3?"#00ff88":"#f0b429",textTransform:"uppercase",fontWeight:700,marginTop:2}}>
+                        {readyCount>=3?"BISHOP IS READY":`${readyCount}/5 — MORE CONTEXT HELPS`}
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",gap:6,fontSize:9.5,letterSpacing:1,color:"#45484F",textTransform:"uppercase",marginTop:4}}>
+                        <span style={{color:mc}}>CREATE</span>→<span>TEST</span>→<span>PUBLISH</span>→<span>ANALYZE</span>
+                      </div>
+                    </>
+                  )}
                 </div>
-                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:40,letterSpacing:3,lineHeight:1,background:`linear-gradient(120deg,${mc},#F5F6F8 60%)`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>GENTAGAI</div>
-                <div style={{fontSize:11,letterSpacing:4,color:"#45484F",textTransform:"uppercase"}}>Configure → Generate</div>
-              </div>
-            )}
+              );
+            })()}
 
             {(mode==="copy"||mode==="image"||mode==="video")&&(step==="running"||step==="done"||output.length>0||outputRef.current.length>0)&&(
               <div>
