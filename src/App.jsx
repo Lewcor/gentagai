@@ -2901,8 +2901,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 {label:"Product Info",ok:!!(productDesc.trim()||goal.trim())},
                 {label:"Keywords",ok:!!keywords.trim()},
                 {label:"Social Accounts",ok:postizStatus.connected},
+                {label:"Performance Data",ok:history.length>0},
               ];
               const readyCount=checks.filter(c=>c.ok).length;
+              const knowledgePct=Math.round((readyCount/checks.length)*100);
               const configured=!!(brand.trim()&&niche.trim());
               return(
                 <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:16,userSelect:"none",padding:"0 20px"}}>
@@ -2923,6 +2925,17 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   ):(
                     <>
                       <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:26,letterSpacing:1,color:"#F5F6F8",textAlign:"center",marginTop:-4}}>{brand.toUpperCase()} LOADED</div>
+
+                      <div style={{width:"100%",maxWidth:260}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:6}}>
+                          <span style={{fontSize:9.5,letterSpacing:2,color:mc,textTransform:"uppercase",fontWeight:700}}>Bishop Knowledge</span>
+                          <span style={{fontSize:13,fontWeight:800,color:knowledgePct===100?"#00ff88":mc,fontFamily:"'Syne',sans-serif"}}>{knowledgePct}%</span>
+                        </div>
+                        <div style={{width:"100%",height:6,background:"rgba(255,255,255,.06)",borderRadius:4,overflow:"hidden"}}>
+                          <div style={{height:"100%",width:`${knowledgePct}%`,background:knowledgePct===100?"linear-gradient(90deg,#00ff88,#00b894)":`linear-gradient(90deg,${mc},${mc}aa)`,borderRadius:4,transition:"width .5s ease",boxShadow:`0 0 10px ${knowledgePct===100?"#00ff8866":mc+"66"}`}}/>
+                        </div>
+                      </div>
+
                       <div style={{display:"flex",flexDirection:"column",gap:6,width:"100%",maxWidth:260}}>
                         {checks.map(c=>(
                           <div key={c.label} style={{display:"flex",alignItems:"center",gap:8,fontSize:12}}>
@@ -2931,9 +2944,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                           </div>
                         ))}
                       </div>
-                      <div style={{fontSize:10.5,letterSpacing:2,color:readyCount>=3?"#00ff88":"#f0b429",textTransform:"uppercase",fontWeight:700,marginTop:2}}>
-                        {readyCount>=3?"BISHOP IS READY":`${readyCount}/5 — MORE CONTEXT HELPS`}
-                      </div>
+
                       <div style={{display:"flex",alignItems:"center",gap:6,fontSize:9.5,letterSpacing:1,color:"#45484F",textTransform:"uppercase",marginTop:4}}>
                         <span style={{color:mc}}>CREATE</span>→<span>TEST</span>→<span>PUBLISH</span>→<span>ANALYZE</span>
                       </div>
