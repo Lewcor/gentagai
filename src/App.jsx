@@ -1039,6 +1039,11 @@ export default function Gentagai(){
   const [learnError,setLearnError]=useState("");
   const [learnSuggestion,setLearnSuggestion]=useState(null);
   const brandInputRef=useRef(null);
+  const [brandProfiles,setBrandProfiles]=useState([]);
+  const [activeProfileId,setActiveProfileId]=useState(null);
+  const [profileSwitcherOpen,setProfileSwitcherOpen]=useState(false);
+  const [savingProfile,setSavingProfile]=useState(false);
+  const [profileError,setProfileError]=useState("");
 
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>setSession(data.session||null));
@@ -1104,6 +1109,78 @@ export default function Gentagai(){
     fetch(`/api/postiz-integrations?userId=${session.user.id}`)
       .then(r=>r.json()).then(setPostizStatus).catch(()=>{});
   },[session]);
+
+  useEffect(()=>{
+    if(!session?.user)return;
+    loadBrandProfiles();
+  },[session]);
+
+  async function loadBrandProfiles(){
+    if(!session?.user)return;
+    const {data,error}=await supabase
+      .from("brand_profiles")
+      .select("*")
+      .eq("user_id",session.user.id)
+      .order("updated_at",{ascending:false});
+    if(!error&&data)setBrandProfiles(data);
+  }
+
+  // ── Save current Brand Brief fields as a new saved profile ──
+  async function saveNewBrandProfile(){
+    if(!session?.user){setProfileError("Sign in to save brand profiles.");return;}
+    if(!brand.trim()){setProfileError("Add a Brand Name first.");return;}
+    setSavingProfile(true);setProfileError("");
+    const {data,error}=await supabase.from("brand_profiles").insert({
+      user_id:session.user.id,brand_name:brand.trim(),niche,audience,
+      tones:tone,keywords,goal,
+    }).select().single();
+    if(error){setProfileError("Couldn't save — try again.");}
+    else{
+      setBrandProfiles(p=>[data,...p]);
+      setActiveProfileId(data.id);
+    }
+    setSavingProfile(false);
+  }
+
+  // ── Update the currently active saved profile with whatever's on screen now ──
+  async function updateActiveBrandProfile(){
+    if(!activeProfileId)return;
+    setSavingProfile(true);setProfileError("");
+    const {data,error}=await supabase.from("brand_profiles")
+      .update({brand_name:brand.trim(),niche,audience,tones:tone,keywords,goal,updated_at:new Date().toISOString()})
+      .eq("id",activeProfileId).select().single();
+    if(error){setProfileError("Couldn't update — try again.");}
+    else{setBrandProfiles(p=>p.map(x=>x.id===data.id?data:x));}
+    setSavingProfile(false);
+  }
+
+  // ── Instantly reload every field from a saved brand ──
+  function switchToBrandProfile(profile){
+    setBrand(profile.brand_name||"");
+    setNiche(profile.niche||"");
+    setAudience(profile.audience||"");
+    setTone(Array.isArray(profile.tones)&&profile.tones.length?profile.tones:["hype"]);
+    setKeywords(profile.keywords||"");
+    setGoal(profile.goal||"");
+    setActiveProfileId(profile.id);
+    setProfileSwitcherOpen(false);
+  }
+
+  function startNewBrandProfile(){
+    setBrand("");setNiche("");setAudience("");setTone(["hype"]);setKeywords("");setGoal("");
+    setActiveProfileId(null);
+    setProfileSwitcherOpen(false);
+    if(isMobile)setMobileTab("config");
+    setTimeout(()=>brandInputRef.current?.focus(),100);
+  }
+
+  async function deleteBrandProfile(id,e){
+    e.stopPropagation();
+    if(!window.confirm("Delete this saved brand? This can't be undone."))return;
+    await supabase.from("brand_profiles").delete().eq("id",id);
+    setBrandProfiles(p=>p.filter(x=>x.id!==id));
+    if(activeProfileId===id)setActiveProfileId(null);
+  }
 
   // Surface the result of a Postiz connect attempt after the redirect back
   useEffect(()=>{
@@ -2114,13 +2191,52 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
             </div>
 
-            <div style={{background:"rgba(255,255,255,.03)",border:"1px solid #1a1d24",borderRadius:10,padding:"10px 11px",marginBottom:14}}>
-              <div style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",marginBottom:6}}>Active Niche</div>
-              <div style={{fontSize:12,fontWeight:700,color:"#F5F6F8",display:"flex",alignItems:"center",gap:7}}>
-                <span style={{width:7,height:7,borderRadius:"50%",background:mc,boxShadow:`0 0 8px ${mc}`,flexShrink:0}}/>
-                <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{niche||"Not set yet"}</span>
+            <div style={{position:"relative",marginBottom:14}}>
+              <div onClick={()=>setProfileSwitcherOpen(o=>!o)}
+                style={{background:"rgba(255,255,255,.03)",border:`1px solid ${profileSwitcherOpen?mc+"55":"#1a1d24"}`,borderRadius:10,padding:"10px 11px",cursor:"pointer"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <span style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase"}}>Active Brand</span>
+                  <span style={{fontSize:9,color:mc,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+                </div>
+                <div style={{fontSize:12,fontWeight:700,color:"#F5F6F8",display:"flex",alignItems:"center",gap:7}}>
+                  <span style={{width:7,height:7,borderRadius:"50%",background:mc,boxShadow:`0 0 8px ${mc}`,flexShrink:0}}/>
+                  <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{brand||niche||"Not set yet"}</span>
+                </div>
               </div>
+
+              {profileSwitcherOpen&&(
+                <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:60,background:"rgba(14,16,19,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.7)"}}>
+                  {brandProfiles.length===0&&(
+                    <div style={{fontSize:11,color:"#565A64",padding:"10px 8px",lineHeight:1.5}}>No saved brands yet — set up a Brand Brief, then save it below.</div>
+                  )}
+                  {brandProfiles.map(p=>(
+                    <div key={p.id} onClick={()=>switchToBrandProfile(p)}
+                      style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 10px",borderRadius:8,cursor:"pointer",background:activeProfileId===p.id?`${mc}14`:"transparent"}}
+                      onMouseEnter={e=>{if(activeProfileId!==p.id)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
+                      onMouseLeave={e=>{e.currentTarget.style.background=activeProfileId===p.id?`${mc}14`:"transparent";}}>
+                      <div style={{overflow:"hidden"}}>
+                        <div style={{fontSize:12,fontWeight:700,color:activeProfileId===p.id?mc:"#F0F1F4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.brand_name}</div>
+                        <div style={{fontSize:9.5,color:"#565A64",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.niche||"No niche set"}</div>
+                      </div>
+                      <span onClick={e=>deleteBrandProfile(p.id,e)} style={{fontSize:11,color:"#45484F",padding:"2px 6px",flexShrink:0}}>✕</span>
+                    </div>
+                  ))}
+                  <div onClick={startNewBrandProfile}
+                    style={{marginTop:6,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5,fontWeight:700,color:mc,border:`1px dashed ${mc}44`,textAlign:"center"}}>
+                    + New Brand Profile
+                  </div>
+                </div>
+              )}
             </div>
+
+            <div style={{display:"flex",gap:6,marginBottom:14}}>
+              <button className="sm" disabled={savingProfile||!brand.trim()}
+                onClick={activeProfileId?updateActiveBrandProfile:saveNewBrandProfile}
+                style={{flex:1,borderColor:`${mc}55`,color:mc,fontSize:10}}>
+                {savingProfile?"⟳ SAVING...":activeProfileId?"◆ UPDATE PROFILE":"◆ SAVE AS PROFILE"}
+              </button>
+            </div>
+            {profileError&&<div style={{fontSize:10.5,color:"#ff6a6a",marginTop:-8,marginBottom:14,lineHeight:1.4}}>{profileError}</div>}
 
             <div style={{marginBottom:14}}>
               <div style={{fontSize:9,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",marginBottom:6}}>Campaign Goal</div>
