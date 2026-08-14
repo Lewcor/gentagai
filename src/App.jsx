@@ -249,6 +249,34 @@ const buildScoring=(vA,vB,ct,p)=>`Senior marketing strategist. Score two variant
 // AI Brain generates marketing content FROM the uploaded asset
 const VIDEO_FRAME_COUNT=3;
 
+// Shrinks an image to a reasonable size before it's sent for vision analysis.
+// Claude only needs ~1568px on the long edge to see full detail anyway, so
+// sending a full 12MP phone photo just risks hitting the server's request
+// size limit (413) for zero real quality benefit. The full-resolution
+// original still goes to permanent storage separately — this only affects
+// what gets analyzed.
+function resizeImageForVision(file,maxDim=1568,quality=0.85){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    const objUrl=URL.createObjectURL(file);
+    img.onload=()=>{
+      let{width,height}=img;
+      if(width>maxDim||height>maxDim){
+        if(width>height){height=Math.round(height*(maxDim/width));width=maxDim;}
+        else{width=Math.round(width*(maxDim/height));height=maxDim;}
+      }
+      const canvas=document.createElement("canvas");
+      canvas.width=width;canvas.height=height;
+      const ctx=canvas.getContext("2d");
+      ctx.drawImage(img,0,0,width,height);
+      URL.revokeObjectURL(objUrl);
+      resolve(canvas.toDataURL("image/jpeg",quality).split(",")[1]);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(objUrl);reject(new Error("Couldn't process this image"));};
+    img.src=objUrl;
+  });
+}
+
 // Actually samples real frames from the uploaded video file via a hidden
 // <video> + <canvas>, so vision-capable calls can genuinely see the
 // content instead of the model being asked to fake an analysis.
@@ -1277,8 +1305,15 @@ export default function Gentagai(){
     if(!file||!file.type.startsWith("image/"))return;
     const reader=new FileReader();
     reader.onload=e=>{
-      const base64=e.target.result.split(",")[1];
-      setUploadedImage({name:file.name,url:e.target.result,base64,size:(file.size/1024).toFixed(0),type:file.type,storageUrl:null,uploading:true});
+      setUploadedImage({name:file.name,url:e.target.result,base64:null,size:(file.size/1024).toFixed(0),type:"image/jpeg",storageUrl:null,uploading:true,resizing:true});
+
+      resizeImageForVision(file).then(smallBase64=>{
+        setUploadedImage(prev=>prev&&prev.name===file.name?{...prev,base64:smallBase64,resizing:false}:prev);
+      }).catch(()=>{
+        // Fallback — use the original at full size if resizing fails for some reason
+        setUploadedImage(prev=>prev&&prev.name===file.name?{...prev,base64:e.target.result.split(",")[1],type:file.type,resizing:false}:prev);
+      });
+
       uploadFileToStorage(file,"images").then(storageUrl=>{
         setUploadedImage(prev=>prev&&prev.name===file.name?{...prev,storageUrl,uploading:false}:prev);
       });
@@ -2619,6 +2654,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         <div style={{fontSize:11,color:"#00e5ff",letterSpacing:1,marginBottom:2}}>✓ IMAGE UPLOADED</div>
                         <div style={{fontSize:12,color:"#F0F1F4",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedImage.name}</div>
                         <div style={{fontSize:10,color:uploadedImage.uploading?"#f0b429":uploadedImage.storageUrl?"#5ce88a":"#ff6a6a",marginTop:2}}>{uploadedImage.uploading?"☁ Saving to cloud...":uploadedImage.storageUrl?"☁ Saved":"☁ Save failed — using local copy"}</div>
+                        <div style={{fontSize:10,color:uploadedImage.resizing?"#f0b429":uploadedImage.base64?"#5ce88a":"#ff6a6a",marginTop:2}}>{uploadedImage.resizing?"🖼 Optimizing for BISHOP...":uploadedImage.base64?"🖼 Ready for analysis":"🖼 Optimization failed"}</div>
                       </div>
                       <button onClick={e=>{e.stopPropagation();setUploadedImage(null);}} style={{background:"#ff2d2d",border:"none",color:"#fff",fontSize:14,width:24,height:24,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
                     </div>
@@ -2656,7 +2692,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 {renderBrainPicker("#00e5ff")}
 
                 {/* Generate Button */}
-                <button className="gbtn" disabled={!uploadedImage||running||!brand||!niche} onClick={amplifyGenerate}
+                <button className="gbtn" disabled={!uploadedImage||uploadedImage?.resizing||!uploadedImage?.base64||running||!brand||!niche} onClick={amplifyGenerate}
                   style={{background:uploadedImage&&brand&&niche?"linear-gradient(135deg,#00e5ff,#0055ff)":"#1a1d24",color:uploadedImage&&brand&&niche?"#000":"#45484F",marginTop:4,fontSize:15,padding:"15px 0",letterSpacing:3}}>
                   {running?"⟳  GENERATING...":`◈  ${AI_BRAINS.find(b=>b.id===aiBrain)?.label||"AI"} GENERATE`}
                 </button>
