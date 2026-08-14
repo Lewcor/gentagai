@@ -1,31 +1,30 @@
-<pre style="background:#0d1117;color:#c9d1d9;padding:20px;border-radius:8px;font-size:13px;overflow:auto;font-family:'DM Mono',monospace;border:1px solid #30363d">export const config = { runtime: 'edge' };
+// Node.js serverless (not Edge) — gives real, configurable execution time.
+// Edge runtime has a short hard ceiling that was killing longer vision /
+// deep-task generations mid-request (504). maxDuration: 60 is the max
+// allowed on Vercel's Hobby plan; raise it if the project moves to Pro.
+export const config = { maxDuration: 60 };
 
-export default async function handler(req) {
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
-    });
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+    return res.status(405).send('Method not allowed');
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
   if (!apiKey) {
-    return new Response(
-      JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }),
-      { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
-    );
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
   }
 
   try {
-    const body = await req.json();
+    const body = req.body;
 
     // Force latest model
     const payload = {
@@ -50,17 +49,10 @@ export default async function handler(req) {
       console.error('Anthropic error:', response.status, data);
     }
 
-    return new Response(data, {
-      status: response.status,
-      headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    res.status(response.status);
+    res.setHeader('Content-Type', response.headers.get('Content-Type') || 'application/json');
+    return res.send(data);
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
-    );
+    return res.status(500).json({ error: err.message });
   }
-}</pre>
+}
