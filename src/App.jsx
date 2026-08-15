@@ -1317,6 +1317,11 @@ export default function Gentagai(){
   const [campaignBuilding,setCampaignBuilding]=useState("");
   const [campaignError,setCampaignError]=useState("");
 
+  // ── PERFORMANCE LOGS — tied to campaign_pieces via piece_id ──
+  const [pieceMetrics,setPieceMetrics]=useState({}); // piece_id -> performance_logs row
+  const [metricsDraft,setMetricsDraft]=useState({}); // piece_id -> {views,likes,comments,shares,notes}
+  const [savingMetrics,setSavingMetrics]=useState({}); // piece_id -> bool
+
   useEffect(()=>{
     if(!activeProfileId||!session?.user){setCampaignsList([]);return;}
     supabase.from("campaigns").select("*").eq("brand_profile_id",activeProfileId)
@@ -1365,20 +1370,77 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
   }
 
   async function openCampaign(camp){
-    setActiveCampaign(camp);setCampaignPieces([]);
+    setActiveCampaign(camp);setCampaignPieces([]);setPieceMetrics({});setMetricsDraft({});
     const{data,error}=await supabase.from("campaign_pieces").select("*").eq("campaign_id",camp.id).order("day_number");
-    if(!error&&data)setCampaignPieces(data);
+    if(!error&&data){
+      setCampaignPieces(data);
+      loadPerformanceLogsForPieces(data.map(p=>p.id));
+    }
+  }
+
+  // ── Loads any existing performance_logs rows for a set of campaign pieces ──
+  async function loadPerformanceLogsForPieces(pieceIds){
+    if(!pieceIds||!pieceIds.length){setPieceMetrics({});return;}
+    const{data,error}=await supabase.from("performance_logs").select("*").in("piece_id",pieceIds);
+    if(!error&&data){
+      const map={};const drafts={};
+      data.forEach(row=>{
+        map[row.piece_id]=row;
+        drafts[row.piece_id]={views:row.views??0,likes:row.likes??0,comments:row.comments??0,shares:row.shares??0,notes:row.notes||""};
+      });
+      setPieceMetrics(map);
+      setMetricsDraft(d=>({...d,...drafts}));
+    }
+  }
+
+  // ── Creates the performance_logs row the moment a piece goes live, so
+  // there's always somewhere real to track its numbers. No-ops if one
+  // already exists for this piece. ──
+  async function ensurePerformanceLog(piece){
+    if(pieceMetrics[piece.id]||!session?.user)return;
+    const{data,error}=await supabase.from("performance_logs").insert({
+      user_id:session.user.id,
+      brand_profile_id:activeCampaign?.brand_profile_id||activeProfileId,
+      piece_id:piece.id,
+      label:`Day ${piece.day_number} — ${piece.day_theme}`,
+    }).select().single();
+    if(!error&&data){
+      setPieceMetrics(m=>({...m,[piece.id]:data}));
+      setMetricsDraft(d=>({...d,[piece.id]:{views:0,likes:0,comments:0,shares:0,notes:""}}));
+    }
+  }
+
+  function updateMetricsDraft(pieceId,field,value){
+    setMetricsDraft(d=>({...d,[pieceId]:{...(d[pieceId]||{views:0,likes:0,comments:0,shares:0,notes:""}),[field]:value}}));
+  }
+
+  async function savePerformanceLog(pieceId){
+    const log=pieceMetrics[pieceId];
+    const draft=metricsDraft[pieceId];
+    if(!log||!draft)return;
+    setSavingMetrics(s=>({...s,[pieceId]:true}));
+    const{data,error}=await supabase.from("performance_logs").update({
+      views:Number(draft.views)||0,likes:Number(draft.likes)||0,
+      comments:Number(draft.comments)||0,shares:Number(draft.shares)||0,
+      notes:draft.notes||"",
+    }).eq("id",log.id).select().single();
+    if(!error&&data)setPieceMetrics(m=>({...m,[pieceId]:data}));
+    setSavingMetrics(s=>({...s,[pieceId]:false}));
   }
 
   async function advancePieceStatus(piece){
     const order=["draft","approved","scheduled","published"];
     const next=order[Math.min(order.indexOf(piece.status)+1,order.length-1)];
     const{data,error}=await supabase.from("campaign_pieces").update({status:next}).eq("id",piece.id).select().single();
-    if(!error&&data)setCampaignPieces(p=>p.map(x=>x.id===data.id?data:x));
+    if(!error&&data){
+      setCampaignPieces(p=>p.map(x=>x.id===data.id?data:x));
+      if(next==="published")ensurePerformanceLog(data);
+    }
   }
 
   function newCampaignForm(){
     setActiveCampaign(null);setCampaignPieces([]);setCName("");setCGoal("");setCLength(7);setCPlatforms(["instagram"]);
+    setPieceMetrics({});setMetricsDraft({});
   }
 
   // Surface the result of a Postiz connect attempt after the redirect back
@@ -3327,6 +3389,33 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   <div style={{fontSize:9,fontWeight:700,letterSpacing:1,color:statusColor,textTransform:"uppercase"}}>{p.status}</div>
                 </div>
                 <div style={{fontSize:12,color:"#C9CDD3",lineHeight:1.6,whiteSpace:"pre-wrap",marginBottom:10}}>{p.content}</div>
+
+                {p.status==="published"&&pieceMetrics[p.id]&&(()=>{
+                  const draft=metricsDraft[p.id]||{views:0,likes:0,comments:0,shares:0,notes:""};
+                  const saving=savingMetrics[p.id];
+                  return(
+                    <div style={{marginTop:4,marginBottom:10,padding:"12px",background:"rgba(255,255,255,.02)",border:"1px solid #24272E",borderRadius:8}}>
+                      <div style={{fontSize:9.5,letterSpacing:2,color:"#00ff88",textTransform:"uppercase",marginBottom:8}}>📊 Performance</div>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6,marginBottom:8}}>
+                        {[["views","Views"],["likes","Likes"],["comments","Comments"],["shares","Shares"]].map(([field,label])=>(
+                          <div key={field}>
+                            <div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase",marginBottom:3}}>{label}</div>
+                            <input type="number" min="0" value={draft[field]}
+                              onChange={e=>updateMetricsDraft(p.id,field,e.target.value)}
+                              style={{width:"100%",background:"#0E1013",border:"1px solid #24272E",borderRadius:5,padding:"6px 7px",color:"#F0F1F4",fontSize:12,fontFamily:"'DM Mono',monospace",outline:"none"}}/>
+                          </div>
+                        ))}
+                      </div>
+                      <input placeholder="Notes (what worked, what didn't...)" value={draft.notes}
+                        onChange={e=>updateMetricsDraft(p.id,"notes",e.target.value)}
+                        style={{width:"100%",background:"#0E1013",border:"1px solid #24272E",borderRadius:5,padding:"7px 9px",color:"#F0F1F4",fontSize:11.5,fontFamily:"'DM Mono',monospace",outline:"none",marginBottom:8}}/>
+                      <button className="sm" disabled={saving} onClick={()=>savePerformanceLog(p.id)} style={{borderColor:"#00ff8855",color:"#00ff88"}}>
+                        {saving?"⟳ SAVING...":"💾 SAVE METRICS"}
+                      </button>
+                    </div>
+                  );
+                })()}
+
                 {statusNext&&(
                   <button className="sm" onClick={()=>advancePieceStatus(p)} style={{borderColor:`${statusColor}55`,color:statusColor}}>
                     {statusNext} →
