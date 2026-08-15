@@ -219,28 +219,31 @@ function getTask(ct,p,kw){
   const pc=pCtx[p]||p;
   return({viral_hook:`Generate 5 VIRAL hooks for ${pc}. Each stops scroll in 2 seconds. Format: TYPE → Hook → Why it works.`,caption:`Full platform-native caption for ${pc}: opener, body, CTA, 25+ hashtags.`,email:`Email campaign:\n1. SUBJECT LINES (3 options)\n2. PREVIEW TEXT\n3. FULL BODY (hook, value, story, CTA)\n4. P.S. LINE`,ad_copy:`Ad copy for ${pc}:\n1. HEADLINES (3)\n2. BODY (50-word + 150-word)\n3. CTA BUTTONS (5)\n4. TARGETING\nFrameworks: AIDA, PAS, BAB.`,seo_blog:`SEO blog intro:\n1. SEO TITLE\n2. META DESCRIPTION\n3. H1\n4. INTRO (E-E-A-T)\n5. 10 LSI KEYWORDS\n6. H2 OUTLINE\nKeywords: ${kw||"from niche"}`,story:`60-90s video script for ${pc}:\n[0-3s] HOOK · [3-15s] SETUP · [15-45s] CONTENT · [45-60s] PAYOFF · [60-90s] CTA\nText overlays, B-roll, audio cues.`,product_launch:`Full launch suite:\n1. ANNOUNCEMENT\n2. COUNTDOWN (48h/24h/1h)\n3. LAUNCH DAY CAPTION\n4. EMAIL BLAST\n5. 5 VIRAL HOOKS\n6. SCARCITY COPY\n7. POST-LAUNCH\nEnergy: Supreme/Kith/FOG.`,cta:`10 platform-native CTAs for ${pc}. Each: TEXT + trigger + goal.`})[ct]||"Generate viral marketing content.";
 }
-const buildCopy=({brand,niche,platform,contentType,tone,audience,goal,keywords,productName,productDesc,productType,productPrice})=>{
+function memoryBlock(memory){
+  return memory&&memory.trim()?`\n\nBISHOP MEMORY — RULES YOU MUST FOLLOW FOR THIS BRAND:\n${memory}\nThese are standing decisions this brand has already made. Never contradict them.`:"";
+}
+const buildCopy=({brand,niche,platform,contentType,tone,audience,goal,keywords,productName,productDesc,productType,productPrice,memory})=>{
   const productBlock=productDesc?`\nPRODUCT INTEL:\n- Product: ${productName||"Unnamed product"}${productType?` (${productType})`:""}\n- Description: ${productDesc}${productPrice?`\n- Price / Value: ${productPrice}`:""}\nUse these product details to make the content hyper-specific, benefit-driven, and conversion-ready. Reference the product naturally — don't just list features, make people WANT it.`:"";
-  return `You are GENTAGAI — elite AI marketing engine.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35 urban"} | GOAL: ${goal||"awareness+sales"} | TONE: ${toneLabel(tone)} | KEYWORDS: ${keywords||"from niche"}${productBlock}\nTASK: ${getTask(contentType,platform,keywords)}\nRULES: Zero filler. Creative director energy. Platform-native. Copy-paste ready.\nFORMAT: Clear headers with ── separators.`;
+  return `You are GENTAGAI — elite AI marketing engine.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35 urban"} | GOAL: ${goal||"awareness+sales"} | TONE: ${toneLabel(tone)} | KEYWORDS: ${keywords||"from niche"}${productBlock}${memoryBlock(memory)}\nTASK: ${getTask(contentType,platform,keywords)}\nRULES: Zero filler. Creative director energy. Platform-native. Copy-paste ready.\nFORMAT: Clear headers with ── separators.`;
 };
-const buildImage=({brand,niche,imageType,platform,tone,audience,imageTool,productName,productDesc,productType})=>{
+const buildImage=({brand,niche,imageType,platform,tone,audience,imageTool,productName,productDesc,productType,memory})=>{
   const productBlock=productDesc?`\nPRODUCT: ${productName||""}${productType?` (${productType})`:""} — ${productDesc.slice(0,150)}\nMake the product the visual hero. Every prompt should make this specific product irresistible.`:"";
   const s={img_product:"hero product shot",img_editorial:"high-fashion editorial scene",img_lifestyle:"aspirational lifestyle moment",img_ad:"scroll-stopping paid ad visual",img_story:"immersive story background",img_brand:"branded architectural scene"};
   const st={hype:"raw energy, motion blur, urban grit, high contrast",luxury:"soft diffused light, editorial elegance, minimal composition",raw:"handheld documentary, candid, natural light, 35mm grain",professional:"clean studio light, commercial polish",playful:"vibrant palette, dynamic angles, bold color",urgency:"dramatic chiaroscuro, high contrast, cinematic urgency"};
   const tn={midjourney:"End with: --ar [ratio] --style raw --v 6.1 --q 2  Use --no for negatives.",dalle:"Describe exact lighting, lens mm, color grade, mood.",firefly:"Label: [Subject] [Setting] [Lighting] [Style] [Color]",stable:"Positive then NEGATIVE PROMPT: section. Add: masterpiece, 8k, photorealistic"};
-  return `You are GENTAGAI Visual — expert AI image prompt engineer.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | TOOL: ${imageTool} | STYLE: ${st[tone]||st.hype} | RATIO: ${pRatio[platform]||"1:1"}${productBlock}\nSUBJECT: ${s[imageType]}\nGenerate 4 DISTINCT prompts for ${imageTool}:\n── PROMPT [N]: [Title]\nFULL PROMPT: [technical, paste-ready]\nSTYLE MODIFIERS: [lighting/lens/mood/color]\nTOOL PARAMS: [${tn[imageTool]||tn.midjourney}]\nNEGATIVE PROMPT: [exclusions]\nDEPLOY AS: [post/ad/story]\nVisual DNA: Kith, Fear of God, Supreme, Off-White, Palace.`;
+  return `You are GENTAGAI Visual — expert AI image prompt engineer.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | TOOL: ${imageTool} | STYLE: ${st[tone]||st.hype} | RATIO: ${pRatio[platform]||"1:1"}${productBlock}${memoryBlock(memory)}\nSUBJECT: ${s[imageType]}\nGenerate 4 DISTINCT prompts for ${imageTool}:\n── PROMPT [N]: [Title]\nFULL PROMPT: [technical, paste-ready]\nSTYLE MODIFIERS: [lighting/lens/mood/color]\nTOOL PARAMS: [${tn[imageTool]||tn.midjourney}]\nNEGATIVE PROMPT: [exclusions]\nDEPLOY AS: [post/ad/story]\nVisual DNA: Kith, Fear of God, Supreme, Off-White, Palace.`;
 };
-const buildVideo=({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice})=>{
+const buildVideo=({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice,memory})=>{
   const productBlock=productDesc?`\n\nPRODUCT INTEL:\n- Product: ${productName||""}${productType?` (${productType})`:""}\n- Description: ${productDesc}\n${productPrice?`- Price / Value: ${productPrice}\n`:""}\nEvery shot, every word of script, and every CTA must be built around THIS specific product. Make the viewer need it.`:"";
   const sp={tiktok_ad:{dur:"15-60s",ratio:"9:16",pace:"fast cuts every 2-3s"},youtube_pre:{dur:"6-30s",ratio:"16:9",pace:"brand in first 5s"},fb_video:{dur:"15-30s",ratio:"1:1 or 4:5",pace:"silent-ready, text overlays essential"},story_ad:{dur:"5-15s",ratio:"9:16",pace:"single message, instant impact"},brand_film:{dur:"60-90s",ratio:"16:9",pace:"emotional arc, slow build"},product_demo:{dur:"15-45s",ratio:"1:1",pace:"feature-first, benefit-driven"}};
   const spec=sp[videoAdType]||sp.tiktok_ad;
   const tg={runway:"[Scene] [Camera motion: dolly/handheld/aerial] [Lighting] [Style] [Duration]",pika:"[Scene as living photo] [Motion intensity: subtle/medium/intense] [What moves] [Cinematic style]",sora:"[Film director language: lens, DOF, color grade, time of day, subject blocking]",kling:"[Subject] [Environment] [Motion] [Mood] [Cinematic reference]",heygen:"[Presenter style] [Background] [Clothing] [Speech tone] [Lower-third text]",capcut:"[Mood] [Music energy] [Transition style] [Text overlay positions] [Color filter]"};
-  return `You are GENTAGAI Video — elite AI video ad director.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | GOAL: ${goal||"conversions"} | TONE: ${toneLabel(tone)} | FORMAT: ${spec.dur} ${spec.ratio} | TOOL: ${videoTool} | PLATFORM: ${platform}${productBlock}\n\nCreate a COMPLETE video ad production package:\n\n── 1. CONCEPT & STRATEGY\nLogline, core emotion, psychological hook, why it works for ${platform}.\n\n── 2. FULL SCRIPT\nEvery word. [HOOK 0-3s] [PROBLEM/DESIRE] [SOLUTION] [PROOF] [CTA]. Pacing: ${spec.pace}\n\n── 3. SHOT-BY-SHOT STORYBOARD\nShot # | Duration | Scene | Camera | On-screen text | Audio (min 6 shots)\n\n── 4. AI VIDEO PROMPTS FOR ${videoTool.toUpperCase()}\n3 prompts for key scenes. Format: ${tg[videoTool]||tg.runway}\n\n── 5. ON-SCREEN TEXT OVERLAYS\nTiming, position, copy, style for each text element.\n\n── 6. AUDIO DIRECTION\nMusic genre/BPM, SFX, VO tone, silence moments.\n\n── 7. CTA PACKAGE\nEnd card, CTA button (3 options), URL/handle, final frame.\n\n── 8. PERFORMANCE FORECAST\nExpected watch rate, engagement triggers, algorithm signals.\n\nMake it feel like a $50,000 production brief.`;
+  return `You are GENTAGAI Video — elite AI video ad director.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | GOAL: ${goal||"conversions"} | TONE: ${toneLabel(tone)} | FORMAT: ${spec.dur} ${spec.ratio} | TOOL: ${videoTool} | PLATFORM: ${platform}${productBlock}${memoryBlock(memory)}\n\nCreate a COMPLETE video ad production package:\n\n── 1. CONCEPT & STRATEGY\nLogline, core emotion, psychological hook, why it works for ${platform}.\n\n── 2. FULL SCRIPT\nEvery word. [HOOK 0-3s] [PROBLEM/DESIRE] [SOLUTION] [PROOF] [CTA]. Pacing: ${spec.pace}\n\n── 3. SHOT-BY-SHOT STORYBOARD\nShot # | Duration | Scene | Camera | On-screen text | Audio (min 6 shots)\n\n── 4. AI VIDEO PROMPTS FOR ${videoTool.toUpperCase()}\n3 prompts for key scenes. Format: ${tg[videoTool]||tg.runway}\n\n── 5. ON-SCREEN TEXT OVERLAYS\nTiming, position, copy, style for each text element.\n\n── 6. AUDIO DIRECTION\nMusic genre/BPM, SFX, VO tone, silence moments.\n\n── 7. CTA PACKAGE\nEnd card, CTA button (3 options), URL/handle, final frame.\n\n── 8. PERFORMANCE FORECAST\nExpected watch rate, engagement triggers, algorithm signals.\n\nMake it feel like a $50,000 production brief.`;
 };
-const buildAB=({brand,niche,platform,contentType,tone,audience,goal,keywords,abVariable,variant,productName,productDesc,productType,productPrice})=>{
+const buildAB=({brand,niche,platform,contentType,tone,audience,goal,keywords,abVariable,variant,productName,productDesc,productType,productPrice,memory})=>{
   const productBlock=productDesc?`\nPRODUCT: ${productName||""}${productType?` (${productType})`:""} — ${productDesc.slice(0,120)}${productPrice?` · ${productPrice}`:""}\nBuild the content specifically around this product.`:"";
   const v={tone:{A:"LUXURY / ASPIRATIONAL — sophisticated, exclusive, premium.",B:"RAW / STREET AUTHENTIC — gritty, unfiltered, from the culture."},hook_angle:{A:"CURIOSITY GAP — tease without revealing. Mystery and intrigue.",B:"BOLD CLAIM — polarizing, share-worthy, makes people react."},length:{A:"SHORT & PUNCHY — under 80 words. Every word load-bearing.",B:"LONG-FORM STORY — 200+ words. Emotional journey."},cta_style:{A:"SOFT SELL — community-first, value-forward, invite don't demand.",B:"DIRECT / URGENT — scarcity, exclusivity, not clicking = loss."},audience:{A:"EXISTING FANS — insiders, brand language, loyalty rewards.",B:"COLD AUDIENCE — first impression, instant credibility."}};
-  return `You are GENTAGAI — elite AI marketing engine.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | GOAL: ${goal||"awareness+sales"} | TONE: ${toneLabel(tone)}${productBlock}\nVARIANT ${variant}: ${v[abVariable]?.[variant]||v.tone[variant]}\nTASK: ${getTask(contentType,platform,keywords)}\nRULES: No filler. Platform-native for ${pCtx[platform]||platform}. Copy-paste ready.\nFORMAT: Start with "── VARIANT ${variant}" header. Use ── separators.`;
+  return `You are GENTAGAI — elite AI marketing engine.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | GOAL: ${goal||"awareness+sales"} | TONE: ${toneLabel(tone)}${productBlock}${memoryBlock(memory)}\nVARIANT ${variant}: ${v[abVariable]?.[variant]||v.tone[variant]}\nTASK: ${getTask(contentType,platform,keywords)}\nRULES: No filler. Platform-native for ${pCtx[platform]||platform}. Copy-paste ready.\nFORMAT: Start with "── VARIANT ${variant}" header. Use ── separators.`;
 };
 const buildScoring=(vA,vB,ct,p)=>`Senior marketing strategist. Score two variants for ${p}.\nVARIANT A: ${vA.slice(0,700)}\nVARIANT B: ${vB.slice(0,700)}\nScore 0-100: emotional impact, scroll-stop, clarity, CTA strength, algorithm potential.\nRESPOND ONLY IN JSON (no markdown):\n{"variantA":{"emotional":0,"scrollStop":0,"clarity":0,"cta":0,"algorithm":0,"totalScore":0,"verdict":"one sentence"},"variantB":{"emotional":0,"scrollStop":0,"clarity":0,"cta":0,"algorithm":0,"totalScore":0,"verdict":"one sentence"},"winner":"A","winnerReason":"two sentences"}`;
 
@@ -322,8 +325,8 @@ function extractVideoFrames(file){
   });
 }
 
-function buildAmplifyPrompt({type,brand,niche,platform,tone,audience,goal,keywords,productName,productDesc,productType,productPrice,mediaType,mediaName,mediaSize,hasVideoFrames}){
-  const brandCtx=`BRAND: ${brand||"The Brand"} | NICHE: ${niche||"Fashion & Lifestyle"} | PLATFORM: ${platform} | TONE: ${toneLabel(tone)} | AUDIENCE: ${audience||"18-35 urban"}`;
+function buildAmplifyPrompt({type,brand,niche,platform,tone,audience,goal,keywords,productName,productDesc,productType,productPrice,mediaType,mediaName,mediaSize,hasVideoFrames,memory}){
+  const brandCtx=`BRAND: ${brand||"The Brand"} | NICHE: ${niche||"Fashion & Lifestyle"} | PLATFORM: ${platform} | TONE: ${toneLabel(tone)} | AUDIENCE: ${audience||"18-35 urban"}`+memoryBlock(memory);
   const productCtx=productDesc?`\nPRODUCT: ${productName||"Product"}${productType?` (${productType})`:""} — ${productDesc}${productPrice?` · ${productPrice}`:""}`:goal?`\nGOAL: ${goal}`:"";
   const mediaCtx=mediaType==="image"
     ?`\nUPLOADED IMAGE: "${mediaName||"image"}" — The customer's actual finished image. Study every detail: subject, colors, lighting, composition, mood, and energy before generating.`
@@ -1072,6 +1075,10 @@ export default function Gentagai(){
   const [profileSwitcherOpen,setProfileSwitcherOpen]=useState(false);
   const [savingProfile,setSavingProfile]=useState(false);
   const [profileError,setProfileError]=useState("");
+  const [brandMemories,setBrandMemories]=useState([]);
+  const [newMemoryText,setNewMemoryText]=useState("");
+  const [savingMemory,setSavingMemory]=useState(false);
+  const [memoryError,setMemoryError]=useState("");
 
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>setSession(data.session||null));
@@ -1209,6 +1216,37 @@ export default function Gentagai(){
     setBrandProfiles(p=>p.filter(x=>x.id!==id));
     if(activeProfileId===id)setActiveProfileId(null);
   }
+
+  // ── BISHOP MEMORY — standing decisions tied to whichever brand is active ──
+  useEffect(()=>{
+    if(!activeProfileId||!session?.user){setBrandMemories([]);return;}
+    supabase.from("brand_memories").select("*").eq("brand_profile_id",activeProfileId)
+      .order("created_at",{ascending:false})
+      .then(({data,error})=>{if(!error&&data)setBrandMemories(data);});
+  },[activeProfileId,session]);
+
+  async function addBrandMemory(){
+    if(!newMemoryText.trim()||!activeProfileId||!session?.user)return;
+    setSavingMemory(true);setMemoryError("");
+    const{data,error}=await supabase.from("brand_memories").insert({
+      user_id:session.user.id,brand_profile_id:activeProfileId,content:newMemoryText.trim(),active:true,
+    }).select().single();
+    if(error){setMemoryError("Couldn't save — try again.");}
+    else{setBrandMemories(m=>[data,...m]);setNewMemoryText("");}
+    setSavingMemory(false);
+  }
+
+  async function toggleBrandMemory(mem){
+    const{data,error}=await supabase.from("brand_memories").update({active:!mem.active}).eq("id",mem.id).select().single();
+    if(!error&&data)setBrandMemories(m=>m.map(x=>x.id===data.id?data:x));
+  }
+
+  async function deleteBrandMemory(id){
+    await supabase.from("brand_memories").delete().eq("id",id);
+    setBrandMemories(m=>m.filter(x=>x.id!==id));
+  }
+
+  const activeMemoryText=brandMemories.filter(m=>m.active).map(m=>"- "+m.content).join("\n");
 
   // Surface the result of a Postiz connect attempt after the redirect back
   useEffect(()=>{
@@ -1941,6 +1979,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       type:amplifyType,brand,niche,platform,tone,audience,goal,keywords,
       productName,productDesc,productType,productPrice,
       mediaType,mediaName:file.name,mediaSize:file.size||uploadedVideo?.size,hasVideoFrames,
+      memory:activeMemoryText,
     });
     try{
       const ampTokens=amplifyType==="full_suite"?4500:4096;
@@ -1984,12 +2023,12 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
     try{
       let full="";
       if(mode==="copy"){
-        full=await streamAPI(buildCopy({brand,niche,platform,contentType,tone,audience,goal,keywords,productName,productDesc,productType,productPrice}),setOutput);
+        full=await streamAPI(buildCopy({brand,niche,platform,contentType,tone,audience,goal,keywords,productName,productDesc,productType,productPrice,memory:activeMemoryText}),setOutput);
         outputRef.current=full;
         setHistory(h=>[{id:Date.now(),brand,niche,platform,contentType,tone,mode:"copy",output:full,ts:new Date().toLocaleTimeString()},...h.slice(0,19)]);
       }else if(mode==="image"){
         if(!imageTool)return;
-        const imgPrompt=buildImage({brand,niche,imageType,platform,tone,audience,imageTool,productName,productDesc,productType});
+        const imgPrompt=buildImage({brand,niche,imageType,platform,tone,audience,imageTool,productName,productDesc,productType,memory:activeMemoryText});
         if(aiBrain==="gemini"&&geminiKey){
           full=await callGemini(imgPrompt,geminiKey,setOutput);
         }else if(aiBrain==="chatgpt"&&chatgptKey){
@@ -2000,7 +2039,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         setHistory(h=>[{id:Date.now(),brand,niche,platform,contentType:imageType,tone,mode:"image",imageTool,aiBrain,output:full,ts:new Date().toLocaleTimeString()},...h.slice(0,19)]);
       }else if(mode==="video"){
         if(!videoAdType||!videoTool)return;
-        const vidPrompt=buildVideo({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice});
+        const vidPrompt=buildVideo({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice,memory:activeMemoryText});
         if(aiBrain==="gemini"&&geminiKey){
           full=await callGemini(vidPrompt,geminiKey,setOutput);
         }else if(aiBrain==="chatgpt"&&chatgptKey){
@@ -2012,8 +2051,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       }else{
         let fA="",fB="";
         await Promise.all([
-          streamAPI(buildAB({brand,niche,platform,contentType,tone,audience,goal,keywords,abVariable:abVar,variant:"A",productName,productDesc,productType,productPrice}),(t)=>{fA=t;setAbA(t);}),
-          streamAPI(buildAB({brand,niche,platform,contentType,tone,audience,goal,keywords,abVariable:abVar,variant:"B",productName,productDesc,productType,productPrice}),(t)=>{fB=t;setAbB(t);}),
+          streamAPI(buildAB({brand,niche,platform,contentType,tone,audience,goal,keywords,abVariable:abVar,variant:"A",productName,productDesc,productType,productPrice,memory:activeMemoryText}),(t)=>{fA=t;setAbA(t);}),
+          streamAPI(buildAB({brand,niche,platform,contentType,tone,audience,goal,keywords,abVariable:abVar,variant:"B",productName,productDesc,productType,productPrice,memory:activeMemoryText}),(t)=>{fB=t;setAbB(t);}),
         ]);
         setHistory(h=>[{id:Date.now(),brand,niche,platform,contentType,tone,mode:"ab",abVar,abA:fA,abB:fB,ts:new Date().toLocaleTimeString()},...h.slice(0,19)]);
       }
@@ -2272,6 +2311,35 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </button>
             </div>
             {profileError&&<div style={{fontSize:10.5,color:"#ff6a6a",marginTop:-8,marginBottom:14,lineHeight:1.4}}>{profileError}</div>}
+
+            {activeProfileId?(
+              <div style={{background:"rgba(255,255,255,.03)",border:"1px solid #1a1d24",borderRadius:10,padding:"10px 11px",marginBottom:14}}>
+                <div style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                  🧠 {brand.toUpperCase()} MEMORY
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:8,maxHeight:180,overflowY:"auto"}}>
+                  {brandMemories.length===0&&<div style={{fontSize:10.5,color:"#45484F",lineHeight:1.5}}>Nothing remembered yet — add a standing rule below.</div>}
+                  {brandMemories.map(mem=>(
+                    <div key={mem.id} style={{display:"flex",alignItems:"flex-start",gap:6,padding:"5px 6px",borderRadius:6,background:mem.active?"rgba(255,255,255,.02)":"transparent"}}>
+                      <span onClick={()=>toggleBrandMemory(mem)} style={{cursor:"pointer",fontSize:11,color:mem.active?"#00ff88":"#45484F",flexShrink:0,marginTop:1}}>{mem.active?"✓":"○"}</span>
+                      <span style={{fontSize:11,color:mem.active?"#C9CDD3":"#45484F",lineHeight:1.4,flex:1,textDecoration:mem.active?"none":"line-through"}}>{mem.content}</span>
+                      <span onClick={()=>deleteBrandMemory(mem.id)} style={{cursor:"pointer",fontSize:10,color:"#45484F",flexShrink:0}}>✕</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{display:"flex",gap:5}}>
+                  <input value={newMemoryText} onChange={e=>setNewMemoryText(e.target.value)}
+                    onKeyDown={e=>e.key==="Enter"&&addBrandMemory()}
+                    placeholder="e.g. never say 'cheap'"
+                    style={{flex:1,background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"7px 9px",color:"#F0F1F4",fontSize:11,fontFamily:"'DM Mono',monospace",outline:"none"}}/>
+                  <button onClick={addBrandMemory} disabled={!newMemoryText.trim()||savingMemory}
+                    style={{background:"none",border:`1px solid ${mc}55`,color:mc,borderRadius:8,padding:"0 10px",fontSize:14,cursor:"pointer",flexShrink:0}}>+</button>
+                </div>
+                {memoryError&&<div style={{fontSize:10,color:"#ff6a6a",marginTop:6}}>{memoryError}</div>}
+              </div>
+            ):(
+              <div style={{fontSize:10,color:"#45484F",marginBottom:14,lineHeight:1.5,padding:"0 2px"}}>💡 Save a brand profile above to unlock BISHOP Memory for it.</div>
+            )}
 
             <div style={{marginBottom:14}}>
               <div style={{fontSize:9,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",marginBottom:6}}>Campaign Goal</div>
