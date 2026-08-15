@@ -9,11 +9,13 @@ export default async function handler(req, res) {
 
   const params = new URLSearchParams({
     client_id: process.env.POSTIZ_CLIENT_ID,
-    redirect_uri: `${process.env.PUBLIC_APP_URL}/api/postiz-callback`,
     response_type: "code",
     state: userId, // carries the GENTAGAI user id through the round trip
-    scope: "posts:write integrations:read",
   });
 
-  res.redirect(302, `https://api.postiz.com/oauth/authorize?${params.toString()}`);
+  // NOTE: authorize lives on platform.postiz.com (user-facing),
+  // NOT api.postiz.com (backend/API-only — returns JSON, no consent screen).
+  // redirect_uri isn't passed here — it's fixed per-app in the Postiz
+  // dashboard under Settings → Developers → Apps.
+  res.redirect(302, `https://platform.postiz.com/oauth/authorize?${params.toString()}`);
 }
