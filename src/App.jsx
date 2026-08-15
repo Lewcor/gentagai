@@ -1304,6 +1304,83 @@ export default function Gentagai(){
     setVaultPickerLoading(false);
   }
 
+  // ── CAMPAIGN BUILDER ──
+  const CAMPAIGN_THEMES=["Teaser","Story","Product Reveal","Social Proof","Lifestyle","FOMO","Last Call"];
+  const CAMPAIGN_PLATFORMS=[{id:"instagram",label:"Instagram"},{id:"tiktok",label:"TikTok"},{id:"facebook",label:"Facebook"},{id:"email",label:"Email"}];
+  const [campaignsList,setCampaignsList]=useState([]);
+  const [activeCampaign,setActiveCampaign]=useState(null);
+  const [campaignPieces,setCampaignPieces]=useState([]);
+  const [cName,setCName]=useState("");
+  const [cGoal,setCGoal]=useState("");
+  const [cLength,setCLength]=useState(7);
+  const [cPlatforms,setCPlatforms]=useState(["instagram"]);
+  const [campaignBuilding,setCampaignBuilding]=useState("");
+  const [campaignError,setCampaignError]=useState("");
+
+  useEffect(()=>{
+    if(!activeProfileId||!session?.user){setCampaignsList([]);return;}
+    supabase.from("campaigns").select("*").eq("brand_profile_id",activeProfileId)
+      .order("created_at",{ascending:false})
+      .then(({data,error})=>{if(!error&&data)setCampaignsList(data);});
+  },[activeProfileId,session]);
+
+  function buildCampaignDayPrompt(theme,dayNumber){
+    const platformList=cPlatforms.map(p=>CAMPAIGN_PLATFORMS.find(x=>x.id===p)?.label).join(" + ")||"Instagram";
+    return `You are GENTAGAI — writing Day ${dayNumber} of a ${cLength}-day campaign.
+BRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | TONE: ${toneLabel(tone)}
+PRODUCT: ${productName||""} — ${productDesc||""}
+CAMPAIGN GOAL: ${cGoal||goal||"drive sales"} | PLATFORMS: ${platformList}${memoryBlock(activeMemoryText)}
+TODAY'S ROLE IN THE ARC: ${theme}
+Write ONE tight, platform-native post that fits this exact day's role in the campaign — not a generic post, one that only makes sense at this point in a ${cLength}-day arc.
+FORMAT:
+HOOK/CAPTION: [full, copy-paste ready]
+HASHTAGS: [10-15]
+VISUAL DIRECTION: [one line — what the image or video should show]`;
+  }
+
+  async function buildCampaign(){
+    if(!brand||!niche||!cGoal.trim()||!activeProfileId){setCampaignError("Save a brand profile and add a campaign goal first.");return;}
+    setCampaignError("");
+    const{data:camp,error:campErr}=await supabase.from("campaigns").insert({
+      user_id:session.user.id,brand_profile_id:activeProfileId,
+      name:cName.trim()||`${brand} Campaign`,goal:cGoal,product_name:productName,product_desc:productDesc,
+      platforms:cPlatforms,length_days:cLength,status:"draft",
+    }).select().single();
+    if(campErr||!camp){setCampaignError("Couldn't create the campaign — try again.");return;}
+    setCampaignsList(c=>[camp,...c]);
+    setActiveCampaign(camp);
+    setCampaignPieces([]);
+
+    const days=Array.from({length:cLength},(_,i)=>i+1);
+    for(const day of days){
+      const theme=CAMPAIGN_THEMES[(day-1)%CAMPAIGN_THEMES.length];
+      setCampaignBuilding(`Writing Day ${day} — ${theme}...`);
+      const content=await callAPI(buildCampaignDayPrompt(theme,day));
+      const{data:piece}=await supabase.from("campaign_pieces").insert({
+        user_id:session.user.id,campaign_id:camp.id,day_number:day,day_theme:theme,content,status:"draft",
+      }).select().single();
+      if(piece)setCampaignPieces(p=>[...p,piece].sort((a,b)=>a.day_number-b.day_number));
+    }
+    setCampaignBuilding("");
+  }
+
+  async function openCampaign(camp){
+    setActiveCampaign(camp);setCampaignPieces([]);
+    const{data,error}=await supabase.from("campaign_pieces").select("*").eq("campaign_id",camp.id).order("day_number");
+    if(!error&&data)setCampaignPieces(data);
+  }
+
+  async function advancePieceStatus(piece){
+    const order=["draft","approved","scheduled","published"];
+    const next=order[Math.min(order.indexOf(piece.status)+1,order.length-1)];
+    const{data,error}=await supabase.from("campaign_pieces").update({status:next}).eq("id",piece.id).select().single();
+    if(!error&&data)setCampaignPieces(p=>p.map(x=>x.id===data.id?data:x));
+  }
+
+  function newCampaignForm(){
+    setActiveCampaign(null);setCampaignPieces([]);setCName("");setCGoal("");setCLength(7);setCPlatforms(["instagram"]);
+  }
+
   // Surface the result of a Postiz connect attempt after the redirect back
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
@@ -2137,7 +2214,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
     setStep("done");
   }
 
-  const mc={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd",visibility:"#00ff88"}[mode]||"#f0b429";
+  const mc={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd",visibility:"#00ff88",campaign:"#f0b429"}[mode]||"#f0b429";
   const selTones=TONES.filter(t=>tone.includes(t.id));
 
   // ── PRICING SCREEN ──────────────────────────
@@ -2481,7 +2558,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
             )}
 
-            {[{id:"copy",label:"◆ BISHOP",m:"copy",c:"#00e5ff"},{id:"content",label:"▣ Content Studio",m:"copy",c:"#00e5ff"},{id:"campaigns",label:"⬡ Campaigns",m:"video",c:"#f0b429"},{id:"analytics",label:"◈ Analytics",m:"visibility",c:"#00ff88"},{id:"bridge",label:"⌁ Bridge",m:"ab",c:"#7c83fd"}].map(n=>(
+            {[{id:"copy",label:"◆ BISHOP",m:"copy",c:"#00e5ff"},{id:"content",label:"▣ Content Studio",m:"copy",c:"#00e5ff"},{id:"campaigns",label:"⬡ Campaigns",m:"campaign",c:"#f0b429"},{id:"analytics",label:"◈ Analytics",m:"visibility",c:"#00ff88"},{id:"bridge",label:"⌁ Bridge",m:"ab",c:"#7c83fd"}].map(n=>(
               <div key={n.id} className="bishop-navitem" onClick={()=>handleModeSwitch(n.m)}
                 style={mode===n.m?{background:`${n.c}14`,color:"#F5F6F8",boxShadow:`0 0 16px ${n.c}22`}:{color:n.c+"99"}}>
                 {n.label}
@@ -3159,6 +3236,108 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div className={`otext ${vizFixing?"blink":""}`} style={{fontSize:13,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{vizFixOutput}</div>
             {!vizFixing&&<button className="sm" style={{marginTop:14}} onClick={()=>copy(vizFixOutput,"viz")}>{copied==="viz"?"✓ COPIED":"COPY FIXES"}</button>}
           </div>
+        )}
+      </>
+    )}
+  </div>
+)}
+{mode==="campaign"&&(
+  <div style={{padding:"0 4px"}}>
+    <div style={{marginBottom:20}}>
+      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:19,color:"#f0b429",letterSpacing:1,marginBottom:6}}>⬡ CAMPAIGN BUILDER</div>
+      <div style={{fontSize:12,color:"#82858C",lineHeight:1.6}}>Connect Copy, Images, Video, and A/B into one real multi-day workflow — not five separate tools.</div>
+    </div>
+
+    {!activeProfileId&&(
+      <div style={{fontSize:12,color:"#45484F",lineHeight:1.6}}>💡 Save a brand profile above (Active Brand → Save As Profile) to start building campaigns.</div>
+    )}
+
+    {activeProfileId&&!activeCampaign&&(
+      <>
+        {campaignsList.length>0&&(
+          <div style={{marginBottom:22}}>
+            <div style={{fontSize:9.5,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:10}}>Past Campaigns</div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {campaignsList.map(c=>(
+                <div key={c.id} onClick={()=>openCampaign(c)}
+                  style={{padding:"10px 12px",borderRadius:9,border:"1px solid #24272E",cursor:"pointer",background:"rgba(255,255,255,.02)"}}>
+                  <div style={{fontSize:12.5,fontWeight:700,color:"#F0F1F4"}}>{c.name}</div>
+                  <div style={{fontSize:10.5,color:"#565A64",marginTop:2}}>{c.length_days} days · {c.goal||"no goal set"}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{fontSize:9.5,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:10}}>New Campaign</div>
+        <div style={{fontSize:9,letterSpacing:1,color:"#565A64",textTransform:"uppercase",marginBottom:6}}>Campaign Name</div>
+        <input className="inp" placeholder={`${brand||"Brand"} Launch`} value={cName} onChange={e=>setCName(e.target.value)} style={{marginBottom:14}}/>
+
+        <div style={{fontSize:9,letterSpacing:1,color:"#565A64",textTransform:"uppercase",marginBottom:6}}>Campaign Goal *</div>
+        <input className="inp" placeholder="Launch Urban Roots Hoodie" value={cGoal} onChange={e=>setCGoal(e.target.value)} style={{marginBottom:14}}/>
+
+        <div style={{fontSize:9,letterSpacing:1,color:"#565A64",textTransform:"uppercase",marginBottom:6}}>Length (Days)</div>
+        <div style={{display:"flex",gap:6,marginBottom:14}}>
+          {[3,5,7,10].map(n=>(
+            <button key={n} onClick={()=>setCLength(n)}
+              style={{flex:1,padding:"9px 0",borderRadius:8,border:`1px solid ${cLength===n?"#f0b42966":"#24272E"}`,background:cLength===n?"#f0b42912":"transparent",color:cLength===n?"#f0b429":"#6B6F7A",cursor:"pointer",fontFamily:"'DM Mono',monospace",fontSize:12,fontWeight:700}}>
+              {n}
+            </button>
+          ))}
+        </div>
+
+        <div style={{fontSize:9,letterSpacing:1,color:"#565A64",textTransform:"uppercase",marginBottom:6}}>Platforms</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:18}}>
+          {CAMPAIGN_PLATFORMS.map(p=>{
+            const sel=cPlatforms.includes(p.id);
+            return(
+              <button key={p.id} onClick={()=>setCPlatforms(prev=>sel?prev.filter(x=>x!==p.id):[...prev,p.id])}
+                style={{padding:"7px 12px",borderRadius:8,border:`1px solid ${sel?"#f0b42966":"#24272E"}`,background:sel?"#f0b42912":"transparent",color:sel?"#f0b429":"#6B6F7A",cursor:"pointer",fontSize:11.5,fontWeight:600}}>
+                {sel?"✓ ":""}{p.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <button className="gbtn" disabled={!!campaignBuilding||!cGoal.trim()} onClick={buildCampaign}
+          style={{background:"linear-gradient(135deg,#f0b429,#ff7c00)",color:"#000"}}>
+          {campaignBuilding||"⬡ BUILD WITH BISHOP"}
+        </button>
+        {campaignError&&<div style={{fontSize:11,color:"#ff6a6a",marginTop:10}}>{campaignError}</div>}
+      </>
+    )}
+
+    {activeCampaign&&(
+      <>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#F5F6F8"}}>{activeCampaign.name}</div>
+          <button className="sm" onClick={newCampaignForm} style={{borderColor:"#24272E"}}>← ALL CAMPAIGNS</button>
+        </div>
+        {campaignPieces.length===0&&campaignBuilding&&(
+          <div style={{textAlign:"center",padding:"20px 0",color:"#f0b429",fontSize:12}}>⟳ {campaignBuilding}</div>
+        )}
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {campaignPieces.map(p=>{
+            const statusColor={draft:"#82858C",approved:"#00e5ff",scheduled:"#7c83fd",published:"#00ff88"}[p.status];
+            const statusNext={draft:"Approve",approved:"Schedule",scheduled:"Publish",published:null}[p.status];
+            return(
+              <div key={p.id} style={{background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.08)",borderRadius:12,padding:14}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <div style={{fontSize:11,fontWeight:800,color:"#f0b429"}}>DAY {p.day_number} — {p.day_theme.toUpperCase()}</div>
+                  <div style={{fontSize:9,fontWeight:700,letterSpacing:1,color:statusColor,textTransform:"uppercase"}}>{p.status}</div>
+                </div>
+                <div style={{fontSize:12,color:"#C9CDD3",lineHeight:1.6,whiteSpace:"pre-wrap",marginBottom:10}}>{p.content}</div>
+                {statusNext&&(
+                  <button className="sm" onClick={()=>advancePieceStatus(p)} style={{borderColor:`${statusColor}55`,color:statusColor}}>
+                    {statusNext} →
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {campaignBuilding&&campaignPieces.length>0&&(
+          <div style={{textAlign:"center",padding:"14px 0",color:"#f0b429",fontSize:11}}>⟳ {campaignBuilding}</div>
         )}
       </>
     )}
