@@ -1827,7 +1827,7 @@ Specific items to check/fix before posting this exact image.`,
           full=await callChatGPTVision(taskPrompts[uploadMode]||taskPrompts.analyze,uploadedImage.base64,uploadedImage.type,chatgptKey,setOutput);
         }else{
           // Default: Claude (built-in)
-          full=await callClaudeVision(msg.content,setOutput,6144);
+          full=await callClaudeVision(msg.content,setOutput,4096);
         }
         setHistory(h=>[{id:Date.now(),brand,niche,platform,contentType:"image_upload",tone,mode:"image",imageTool,aiBrain,output:full,ts:new Date().toLocaleTimeString()},...h.slice(0,19)]);
       } else if(uploadedVideo){
@@ -1943,7 +1943,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       mediaType,mediaName:file.name,mediaSize:file.size||uploadedVideo?.size,hasVideoFrames,
     });
     try{
-      const ampTokens=amplifyType==="full_suite"?8192:6144;
+      const ampTokens=amplifyType==="full_suite"?4500:4096;
       let full="";
       if(uploadedImage){
         // Pass actual image to AI Brain vision
