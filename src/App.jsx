@@ -1248,6 +1248,62 @@ export default function Gentagai(){
 
   const activeMemoryText=brandMemories.filter(m=>m.active).map(m=>"- "+m.content).join("\n");
 
+  // ── BRAND VAULT ──
+  const [vaultAssets,setVaultAssets]=useState([]);
+  const [vaultOpen,setVaultOpen]=useState(false);
+  const [vaultCategory,setVaultCategory]=useState("logo");
+  const [vaultUploading,setVaultUploading]=useState(false);
+  const [vaultPickerOpen,setVaultPickerOpen]=useState(false);
+  const [vaultPickerLoading,setVaultPickerLoading]=useState(false);
+
+  useEffect(()=>{
+    if(!activeProfileId||!session?.user){setVaultAssets([]);return;}
+    supabase.from("brand_vault_assets").select("*").eq("brand_profile_id",activeProfileId)
+      .order("created_at",{ascending:false})
+      .then(({data,error})=>{if(!error&&data)setVaultAssets(data);});
+  },[activeProfileId,session]);
+
+  const VAULT_CATEGORIES=[
+    {id:"logo",label:"Logos"},{id:"product",label:"Product Images"},{id:"video",label:"Videos"},
+    {id:"guideline",label:"Brand Guidelines"},{id:"other",label:"Other"},
+  ];
+
+  async function uploadToVault(file,category){
+    if(!file||!activeProfileId||!session?.user)return;
+    setVaultUploading(true);
+    const url=await uploadFileToStorage(file,"vault");
+    if(url){
+      const{data,error}=await supabase.from("brand_vault_assets").insert({
+        user_id:session.user.id,brand_profile_id:activeProfileId,category,
+        name:file.name,url,file_type:file.type,size_kb:Math.round(file.size/1024),
+      }).select().single();
+      if(!error&&data)setVaultAssets(v=>[data,...v]);
+    }
+    setVaultUploading(false);
+  }
+
+  async function deleteVaultAsset(id){
+    await supabase.from("brand_vault_assets").delete().eq("id",id);
+    setVaultAssets(v=>v.filter(x=>x.id!==id));
+  }
+
+  // Pulls a saved Vault image back into the Images tab's upload flow —
+  // same resize + base64 pipeline as a fresh upload, so everything
+  // downstream (generation, vision) works identically either way.
+  async function selectVaultAssetForUpload(asset){
+    setVaultPickerLoading(true);
+    try{
+      const res=await fetch(asset.url);
+      const blob=await res.blob();
+      const file=new File([blob],asset.name,{type:asset.file_type||blob.type});
+      handleImageFile(file);
+      setVaultPickerOpen(false);
+    }catch{
+      alert("Couldn't load that asset — try uploading fresh instead.");
+    }
+    setVaultPickerLoading(false);
+  }
+
   // Surface the result of a Postiz connect attempt after the redirect back
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
@@ -2190,6 +2246,33 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       {/* UPGRADE MODAL */}
       {upgradeModal&&<UpgradeModal featureName={upgradeModal} onClose={()=>setUpgradeModal(null)} onUpgrade={()=>{setUpgradeModal(null);setScreen("pricing");}}/>}
 
+      {/* VAULT PICKER MODAL */}
+      {vaultPickerOpen&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.75)",backdropFilter:"blur(6px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>setVaultPickerOpen(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#0E1013",border:"1px solid rgba(255,255,255,.1)",borderRadius:16,padding:22,maxWidth:480,width:"100%",maxHeight:"80vh",overflowY:"auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+              <div style={{fontSize:14,fontWeight:800,color:"#F5F6F8"}}>📁 {brand.toUpperCase()} VAULT</div>
+              <span onClick={()=>setVaultPickerOpen(false)} style={{cursor:"pointer",color:"#82858C",fontSize:18}}>✕</span>
+            </div>
+            {vaultPickerLoading?(
+              <div style={{textAlign:"center",padding:"30px 0",color:"#00e5ff",fontSize:12}}>⟳ Loading asset...</div>
+            ):(
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+                {vaultAssets.filter(a=>(a.file_type||"").startsWith("image/")).map(a=>(
+                  <div key={a.id} onClick={()=>selectVaultAssetForUpload(a)}
+                    style={{aspectRatio:"1",borderRadius:10,overflow:"hidden",cursor:"pointer",border:"1px solid #24272E",position:"relative"}}>
+                    <img src={a.url} alt={a.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                    <div style={{position:"absolute",inset:0,background:"rgba(0,229,255,0)",transition:"background .15s"}}
+                      onMouseEnter={e=>e.currentTarget.style.background="rgba(0,229,255,.15)"}
+                      onMouseLeave={e=>e.currentTarget.style.background="rgba(0,229,255,0)"}/>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ACCOUNT PANEL */}
       {showAccount&&<AccountPanel plan={plan} billing={billing} gensUsed={gensUsed} gensLimit={genLimit}
         session={session} authEmail={authEmail} setAuthEmail={setAuthEmail}
@@ -2339,6 +2422,50 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
             ):(
               <div style={{fontSize:10,color:"#45484F",marginBottom:14,lineHeight:1.5,padding:"0 2px"}}>💡 Save a brand profile above to unlock BISHOP Memory for it.</div>
+            )}
+
+            {activeProfileId&&(
+              <div style={{background:"rgba(255,255,255,.03)",border:"1px solid #1a1d24",borderRadius:10,padding:"10px 11px",marginBottom:14}}>
+                <div onClick={()=>setVaultOpen(o=>!o)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}}>
+                  <div style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase"}}>📁 {brand.toUpperCase()} VAULT ({vaultAssets.length})</div>
+                  <span style={{fontSize:9,color:mc,transform:vaultOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+                </div>
+
+                {vaultOpen&&(
+                  <div style={{marginTop:10}}>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:8}}>
+                      {VAULT_CATEGORIES.map(c=>(
+                        <button key={c.id} onClick={()=>setVaultCategory(c.id)}
+                          style={{fontSize:9.5,padding:"4px 8px",borderRadius:6,border:`1px solid ${vaultCategory===c.id?mc+"66":"#24272E"}`,background:vaultCategory===c.id?`${mc}12`:"transparent",color:vaultCategory===c.id?mc:"#6B6F7A",cursor:"pointer"}}>
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:8}}>
+                      {vaultAssets.filter(a=>a.category===vaultCategory).map(a=>(
+                        <div key={a.id} style={{position:"relative",aspectRatio:"1",borderRadius:7,overflow:"hidden",border:"1px solid #1a1d24",background:"#0E1013"}}>
+                          {(a.file_type||"").startsWith("image/")?(
+                            <img src={a.url} alt={a.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                          ):(
+                            <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🎬</div>
+                          )}
+                          <span onClick={()=>deleteVaultAsset(a.id)} style={{position:"absolute",top:2,right:2,width:15,height:15,borderRadius:"50%",background:"rgba(0,0,0,.7)",color:"#fff",fontSize:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>✕</span>
+                        </div>
+                      ))}
+                      {vaultAssets.filter(a=>a.category===vaultCategory).length===0&&(
+                        <div style={{gridColumn:"1/4",fontSize:10,color:"#45484F",padding:"8px 0"}}>No {VAULT_CATEGORIES.find(c=>c.id===vaultCategory)?.label.toLowerCase()} saved yet.</div>
+                      )}
+                    </div>
+
+                    <label style={{display:"block",border:`1px dashed ${mc}44`,borderRadius:8,padding:"7px 0",textAlign:"center",fontSize:10.5,fontWeight:700,color:mc,cursor:vaultUploading?"default":"pointer",opacity:vaultUploading?.5:1}}>
+                      {vaultUploading?"⟳ UPLOADING...":"+ ADD TO VAULT"}
+                      <input type="file" accept="image/*,video/*" style={{display:"none"}} disabled={vaultUploading}
+                        onChange={e=>{if(e.target.files?.[0])uploadToVault(e.target.files[0],vaultCategory);}}/>
+                    </label>
+                  </div>
+                )}
+              </div>
             )}
 
             <div style={{marginBottom:14}}>
@@ -2712,6 +2839,12 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         }}
                       />
                     </div>
+                    {activeProfileId&&vaultAssets.filter(a=>a.category==="product"||a.category==="logo").length>0&&(
+                      <button onClick={()=>setVaultPickerOpen(true)}
+                        style={{width:"100%",padding:"10px 0",borderRadius:8,border:"1px dashed #00e5ff55",background:"transparent",color:"#00e5ff",fontSize:11.5,fontWeight:700,cursor:"pointer",fontFamily:"'DM Mono',monospace"}}>
+                        📁 SELECT FROM {brand.toUpperCase()} VAULT
+                      </button>
+                    )}
                   </div>
                 ):(
                   <div style={{marginBottom:20,borderRadius:10,overflow:"hidden",border:"2px solid #00e5ff44",position:"relative"}}>
