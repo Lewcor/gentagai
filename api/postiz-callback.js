@@ -6,11 +6,6 @@
 // ═══════════════════════════════════════════════════════════
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
 export default async function handler(req, res) {
   const { code, state: userId, error } = req.query;
 
@@ -21,7 +16,15 @@ export default async function handler(req, res) {
     return res.redirect(302, `${process.env.PUBLIC_APP_URL}/?postiz_error=missing_params`);
   }
 
+  // Fail loudly but safely if config is missing, instead of crashing at import time
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("Postiz callback: missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+    return res.redirect(302, `${process.env.PUBLIC_APP_URL}/?postiz_error=server_misconfigured`);
+  }
+
   try {
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
     const tokenRes = await fetch("https://api.postiz.com/oauth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,7 +33,6 @@ export default async function handler(req, res) {
         code,
         client_id: process.env.POSTIZ_CLIENT_ID,
         client_secret: process.env.POSTIZ_CLIENT_SECRET,
-        redirect_uri: `${process.env.PUBLIC_APP_URL}/api/postiz-callback`,
       }),
     });
 
@@ -41,15 +43,13 @@ export default async function handler(req, res) {
     }
 
     const tokenData = await tokenRes.json();
-    // tokenData.access_token is the pos_... token
 
-    // Pull their connected accounts right away so the UI has something to show
     const integrationsRes = await fetch("https://api.postiz.com/public/v1/integrations", {
       headers: { Authorization: tokenData.access_token },
     });
     const integrations = integrationsRes.ok ? await integrationsRes.json() : [];
 
-    await supabase.from("postiz_connections").upsert({
+    const { error: upsertError } = await supabase.from("postiz_connections").upsert({
       user_id: userId,
       postiz_token: tokenData.access_token,
       postiz_refresh_token: tokenData.refresh_token || null,
@@ -58,6 +58,11 @@ export default async function handler(req, res) {
         : null,
       connected_accounts: integrations,
     });
+
+    if (upsertError) {
+      console.error("Supabase upsert failed:", upsertError.message);
+      return res.redirect(302, `${process.env.PUBLIC_APP_URL}/?postiz_error=save_failed`);
+    }
 
     res.redirect(302, `${process.env.PUBLIC_APP_URL}/?postiz_connected=true`);
   } catch (err) {
