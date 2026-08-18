@@ -2275,57 +2275,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
     ad_copy: 2200,
     trending_strategy: 2000,
     full_suite: 2200,
-  };
-  
-  // ── AMPLIFY GENERATE — AI Brain creates marketing from uploaded asset ──
-  async function amplifyGenerate(){
-    const file = uploadedImage||uploadedVideo;
-    if(!file) return;
-    const limit=currentPlan.gens;
-    if(gensUsed>=limit&&limit!==Infinity){setUpgradeModal("more generations");return;}
-    reset();setStep("running");
-    const mediaType=uploadedImage?"image":"video";
-    const hasVideoFrames=!!(uploadedVideo?.frames&&uploadedVideo.frames.length);
-    const prompt=buildAmplifyPrompt({
-      type:amplifyType,brand,niche,platform,tone,audience,goal,keywords,
-      productName,productDesc,productType,productPrice,
-      mediaType,mediaName:file.name,mediaSize:file.size||uploadedVideo?.size,hasVideoFrames,
-      memory:activeMemoryText,
-    });
-    try{
-      const ampTokens=amplifyType==="full_suite"?4500:4096;
-      let full="";
-      if(uploadedImage){
-        // Pass actual image to AI Brain vision
-        if(aiBrain==="gemini"&&geminiKey){
-          full=await callGeminiVision(prompt,uploadedImage.base64,uploadedImage.type,geminiKey,setOutput);
-        }else if(aiBrain==="chatgpt"&&chatgptKey){
-          full=await callChatGPTVision(prompt,uploadedImage.base64,uploadedImage.type,chatgptKey,setOutput);
-        }else{
-          const msg={role:"user",content:[
-            {type:"image",source:{type:"base64",media_type:uploadedImage.type,data:uploadedImage.base64}},
-            {type:"text",text:prompt}
-          ]};
-          full=await callClaudeVision(msg.content,setOutput,ampTokens);
-        }
-      }else if(hasVideoFrames&&!(aiBrain==="gemini"&&geminiKey)&&!(aiBrain==="chatgpt"&&chatgptKey)){
-        // Real vision — send the actual sampled frames from the video, not just its filename
-        const content=[
-          ...uploadedVideo.frames.map(f=>({type:"image",source:{type:"base64",media_type:"image/jpeg",data:f}})),
-          {type:"text",text:prompt}
-        ];
-        full=await callClaudeVision(content,setOutput,ampTokens);
-      }else{
-        // Video — no frames available, or using a brain without vision wired for video yet
-        if(aiBrain==="gemini"&&geminiKey) full=await callGemini(prompt,geminiKey,setOutput);
-        else if(aiBrain==="chatgpt"&&chatgptKey) full=await callChatGPT(prompt,chatgptKey,setOutput);
-        else full=await streamAPI(prompt,setOutput);
-      }
-      setGensUsed(g=>g+1);setStep("done");
-      setHistory(h=>[{id:Date.now(),brand,niche,platform,contentType:amplifyType,tone,mode,aiBrain,output:full,ts:new Date().toLocaleTimeString()},...h.slice(0,19)]);
-    }catch(e){setOutput("⚠ Connection error. Please try again.");setStep("done");}
-  }
-
+    
   async function generate(){
     if(!brand||!niche)return;
     const limit=currentPlan.gens;
