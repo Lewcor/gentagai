@@ -437,18 +437,9 @@ CTA overlay:
 Hashtags:
 Native-feel note: [how to make this not look like an ad]
 
-── GOOGLE DISPLAY AD
-Headline 1 | Headline 2 | Headline 3:
-Description 1 | Description 2:
-CTA:
-
 ── YOUTUBE AD (30 seconds)
 [0-5s unskippable hook, tied to the visual]:
 [Full script, scene-aware]:
-
-── PINTEREST AD
-Pin title:
-Pin description (500 chars):
 
 ── RETARGETING COPY
 [Ad copy for a warm audience who already saw this ${mediaType} — different angle than the cold-audience version above]
