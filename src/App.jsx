@@ -543,8 +543,63 @@ Trend alignment: [name it specifically]
 Best time to post on ${platform}: [time]
 First 60-min action plan: [4 steps]
 3 follow-up content ideas that build on this exact ${mediaType}`,
-  };
 
+    full_suite_part1:
+visualDirective+
+`You are GENTAGAI — Part 1 of 2. Generate hooks, captions, and SEO. Be specific and copy-paste ready, grounded in the real visual. No fluff.
+
+════════════════════════════
+SECTION 1 — 5 VIRAL HOOKS
+════════════════════════════
+HOOK 1: [text] | TYPE: [type] | WHY: [reason tied to real visual detail]
+HOOK 2: [text] | TYPE: [type] | WHY: [reason]
+HOOK 3: [text] | TYPE: [type] | WHY: [reason]
+HOOK 4: [text] | TYPE: [type] | WHY: [reason]
+HOOK 5: [text] | TYPE: [type] | WHY: [reason]
+
+════════════════════════════
+SECTION 2 — 3 CAPTIONS
+════════════════════════════
+── HYPE CAPTION (120-160 words):
+[Write it, referencing real visual details]
+HASHTAGS: [25 tags]
+
+── STORY CAPTION (150-200 words):
+[Write it]
+HASHTAGS: [15 tags]
+
+── SHORT & PUNCHY (under 20 words):
+[Write it]
+HASHTAGS: [10 tags]
+
+════════════════════════════
+SECTION 3 — SEO
+════════════════════════════
+File name: [optimized]
+Alt text: [under 125 chars, real description]
+Meta description: [155 chars]
+Top 12 keywords: [list, ranked]
+Schema-ready description: [2-3 sentences for AI search engines]`,
+
+    full_suite_part2:
+visualDirective+
+`You are GENTAGAI — Part 2 of 2. Generate ad copy and trending strategy. Be specific and copy-paste ready, grounded in the real visual. No fluff.
+
+════════════════════════════
+SECTION 4 — AD COPY
+════════════════════════════
+Facebook/IG — Headline: [text] | Body (80 words): [write it] | CTA: [text]
+TikTok — Hook overlay: [text] | Caption: [text]
+Retargeting angle: [different from cold-audience copy above]
+
+════════════════════════════
+SECTION 5 — TRENDING STRATEGY
+════════════════════════════
+Trend alignment: [name it specifically]
+Best time to post on ${platform}: [time]
+First 60-min action plan: [4 steps]
+3 follow-up content ideas that build on this exact ${mediaType}`,
+};
   return `You are GENTAGAI — elite AI marketing engine. Maximum power. Zero filler.
 ${brandCtx}${productCtx}${mediaCtx}${seoKW}
 
