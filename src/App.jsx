@@ -2160,7 +2160,17 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       setGensUsed(g=>g+1);setStep("done");
     }catch(e){setOutput("⚠ Connection error. Please try again.");setStep("done");}
   }
-
+  // Lowered from a flat 4096/4500 — smaller budgets finish faster and are
+  // far less likely to clip Vercel's 60s function timeout on Hobby.
+  const AMPLIFY_TOKEN_LIMITS = {
+    viral_hooks: 1800,
+    caption_pack: 2000,
+    seo_suite: 1800,
+    ad_copy: 2200,
+    trending_strategy: 2000,
+    full_suite: 2200,
+  };
+  
   // ── AMPLIFY GENERATE — AI Brain creates marketing from uploaded asset ──
   async function amplifyGenerate(){
     const file = uploadedImage||uploadedVideo;
