@@ -2159,6 +2159,66 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       }
       setGensUsed(g=>g+1);setStep("done");
     }catch(e){setOutput("⚠ Connection error. Please try again.");setStep("done");}
+    async function amplifyGenerate(){
+    const file = uploadedImage||uploadedVideo;
+    if(!file) return;
+    const limit=currentPlan.gens;
+    if(gensUsed>=limit&&limit!==Infinity){setUpgradeModal("more generations");return;}
+    reset();setStep("running");
+    const mediaType=uploadedImage?"image":"video";
+    const hasVideoFrames=!!(uploadedVideo?.frames&&uploadedVideo.frames.length);
+
+    // Splits full_suite into 2 lighter sequential calls so each one
+    // has a much better shot at finishing under Vercel's 60s timeout.
+    const isSplit = amplifyType==="full_suite";
+    const typesToRun = isSplit ? ["full_suite_part1","full_suite_part2"] : [amplifyType];
+
+    try{
+      let combined="";
+      for(let i=0;i<typesToRun.length;i++){
+        const runType=typesToRun[i];
+        const prompt=buildAmplifyPrompt({
+          type:runType,brand,niche,platform,tone,audience,goal,keywords,
+          productName,productDesc,productType,productPrice,
+          mediaType,mediaName:file.name,mediaSize:file.size||uploadedVideo?.size,hasVideoFrames,
+          memory:activeMemoryText,
+        });
+        const ampTokens = AMPLIFY_TOKEN_LIMITS[runType] || AMPLIFY_TOKEN_LIMITS[amplifyType] || 2000;
+        const priorText = combined;
+        const onChunk = (chunk)=>{
+          setOutput(priorText ? priorText + "\n\n" + chunk : chunk);
+        };
+
+        let part="";
+        if(uploadedImage){
+          if(aiBrain==="gemini"&&geminiKey){
+            part=await callGeminiVision(prompt,uploadedImage.base64,uploadedImage.type,geminiKey,onChunk);
+          }else if(aiBrain==="chatgpt"&&chatgptKey){
+            part=await callChatGPTVision(prompt,uploadedImage.base64,uploadedImage.type,chatgptKey,onChunk);
+          }else{
+            const msg={role:"user",content:[
+              {type:"image",source:{type:"base64",media_type:uploadedImage.type,data:uploadedImage.base64}},
+              {type:"text",text:prompt}
+            ]};
+            part=await callClaudeVision(msg.content,onChunk,ampTokens);
+          }
+        }else if(hasVideoFrames&&!(aiBrain==="gemini"&&geminiKey)&&!(aiBrain==="chatgpt"&&chatgptKey)){
+          const content=[
+            ...uploadedVideo.frames.map(f=>({type:"image",source:{type:"base64",media_type:"image/jpeg",data:f}})),
+            {type:"text",text:prompt}
+          ];
+          part=await callClaudeVision(content,onChunk,ampTokens);
+        }else{
+          if(aiBrain==="gemini"&&geminiKey) part=await callGemini(prompt,geminiKey,onChunk);
+          else if(aiBrain==="chatgpt"&&chatgptKey) part=await callChatGPT(prompt,chatgptKey,onChunk);
+          else part=await streamAPI(prompt,onChunk);
+        }
+        combined = combined ? combined + "\n\n" + part : part;
+      }
+
+      setGensUsed(g=>g+1);setStep("done");
+      setHistory(h=>[{id:Date.now(),brand,niche,platform,contentType:amplifyType,tone,mode,aiBrain,output:combined,ts:new Date().toLocaleTimeString()},...h.slice(0,19)]);
+    }catch(e){setOutput("⚠ Connection error. Please try again.");setStep("done");}
   }
   // Lowered from a flat 4096/4500 — smaller budgets finish faster and are
   // far less likely to clip Vercel's 60s function timeout on Hobby.
