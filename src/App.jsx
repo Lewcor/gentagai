@@ -2214,11 +2214,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
     const mediaType=uploadedImage?"image":"video";
     const hasVideoFrames=!!(uploadedVideo?.frames&&uploadedVideo.frames.length);
 
-    // Splits full_suite into 2 lighter sequential calls so each one
-    // has a much better shot at finishing under Vercel's 60s timeout.
+        // Runs full_suite as 5 sequential calls reusing the already-fast
+    // individual prompt types, instead of 2 heavier custom blocks —
+    // each call is small enough to reliably finish under Vercel's 60s timeout.
     const isSplit = amplifyType==="full_suite";
-    const typesToRun = isSplit ? ["full_suite_part1","full_suite_part2"] : [amplifyType];
-
+    const typesToRun = isSplit
+      ? ["viral_hooks","caption_pack","seo_suite","ad_copy","trending_strategy"]
+      : [amplifyType];
     try{
       let combined="";
       for(let i=0;i<typesToRun.length;i++){
