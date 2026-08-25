@@ -590,6 +590,27 @@ Trend alignment: [name it specifically]
 Best time to post on ${platform}: [time]
 First 60-min action plan: [4 steps]
 3 follow-up content ideas that build on this exact ${mediaType}`,
+
+    convert_score:
+visualDirective+
+`You are GENTAGAI — running CONVERT SCORE, a focused buying-psychology analysis of this ${mediaType}. This is not a content pack — it's a real verdict on whether this specific ${mediaType} makes someone buy or makes them scroll past. Be honest, specific, and grounded only in what you actually see.
+
+── OVERALL CONVERT SCORE: [X/100]
+[One line explaining the psychology behind why it matters, in plain human language.]
+
+── DESIRE TRIGGER
+[Does this create genuine want, or just notice? What specific emotional or status lever is it pulling — or failing to pull?]
+
+── TRUST SIGNAL
+[Does this read as legitimate, high-quality, worth the price — or does something make a buyer hesitate? Be specific about what's creating or costing trust.]
+
+── URGENCY
+[Does anything here create a reason to act now instead of "maybe later"? If not, what would?]
+
+── THE FIX, WRITTEN OUT
+[If there's copy, a caption, or a headline that should accompany this to close the gap identified above, write the actual line — not a placeholder, the real, ready-to-use line.]
+
+Write the entire analysis as if you're speaking directly to the founder who built this brand — respectful of their work, but not soft. The kind of feedback that actually makes someone money.`,
 };
   return `You are GENTAGAI — elite AI marketing engine. Maximum power. Zero filler.
 ${brandCtx}${productCtx}${mediaCtx}${seoKW}
@@ -2205,7 +2226,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       }
       setGensUsed(g=>g+1);setStep("done");
     }catch(e){setOutput("⚠ Connection error. Please try again.");setStep("done");}
-    async function amplifyGenerate(){
+  }
+
+  async function amplifyGenerate(){
     const file = uploadedImage||uploadedVideo;
     if(!file) return;
     const limit=currentPlan.gens;
@@ -2214,7 +2237,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
     const mediaType=uploadedImage?"image":"video";
     const hasVideoFrames=!!(uploadedVideo?.frames&&uploadedVideo.frames.length);
 
-        // Runs full_suite as 5 sequential calls reusing the already-fast
+    // Runs full_suite as 5 sequential calls reusing the already-fast
     // individual prompt types, instead of 2 heavier custom blocks —
     // each call is small enough to reliably finish under Vercel's 60s timeout.
     const isSplit = amplifyType==="full_suite";
@@ -2268,16 +2291,20 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       setHistory(h=>[{id:Date.now(),brand,niche,platform,contentType:amplifyType,tone,mode,aiBrain,output:combined,ts:new Date().toLocaleTimeString()},...h.slice(0,19)]);
     }catch(e){setOutput("⚠ Connection error. Please try again.");setStep("done");}
   }
+
   // Lowered from a flat 4096/4500 — smaller budgets finish faster and are
   // far less likely to clip Vercel's 60s function timeout on Hobby.
+  // convert_score runs lightest of all since it's a focused analysis, not a content pack.
   const AMPLIFY_TOKEN_LIMITS = {
     viral_hooks: 1800,
     caption_pack: 2000,
     seo_suite: 1800,
     ad_copy: 2200,
     trending_strategy: 2000,
+    convert_score: 1600,
     full_suite: 2200,
-    
+  };
+
   async function generate(){
     if(!brand||!niche)return;
     const limit=currentPlan.gens;
@@ -3081,7 +3108,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {id:"trending_strategy",emoji:"📈",label:"Trending",desc:"Algorithm + viral plan"},
                     {id:"caption_pack",emoji:"✍",label:"Captions",desc:"4 styles + hashtags"},
                     {id:"ad_copy",emoji:"💰",label:"Ad Copy",desc:"FB · TikTok · Google"},
-                    {id:"full_suite",emoji:"⚡",label:"FULL SUITE",desc:"Everything at once"},
+                    {id:"convert_score",emoji:"🎯",label:"CONVERT SCORE",desc:"Will they buy or scroll?"},
                   ].map(a=>(
                     <div key={a.id} onClick={()=>setAmplifyType(a.id)}
                       style={{padding:"12px 10px",border:`1.5px solid ${amplifyType===a.id?"#00e5ff":"#1a1d24"}`,background:amplifyType===a.id?"rgba(0,229,255,.08)":"#0E1013",cursor:"pointer",borderRadius:8,textAlign:"center",transition:"all .15s",position:"relative"}}>
@@ -3216,7 +3243,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {id:"trending_strategy",emoji:"📈",label:"Trending",desc:"Algorithm + viral plan"},
                     {id:"caption_pack",emoji:"✍",label:"Captions",desc:"4 styles + hashtags"},
                     {id:"ad_copy",emoji:"💰",label:"Ad Copy",desc:"FB · TikTok · YouTube"},
-                    {id:"full_suite",emoji:"⚡",label:"FULL SUITE",desc:"Everything at once"},
+                    {id:"convert_score",emoji:"🎯",label:"CONVERT SCORE",desc:"Will they buy or scroll?"},
                   ].map(a=>(
                     <div key={a.id} onClick={()=>setAmplifyType(a.id)}
                       style={{padding:"12px 10px",border:`1.5px solid ${amplifyType===a.id?"#00e5ff":"#1a1d24"}`,background:amplifyType===a.id?"rgba(0,229,255,.08)":"#0E1013",cursor:"pointer",borderRadius:8,textAlign:"center",transition:"all .15s",position:"relative"}}>
