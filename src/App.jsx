@@ -8,7 +8,7 @@ import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
   process.env.REACT_APP_SUPABASE_ANON_KEY
-);
+);a
 
 // ─────────────────────────────────────────────
 // Storage — persists uploaded reference images/video to Supabase
@@ -973,16 +973,23 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
         {session&&plan!=="free"&&(
           <div style={{background:"#1a1d24",border:"1px solid #24272E",borderRadius:8,padding:"14px",marginBottom:20}}>
             <div style={{fontSize:11,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:8}}>Social Auto-Publish</div>
-            {postizStatus?.connected?(
-              <div style={{fontSize:13,color:"#00ff88"}}>✓ Postiz connected — {postizStatus.integrations?.length||0} account(s) linked</div>
-            ):(
+            {postizStatus?.connected&&(
+              <div style={{fontSize:13,color:"#00ff88",marginBottom:postizStatus.integrations?.length?0:10}}>✓ Postiz connected — {postizStatus.integrations?.length||0} account(s) linked</div>
+            )}
+            {(!postizStatus?.integrations||postizStatus.integrations.length===0)&&(
               <>
-                <div style={{fontSize:12,color:"#82858C",lineHeight:1.5,marginBottom:10}}>Connect your Postiz account to auto-publish generated content instead of copy-pasting.</div>
+                <div style={{fontSize:12,color:"#82858C",lineHeight:1.5,marginBottom:10}}>{postizStatus?.connected?"No social accounts linked yet — connect one to auto-publish.":"Connect your Postiz account to auto-publish generated content instead of copy-pasting."}</div>
                 <a href={`/api/postiz-connect?userId=${session.user.id}`}
                   style={{display:"block",textAlign:"center",padding:"9px",border:"1px solid #00ff8855",background:"transparent",color:"#00ff88",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",textDecoration:"none"}}>
                   Connect via Postiz
                 </a>
               </>
+            )}
+            {postizStatus?.connected&&postizStatus.integrations?.length>0&&(
+              <a href={`/api/postiz-connect?userId=${session.user.id}`}
+                style={{display:"block",textAlign:"center",padding:"7px",border:"1px solid #24272E",background:"transparent",color:"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",textDecoration:"none",marginTop:8}}>
+                + Connect another account
+              </a>
             )}
           </div>
         )}
@@ -1561,10 +1568,19 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
   },[]);
 
   // ── Plan selection / Stripe ─────────────────
-  function handlePlanSelect(pid,bill,enteredCode){
+  async function handlePlanSelect(pid,bill,enteredCode){
     // ── Agency code check ──
+    // Staff codes must persist to the real account record, not just local
+    // state — otherwise the next session refresh re-syncs from Supabase's
+    // stored plan and silently reverts the badge back to whatever was there
+    // before (e.g. Pro), even though the code was accepted.
     if(enteredCode&&AGENCY_CODES.includes(enteredCode.trim().toUpperCase())){
-      setPlan("agency");setBilling("yearly");setScreen("app");return;
+      setPlan("agency");setBilling("yearly");setScreen("app");
+      if(session?.user){
+        const{error}=await supabase.from("users").update({plan:"agency",billing_interval:"yearly"}).eq("id",session.user.id);
+        if(error)console.error("Failed to persist agency staff code:",error.message);
+      }
+      return;
     }
     if(pid==="free"){setPlan("free");setScreen("app");return;}
     const linkKey=`${pid}_${bill==="yearly"?"yearly":"monthly"}`;
