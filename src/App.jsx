@@ -149,6 +149,55 @@ const VIDEO_TOOLS = [
 ];
 
 // ─────────────────────────────────────────────
+// SIDEBAR NAV — redesign brief structure. Phase 1: chrome + navigation only.
+// "built:true" items map to real, working state/handlers below. "built:false"
+// items are genuinely not implemented yet and render disabled — per the
+// brief's rule against pretending a control works when it doesn't.
+// "action" items open an existing panel instead of switching mode.
+// ─────────────────────────────────────────────
+const SIDEBAR_NAV = [
+  {group:"BISHOP",items:[
+    {id:"command-center",label:"Command Center",mode:"copy",built:true},
+    {id:"next-moves",label:"Next Moves",built:false},
+  ]},
+  {group:"BRAND",items:[
+    {id:"brand-brief",label:"Brand Brief",mode:"copy",built:true,note:"Dedicated page — Phase 2"},
+    {id:"product-intel",label:"Product Intel",mode:"copy",built:true,note:"Dedicated page — Phase 3"},
+    {id:"brand-memory",label:"Brand Memory",mode:"copy",built:true,action:"memory"},
+    {id:"brand-vault",label:"Brand Vault",mode:"copy",built:true,action:"vault"},
+  ]},
+  {group:"CREATE",items:[
+    {id:"copy",label:"Copy",mode:"copy",built:true},
+    {id:"image",label:"Images",mode:"image",built:true},
+    {id:"video",label:"Video",mode:"video",built:true},
+    {id:"ab",label:"A/B Lab",mode:"ab",built:true},
+  ]},
+  {group:"CAMPAIGNS",items:[
+    {id:"campaign-builder",label:"Campaign Builder",mode:"campaign",built:true},
+    {id:"campaigns",label:"Campaigns",mode:"campaign",built:true},
+    {id:"calendar",label:"Calendar",built:false},
+    {id:"approvals",label:"Approvals",built:false},
+  ]},
+  {group:"INTELLIGENCE",items:[
+    {id:"learn-brand",label:"Learn My Brand",mode:"copy",built:true,action:"learn"},
+    {id:"ai-viz",label:"AI Viz",mode:"visibility",built:true},
+    {id:"performance",label:"Performance",mode:"campaign",built:true},
+    {id:"bishop-insights",label:"BISHOP Insights",built:false},
+  ]},
+  {group:"BRIDGE",items:[
+    {id:"publishing",label:"Publishing",built:false,note:"Opens after generating content"},
+    {id:"connections",label:"Connections",built:true,action:"account"},
+    {id:"automation",label:"Automation",built:false},
+  ]},
+  {group:"ACCOUNT",items:[
+    {id:"agency",label:"Agency",built:true,action:"account"},
+    {id:"team",label:"Team",built:false},
+    {id:"billing",label:"Billing",built:true,action:"account"},
+    {id:"settings",label:"Settings",built:false},
+  ]},
+];
+
+// ─────────────────────────────────────────────
 // AI BRAIN OPTIONS — for analysis & prompts
 // ─────────────────────────────────────────────
 const AI_BRAINS = [
@@ -1613,6 +1662,16 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     setMode(m);reset();
   }
 
+  // ── Sidebar nav click — routes to real state/panels; no-ops on not-yet-built items ──
+  function handleSidebarNav(item){
+    if(!item.built)return;
+    if(item.mode)handleModeSwitch(item.mode);
+    if(item.action==="vault")setVaultOpen(true);
+    if(item.action==="learn")setLearnOpen(true);
+    if(item.action==="account")setShowAccount(true);
+    if(isMobile)setMobileTab("config");
+  }
+
   // ── Generation ──────────────────────────────
   function reset(){setStep("idle");setOutput("");setAbA("");setAbB("");setScores(null);setHistActive(null);setAbTab("variants");}
 
@@ -2532,43 +2591,60 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         onLogout={()=>{setShowAccount(false);setScreen("pricing");signOutAccount();}}
         onClose={()=>setShowAccount(false)}/>}
 
-      {/* TOPBAR */}
+      {/* TOPBAR — minimal per redesign brief: logo/area, active brand, BISHOP status + account */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMobile?"10px 14px":"12px 18px",borderBottom:"1px solid #1a1d24",background:"rgba(8,9,11,.75)",backdropFilter:"blur(24px)",flexShrink:0,zIndex:50,gap:8,flexWrap:isMobile?"wrap":"nowrap"}}>
 
-        {/* Logo */}
+        {/* Logo / current area */}
         <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
           <div style={{display:"flex",gap:3}}>{["#ff2d2d","#f0b429","#7c83fd"].map((c,i)=><div key={i} style={{width:5,height:5,borderRadius:1,background:c}}/>)}</div>
           <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:isMobile?16:18,letterSpacing:2,color:"#fff"}}>GENTAGAI<span style={{color:mc}}>.</span></div>
+          {!isMobile&&<div style={{fontSize:11,color:"#45484F",letterSpacing:1,paddingLeft:10,borderLeft:"1px solid #24272E"}}>{SIDEBAR_NAV.flatMap(g=>g.items).find(it=>it.mode===mode)?.label||"Command Center"}</div>}
         </div>
 
-        {/* MODE SWITCHER — scrollable on mobile */}
-        <div style={{
-          display:"flex",gap:4,
-          flex:isMobile?"unset":1,
-          justifyContent:isMobile?"flex-start":"center",
-          overflowX:isMobile?"auto":"visible",
-          width:isMobile?"100%":"auto",
-          order:isMobile?3:0,
-          paddingBottom:isMobile?"2px":0,
-          msOverflowStyle:"none",scrollbarWidth:"none",
-        }}>
-          {[{id:"copy",label:"◈ Copy",c:"#00e5ff",free:true},{id:"image",label:"⬡ Images",c:"#ff7c00",free:false},{id:"video",label:"▷ Video",c:"#f0b429",free:false},{id:"ab",label:"⇄ A/B Test",c:"#7c83fd",free:false},{id:"visibility",label:"◆ AI VIZ",c:"#00ff88",free:true}].map(m=>(
-            <button key={m.id} className="mbtn" onClick={()=>handleModeSwitch(m.id)}
-              style={{
-                "--hc":m.c,
-                ...(mode===m.id?{borderColor:m.c,color:m.c,background:`${m.c}08`,boxShadow:`0 0 14px ${m.c}33`}:{}),
-                fontSize:isMobile?11:12,
-                padding:isMobile?"8px 12px":"9px 16px",
-                whiteSpace:"nowrap",
-                flexShrink:0,
-              }}>
-              {m.label}{!m.free&&plan==="free"&&<span style={{fontSize:9,marginLeft:3}}>🔒</span>}
-            </button>
-          ))}
+        {/* Active Brand Selector — center; same profile-switching logic, relocated per brief */}
+        <div style={{position:"relative",order:isMobile?3:0,width:isMobile?"100%":"auto"}}>
+          <div onClick={()=>setProfileSwitcherOpen(o=>!o)}
+            style={{display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,.03)",border:`1px solid ${profileSwitcherOpen?mc+"55":"#1a1d24"}`,borderRadius:10,padding:isMobile?"8px 12px":"7px 14px",cursor:"pointer",justifyContent:isMobile?"space-between":"flex-start"}}>
+            <div>
+              <div style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",lineHeight:1}}>Active Brand</div>
+              <div style={{fontSize:12.5,fontWeight:700,color:"#F5F6F8",display:"flex",alignItems:"center",gap:6,marginTop:3}}>
+                <span style={{width:6,height:6,borderRadius:"50%",background:mc,boxShadow:`0 0 8px ${mc}`,flexShrink:0}}/>
+                <span style={{maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{brand||niche||"Not set yet"}</span>
+              </div>
+            </div>
+            <span style={{fontSize:9,color:mc,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+          </div>
+          {profileSwitcherOpen&&(
+            <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,minWidth:220,zIndex:60,background:"rgba(14,16,19,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.7)"}}>
+              {brandProfiles.length===0&&(
+                <div style={{fontSize:11,color:"#565A64",padding:"10px 8px",lineHeight:1.5}}>No saved brands yet — set up a Brand Brief, then save it.</div>
+              )}
+              {brandProfiles.map(p=>(
+                <div key={p.id} onClick={()=>switchToBrandProfile(p)}
+                  style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 10px",borderRadius:8,cursor:"pointer",background:activeProfileId===p.id?`${mc}14`:"transparent"}}
+                  onMouseEnter={e=>{if(activeProfileId!==p.id)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
+                  onMouseLeave={e=>{e.currentTarget.style.background=activeProfileId===p.id?`${mc}14`:"transparent";}}>
+                  <div style={{overflow:"hidden"}}>
+                    <div style={{fontSize:12,fontWeight:700,color:activeProfileId===p.id?mc:"#F0F1F4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.brand_name}</div>
+                    <div style={{fontSize:9.5,color:"#565A64",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.niche||"No niche set"}</div>
+                  </div>
+                  <span onClick={e=>deleteBrandProfile(p.id,e)} style={{fontSize:11,color:"#45484F",padding:"2px 6px",flexShrink:0}}>✕</span>
+                </div>
+              ))}
+              <div onClick={startNewBrandProfile}
+                style={{marginTop:6,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5,fontWeight:700,color:mc,border:`1px dashed ${mc}44`,textAlign:"center"}}>
+                + New Brand Profile
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right side — gen meter + plan badge */}
-        <div style={{display:"flex",alignItems:"center",gap:isMobile?6:8,flexShrink:0}}>
+        {/* Right side — BISHOP status + account */}
+        <div style={{display:"flex",alignItems:"center",gap:isMobile?8:12,flexShrink:0}}>
+          {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:running?mc:"#00ff88",animation:running?"bl .9s steps(1) infinite":"none"}}/>
+            <span style={{fontSize:10,letterSpacing:1.5,color:running?mc:"#82858C",textTransform:"uppercase"}}>{running?"BISHOP GENERATING":"BISHOP ONLINE"}</span>
+          </div>}
           {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} onClick={()=>setShowAccount(true)}>
             <div style={{width:40,height:3,background:"#24272E",borderRadius:2,overflow:"hidden"}}>
               <div style={{height:"100%",background:genPct>80?"#ff2d2d":currentPlan.color,width:`${genPct}%`,transition:"width .5s"}}/>
@@ -2576,8 +2652,6 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div style={{fontSize:10,color:"#6B6F7A"}}>{genLimit===Infinity?"∞":`${gensUsed}/${genLimit}`}</div>
           </div>}
           <div onClick={()=>setShowAccount(true)} style={{fontSize:isMobile?10:11,letterSpacing:1,padding:"4px 10px",border:`1px solid ${currentPlan.color}44`,color:currentPlan.color,textTransform:"uppercase",cursor:"pointer",borderRadius:3}}>{currentPlan.badge}</div>
-          {running&&<div style={{display:"flex",alignItems:"center",gap:4,fontSize:10,color:mc}}><div style={{width:5,height:5,background:mc,borderRadius:"50%",animation:"bl .9s steps(1) infinite"}}/>GEN</div>}
-          {step==="done"&&!running&&<div style={{width:6,height:6,background:"#00ff88",borderRadius:"50%"}}/>}
           {!isMobile&&lastSaved&&<div style={{fontSize:9,color:saveFlash?"#00ff88":"#2A2D33",transition:"color .3s"}}>● SAVED</div>}
         </div>
       </div>
@@ -2731,10 +2805,25 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
             )}
 
-            {[{id:"copy",label:"◆ BISHOP",m:"copy",c:"#00e5ff"},{id:"content",label:"▣ Content Studio",m:"copy",c:"#00e5ff"},{id:"campaigns",label:"⬡ Campaigns",m:"campaign",c:"#f0b429"},{id:"analytics",label:"◈ Analytics",m:"visibility",c:"#00ff88"},{id:"bridge",label:"⌁ Bridge",m:"ab",c:"#7c83fd"}].map(n=>(
-              <div key={n.id} className="bishop-navitem" onClick={()=>handleModeSwitch(n.m)}
-                style={mode===n.m?{background:`${n.c}14`,color:"#F5F6F8",boxShadow:`0 0 16px ${n.c}22`}:{color:n.c+"99"}}>
-                {n.label}
+            {SIDEBAR_NAV.map(g=>(
+              <div key={g.group} style={{marginBottom:10}}>
+                <div style={{fontSize:8.5,letterSpacing:"1.5px",color:"#45484F",textTransform:"uppercase",padding:"8px 8px 4px",fontWeight:700}}>{g.group}</div>
+                {g.items.map(it=>{
+                  const active=it.mode&&mode===it.mode&&(it.action?false:true);
+                  return(
+                    <div key={it.id} className="bishop-navitem" onClick={()=>handleSidebarNav(it)}
+                      title={it.note||(it.built?"":"Coming soon")}
+                      style={{
+                        ...(active?{background:`${mc}14`,color:"#F5F6F8",boxShadow:`0 0 16px ${mc}22`}:{color:it.built?"#9BA0AC":"#3a3d44"}),
+                        cursor:it.built?"pointer":"not-allowed",
+                        opacity:it.built?1:.55,
+                        fontSize:12.5,
+                      }}>
+                      <span>{it.label}</span>
+                      {!it.built&&<span style={{fontSize:8.5,letterSpacing:.5,marginLeft:"auto",color:"#3a3d44",textTransform:"uppercase"}}>soon</span>}
+                    </div>
+                  );
+                })}
               </div>
             ))}
 
