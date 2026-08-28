@@ -161,9 +161,9 @@ const SIDEBAR_NAV = [
     {id:"next-moves",label:"Next Moves",built:false},
   ]},
   {group:"BRAND",items:[
-    {id:"brand-brief",label:"Brand Brief",mode:"copy",built:true,note:"Dedicated page — Phase 2"},
+    {id:"brand-brief",label:"Brand Brief",mode:"brand-brief",built:true},
     {id:"product-intel",label:"Product Intel",mode:"copy",built:true,note:"Dedicated page — Phase 3"},
-    {id:"brand-memory",label:"Brand Memory",mode:"copy",built:true,action:"memory"},
+    {id:"brand-memory",label:"Brand Memory",mode:"brand-brief",built:true},
     {id:"brand-vault",label:"Brand Vault",mode:"copy",built:true,action:"vault"},
   ]},
   {group:"CREATE",items:[
@@ -1328,6 +1328,7 @@ export default function Gentagai(){
     setBrand("");setNiche("");setAudience("");setTone(["hype"]);setKeywords("");setGoal("");
     setActiveProfileId(null);
     setProfileSwitcherOpen(false);
+    setMode("brand-brief");
     if(isMobile)setMobileTab("config");
     setTimeout(()=>brandInputRef.current?.focus(),100);
   }
@@ -2855,6 +2856,220 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           </div>
         )}
 
+        {/* ── BRAND BRIEF — Phase 2 dedicated page ── */}
+        {mode==="brand-brief"?(
+          <div style={{flex:1,overflowY:"auto",display:"flex",justifyContent:"center",padding:isMobile?"24px 16px 100px":"48px 40px",minHeight:0}}>
+            <div style={{width:"100%",maxWidth:820}}>
+
+              <div style={{marginBottom:32}}>
+                <div style={{fontSize:11,letterSpacing:4,color:mc,textTransform:"uppercase",marginBottom:8}}>BRAND</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:isMobile?26:34,color:"#fff"}}>Brand Brief</div>
+                <div style={{fontSize:14,color:"#82858C",marginTop:8,lineHeight:1.6,maxWidth:520}}>The identity BISHOP uses for every piece of content it generates for this brand — name, voice, audience, and standing rules, all in one place.</div>
+              </div>
+
+              {/* Saved brands */}
+              <div style={{marginBottom:32}}>
+                <div className="sl" style={{color:mc}}>Saved Brands</div>
+                <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                  {brandProfiles.map(p=>(
+                    <div key={p.id} onClick={()=>switchToBrandProfile(p)}
+                      style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${activeProfileId===p.id?mc:"#24272E"}`,background:activeProfileId===p.id?`${mc}14`:"#0E1013",cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all .15s"}}>
+                      <span style={{width:6,height:6,borderRadius:"50%",background:activeProfileId===p.id?mc:"#45484F",flexShrink:0}}/>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:700,color:activeProfileId===p.id?mc:"#F0F1F4"}}>{p.brand_name}</div>
+                        <div style={{fontSize:10,color:"#565A64"}}>{p.niche||"No niche set"}</div>
+                      </div>
+                      <span onClick={e=>deleteBrandProfile(p.id,e)} style={{fontSize:11,color:"#45484F",marginLeft:4}}>✕</span>
+                    </div>
+                  ))}
+                  <div onClick={startNewBrandProfile}
+                    style={{padding:"10px 16px",borderRadius:10,border:`1px dashed ${mc}44`,color:mc,cursor:"pointer",fontSize:13,fontWeight:700,display:"flex",alignItems:"center"}}>
+                    + New Brand
+                  </div>
+                </div>
+                {brandProfiles.length===0&&<div style={{fontSize:12,color:"#45484F",lineHeight:1.6,marginTop:4}}>No saved brands yet — fill in the fields below, then save this as your first profile.</div>}
+              </div>
+
+              {/* Learn My Brand — same logic as before, relocated here */}
+              <div style={{background:"rgba(0,255,136,.04)",border:"1px solid #00ff8833",borderRadius:14,padding:18,marginBottom:32}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}} onClick={()=>setLearnOpen(o=>!o)}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700,color:"#00ff88"}}>◆ No website? Let BISHOP learn your brand</div>
+                    <div style={{fontSize:11,color:"#82858C",marginTop:2}}>Paste a description, upload a photo, or pull from Instagram</div>
+                  </div>
+                  <span style={{fontSize:11,color:"#00ff88",transform:learnOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+                </div>
+
+                {learnOpen&&(
+                  <div style={{marginTop:16}}>
+                    <div style={{display:"flex",gap:6,marginBottom:12}}>
+                      {[{id:"text",label:"Paste"},{id:"photo",label:"Photo"},{id:"instagram",label:"Instagram"}].map(t=>(
+                        <button key={t.id} onClick={()=>{setLearnMode(t.id);setLearnSuggestion(null);setLearnError("");}}
+                          style={{flex:1,padding:"7px 0",fontSize:11,fontWeight:700,borderRadius:8,border:`1px solid ${learnMode===t.id?"#00ff8855":"#24272E"}`,background:learnMode===t.id?"#00ff8812":"transparent",color:learnMode===t.id?"#00ff88":"#82858C",cursor:"pointer",fontFamily:"'DM Mono',monospace"}}>
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {learnMode==="text"&&(<>
+                      <textarea className="inp" rows={4} placeholder="Tell BISHOP about your brand — what you sell, who it's for, how you talk about it..." value={learnText} onChange={e=>setLearnText(e.target.value)} style={{marginBottom:10,resize:"vertical"}}/>
+                      <button className="sm" disabled={!learnText.trim()||learnAnalyzing} onClick={analyzeBrandFromText} style={{borderColor:"#00ff8855",color:"#00ff88",width:"100%",padding:"9px 0"}}>
+                        {learnAnalyzing?"⟳ READING...":"◆ LEARN MY BRAND"}
+                      </button>
+                    </>)}
+
+                    {learnMode==="photo"&&(<>
+                      {!learnImage?(
+                        <label style={{display:"block",border:"1.5px dashed #24272E",borderRadius:10,padding:"18px 12px",textAlign:"center",cursor:"pointer",marginBottom:10}}>
+                          <div style={{fontSize:11.5,color:"#82858C"}}>Tap to upload a product photo, flyer, or storefront shot</div>
+                          <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])handleLearnImageFile(e.target.files[0]);}}/>
+                        </label>
+                      ):(
+                        <div style={{marginBottom:10,borderRadius:10,overflow:"hidden",position:"relative"}}>
+                          <img src={learnImage.url} alt="" style={{width:"100%",maxHeight:140,objectFit:"cover",display:"block"}}/>
+                          <button onClick={()=>setLearnImage(null)} style={{position:"absolute",top:6,right:6,background:"#ff2d2d",border:"none",color:"#fff",width:22,height:22,borderRadius:"50%",cursor:"pointer"}}>✕</button>
+                        </div>
+                      )}
+                      <button className="sm" disabled={!learnImage||learnAnalyzing} onClick={analyzeBrandFromPhoto} style={{borderColor:"#00ff8855",color:"#00ff88",width:"100%",padding:"9px 0"}}>
+                        {learnAnalyzing?"⟳ READING...":"◆ LEARN MY BRAND"}
+                      </button>
+                    </>)}
+
+                    {learnMode==="instagram"&&(<>
+                      <div style={{fontSize:11,color:"#82858C",lineHeight:1.6,marginBottom:10}}>
+                        {postizStatus.connected?"BISHOP will read your real recent captions to learn your voice.":"Connect Instagram via Postiz in Account first, then come back here."}
+                      </div>
+                      <button className="sm" disabled={!postizStatus.connected||learnAnalyzing} onClick={analyzeBrandFromInstagram} style={{borderColor:"#00ff8855",color:"#00ff88",width:"100%",padding:"9px 0",opacity:postizStatus.connected?1:.5}}>
+                        {learnAnalyzing?"⟳ READING YOUR POSTS...":"◆ LEARN FROM MY INSTAGRAM"}
+                      </button>
+                    </>)}
+
+                    {learnError&&<div style={{fontSize:11,color:"#ff6a6a",marginTop:10,lineHeight:1.5}}>{learnError}</div>}
+
+                    {learnSuggestion&&(
+                      <div style={{marginTop:14,paddingTop:14,borderTop:"1px solid #00ff8822"}}>
+                        <div style={{fontSize:12.5,color:"#F0F1F4",lineHeight:1.6,marginBottom:10,fontStyle:"italic"}}>"{learnSuggestion.voiceSummary}"</div>
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:12}}>
+                          <div style={{background:"rgba(255,255,255,.02)",borderRadius:8,padding:"7px 9px"}}><div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase"}}>Brand</div><div style={{fontSize:11.5,color:"#F0F1F4"}}>{learnSuggestion.brandName||"—"}</div></div>
+                          <div style={{background:"rgba(255,255,255,.02)",borderRadius:8,padding:"7px 9px"}}><div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase"}}>Niche</div><div style={{fontSize:11.5,color:"#F0F1F4"}}>{learnSuggestion.niche||"—"}</div></div>
+                          <div style={{background:"rgba(255,255,255,.02)",borderRadius:8,padding:"7px 9px"}}><div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase"}}>Audience</div><div style={{fontSize:11.5,color:"#F0F1F4"}}>{learnSuggestion.audience||"—"}</div></div>
+                          <div style={{background:"rgba(255,255,255,.02)",borderRadius:8,padding:"7px 9px"}}><div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase"}}>Tone</div><div style={{fontSize:11.5,color:"#F0F1F4"}}>{(learnSuggestion.tones||[]).map(t=>TONES.find(x=>x.id===t)?.label).filter(Boolean).join(" + ")||"—"}</div></div>
+                        </div>
+                        <button className="gbtn" onClick={applyLearnSuggestion} style={{background:"linear-gradient(135deg,#00ff88,#00b894)",color:"#000",padding:"10px 0",fontSize:12}}>◆ APPLY TO BRAND BRIEF</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Core identity fields */}
+              <div className="sl" style={{color:mc}}>Identity</div>
+              <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:20,marginBottom:24}}>
+                <div>
+                  <div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>BRAND NAME *</div>
+                  <input ref={brandInputRef} className="inp" placeholder="e.g. L' LEWCOR" value={brand} onChange={e=>setBrand(e.target.value)}/>
+                </div>
+                <div>
+                  <div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>NICHE *</div>
+                  <input className="inp" placeholder="e.g. Urban Streetwear" value={niche} onChange={e=>setNiche(e.target.value)}/>
+                  <div style={{position:"relative",marginTop:8}}>
+                    <button type="button" className="chip" onClick={()=>setNicheOpen(o=>!o)}
+                      style={{width:"100%",justifyContent:"space-between",padding:"9px 12px"}}>
+                      <span style={{color:"#9BA0AC",fontSize:12}}>Browse niche presets</span>
+                      <span style={{fontSize:10,color:mc,transform:nicheOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+                    </button>
+                    {nicheOpen&&(
+                      <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:40,background:"rgba(14,16,19,.97)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:7,maxHeight:240,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.65)"}}>
+                        {NICHE_PRESETS.map(n=>(
+                          <div key={n} onClick={()=>{setNiche(n);setNicheOpen(false);}}
+                            style={{padding:"9px 11px",borderRadius:9,cursor:"pointer",fontSize:12.5,color:niche===n?mc:"#F0F1F4",background:niche===n?`${mc}14`:"transparent"}}>
+                            {n}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>TARGET AUDIENCE</div>
+                  <input className="inp" placeholder="Urban males 18-35" value={audience} onChange={e=>setAudience(e.target.value)}/>
+                </div>
+                <div>
+                  <div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>CAMPAIGN GOAL</div>
+                  <input className="inp" placeholder="Drive sales, Launch Drop 001" value={goal} onChange={e=>setGoal(e.target.value)}/>
+                </div>
+                <div style={{gridColumn:isMobile?"auto":"1 / -1"}}>
+                  <div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>SEO KEYWORDS</div>
+                  <input className="inp" placeholder="urban streetwear, limited drop" value={keywords} onChange={e=>setKeywords(e.target.value)}/>
+                </div>
+              </div>
+
+              <div style={{marginBottom:32}}>
+                <div className="sl" style={{color:mc}}>Voice <span style={{opacity:.5,fontWeight:400,textTransform:"none",letterSpacing:0}}>(pick up to 2)</span></div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+                  {TONES.map(t=>{
+                    const locked=plan==="free"&&!t.free;
+                    const selected=tone.includes(t.id);
+                    return <div key={t.id} onClick={()=>{
+                        if(locked){setUpgradeModal(`${t.label} tone`);return;}
+                        setTone(prev=>{
+                          if(prev.includes(t.id)) return prev.length>1?prev.filter(x=>x!==t.id):prev;
+                          if(prev.length>=2) return [prev[1],t.id];
+                          return [...prev,t.id];
+                        });
+                      }}
+                      style={{padding:"7px 14px",border:`1px solid ${selected&&!locked?t.color:"#24272E"}`,background:selected&&!locked?`${t.color}12`:"#0E1013",cursor:locked?"not-allowed":"pointer",color:selected&&!locked?t.color:"#82858C",fontSize:13,letterSpacing:1,transition:"all .15s",opacity:locked?.45:1}}>
+                      {t.label}{selected&&<span style={{marginLeft:5,opacity:.8}}>✓</span>}{locked&&<span className="lock-icon">🔒</span>}
+                    </div>;
+                  })}
+                </div>
+              </div>
+
+              <div style={{display:"flex",gap:10,marginBottom:36}}>
+                <button className="sm" disabled={savingProfile||!brand.trim()}
+                  onClick={activeProfileId?updateActiveBrandProfile:saveNewBrandProfile}
+                  style={{borderColor:`${mc}55`,color:mc,padding:"11px 22px",fontSize:12}}>
+                  {savingProfile?"⟳ SAVING...":activeProfileId?"◆ UPDATE PROFILE":"◆ SAVE AS PROFILE"}
+                </button>
+                {profileError&&<div style={{fontSize:11,color:"#ff6a6a",alignSelf:"center"}}>{profileError}</div>}
+              </div>
+
+              {/* Brand Memory — same logic as before, relocated here */}
+              <div className="sl" style={{color:mc}}>BISHOP Memory</div>
+              {activeProfileId?(
+                <div style={{background:"rgba(255,255,255,.03)",border:"1px solid #1a1d24",borderRadius:14,padding:"18px 20px",marginBottom:36}}>
+                  <div style={{fontSize:11,color:"#82858C",lineHeight:1.6,marginBottom:12}}>Standing rules BISHOP never contradicts for {brand||"this brand"} — things like banned words, tone lines it shouldn't cross, or facts it should always get right.</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12,maxHeight:220,overflowY:"auto"}}>
+                    {brandMemories.length===0&&<div style={{fontSize:11.5,color:"#45484F",lineHeight:1.5}}>Nothing remembered yet — add a standing rule below.</div>}
+                    {brandMemories.map(mem=>(
+                      <div key={mem.id} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"7px 8px",borderRadius:8,background:mem.active?"rgba(255,255,255,.02)":"transparent"}}>
+                        <span onClick={()=>toggleBrandMemory(mem)} style={{cursor:"pointer",fontSize:13,color:mem.active?"#00ff88":"#45484F",flexShrink:0,marginTop:1}}>{mem.active?"✓":"○"}</span>
+                        <span style={{fontSize:12.5,color:mem.active?"#C9CDD3":"#45484F",lineHeight:1.5,flex:1,textDecoration:mem.active?"none":"line-through"}}>{mem.content}</span>
+                        <span onClick={()=>deleteBrandMemory(mem.id)} style={{cursor:"pointer",fontSize:11,color:"#45484F",flexShrink:0}}>✕</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{display:"flex",gap:6}}>
+                    <input value={newMemoryText} onChange={e=>setNewMemoryText(e.target.value)}
+                      onKeyDown={e=>e.key==="Enter"&&addBrandMemory()}
+                      placeholder="e.g. never say 'cheap'"
+                      style={{flex:1,background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"9px 11px",color:"#F0F1F4",fontSize:12,fontFamily:"'DM Mono',monospace",outline:"none"}}/>
+                    <button onClick={addBrandMemory} disabled={!newMemoryText.trim()||savingMemory}
+                      style={{background:"none",border:`1px solid ${mc}55`,color:mc,borderRadius:8,padding:"0 14px",fontSize:15,cursor:"pointer",flexShrink:0}}>+</button>
+                  </div>
+                  {memoryError&&<div style={{fontSize:11,color:"#ff6a6a",marginTop:8}}>{memoryError}</div>}
+                </div>
+              ):(
+                <div style={{fontSize:12,color:"#45484F",lineHeight:1.6,marginBottom:36}}>💡 Save a brand profile above to unlock BISHOP Memory for it.</div>
+              )}
+
+              <button className="gbtn" disabled={!brand||!niche} onClick={()=>handleModeSwitch("copy")}
+                style={{background:brand&&niche?"linear-gradient(135deg,#00e5ff,#0044ff)":"#1a1d24",color:brand&&niche?"#000":"#45484F"}}>
+                {brand&&niche?"CONTINUE TO CREATE →":"COMPLETE BRAND + NICHE FIRST"}
+              </button>
+            </div>
+          </div>
+        ):(<>
         {/* LEFT CONFIG */}
         <div style={{
           width:isMobile?"100%":370,
@@ -2945,43 +3160,23 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           )}
 
           <div>
-            <div className="sl" style={{color:mc}}>01 — Brand Brief</div>
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>BRAND NAME *</div>
-                <input ref={brandInputRef} className="inp" placeholder="e.g. L' LEWCOR" value={brand} onChange={e=>setBrand(e.target.value)}/></div>
-              <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>NICHE *</div>
-                <input className="inp" placeholder="e.g. Urban Streetwear" value={niche} onChange={e=>setNiche(e.target.value)}/>
-                <div style={{position:"relative",marginTop:8}}>
-                  <button type="button" className="chip" onClick={()=>{setNicheOpen(o=>!o);setProductTypeOpen(false);}}
-                    style={{width:"100%",justifyContent:"space-between",padding:"11px 14px"}}>
-                    <span style={{color:"#9BA0AC"}}>Browse niche presets</span>
-                    <span style={{fontSize:10,color:mc,transform:nicheOpen?"rotate(180deg)":"none",transition:"transform .2s",display:"inline-block"}}>▾</span>
-                  </button>
-                  {nicheOpen&&(
-                    <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:40,background:"rgba(14,16,19,.97)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:7,maxHeight:260,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.65)"}}>
-                      {NICHE_PRESETS.map(n=>(
-                        <div key={n} onClick={()=>{setNiche(n);setNicheOpen(false);}}
-                          style={{padding:"10px 12px",borderRadius:9,cursor:"pointer",fontSize:12.5,color:niche===n?mc:"#F0F1F4",background:niche===n?`${mc}14`:"transparent",transition:"background .12s"}}
-                          onMouseEnter={e=>{if(niche!==n)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
-                          onMouseLeave={e=>{if(niche!==n)e.currentTarget.style.background="transparent";}}>
-                          {n}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+            <div className="sl" style={{color:mc}}>Brand</div>
+            {brand&&niche?(
+              <div onClick={()=>handleModeSwitch("brand-brief")}
+                style={{background:"rgba(255,255,255,.025)",border:`1px solid ${mc}33`,borderRadius:12,padding:"14px 16px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div>
+                  <div style={{fontSize:15,fontWeight:700,color:"#F5F6F8"}}>{brand}</div>
+                  <div style={{fontSize:12,color:"#82858C",marginTop:2}}>{niche}</div>
                 </div>
+                <span style={{fontSize:11,color:mc,letterSpacing:1}}>EDIT →</span>
               </div>
-              <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>TARGET AUDIENCE</div>
-                <input className="inp" placeholder="Urban males 18-35" value={audience} onChange={e=>setAudience(e.target.value)}/></div>
-              {mode!=="image"&&<>
-                {isMobile&&(<>
-                <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>CAMPAIGN GOAL</div>
-                  <input className="inp" placeholder="Drive sales, Launch Drop 001" value={goal} onChange={e=>setGoal(e.target.value)}/></div>
-                {(mode==="copy"||mode==="ab")&&<div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>SEO KEYWORDS</div>
-                  <input className="inp" placeholder="urban streetwear, limited drop" value={keywords} onChange={e=>setKeywords(e.target.value)}/></div>}
-                </>)}
-              </>}
-            </div>
+            ):(
+              <div onClick={()=>handleModeSwitch("brand-brief")}
+                style={{background:"rgba(255,255,255,.025)",border:`1px dashed ${mc}55`,borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"center"}}>
+                <div style={{fontSize:13,color:mc,fontWeight:700}}>◆ SET UP BRAND BRIEF</div>
+                <div style={{fontSize:11,color:"#82858C",marginTop:4}}>Required before BISHOP can generate</div>
+              </div>
+            )}
           </div>
 
           {/* ── PRODUCT INTEL ── */}
@@ -3741,7 +3936,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   {!configured?(
                     <>
                       <div style={{fontSize:13,color:"#82858C",textAlign:"center",lineHeight:1.6,maxWidth:280}}>Brand not configured yet — BISHOP needs a name and niche before it can work.</div>
-                      <button className="sm" onClick={()=>{if(isMobile)setMobileTab("config");brandInputRef.current?.focus();}} style={{borderColor:`${mc}55`,color:mc,padding:"9px 18px"}}>COMPLETE BRAND BRIEF →</button>
+                      <button className="sm" onClick={()=>{handleModeSwitch("brand-brief");setTimeout(()=>brandInputRef.current?.focus(),100);}} style={{borderColor:`${mc}55`,color:mc,padding:"9px 18px"}}>COMPLETE BRAND BRIEF →</button>
                     </>
                   ):(
                     <>
@@ -4214,6 +4409,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div style={{color:"#7c83fd44"}}>⇄ A/B Testing</div>
           </div>
         </div>
+        </>)}
       </div>
     </div>
   );
