@@ -839,8 +839,8 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
   const highlights={free:"Perfect to explore",pro:"Most popular — full power",agency:"For teams & client work"};
   const [agencyCode,setAgencyCode]=useState("");
   return(
-    <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#0a1628 0%,#0d1e38 100%)",display:"flex",flexDirection:"column",alignItems:"center",padding:"40px 20px 60px",fontFamily:"'DM Mono','Courier New',monospace"}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
+    <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#0a1628 0%,#0d1e38 100%)",display:"flex",flexDirection:"column",alignItems:"center",padding:"40px 20px 60px",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif"}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
         @media(max-width:768px){
           .gbtn{font-size:13px!important;padding:15px 0!important;letter-spacing:2px!important;}
           .inp{font-size:13px!important;padding:12px 14px!important;}
@@ -921,7 +921,7 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
                     placeholder="Have a staff code? Enter it here"
                     value={agencyCode}
                     onChange={e=>setAgencyCode(e.target.value)}
-                    style={{width:"100%",padding:"14px 16px",background:"#0E1013",border:"1px solid #45484F",color:"#ddd",fontFamily:"'DM Mono',monospace",fontSize:14,letterSpacing:"0.06em",outline:"none",borderRadius:6,marginBottom:4}}
+                    style={{width:"100%",padding:"14px 16px",background:"#0E1013",border:"1px solid #45484F",color:"#ddd",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",fontSize:14,letterSpacing:"0.06em",outline:"none",borderRadius:6,marginBottom:4}}
                   />
                   {agencyCode&&<div style={{fontSize:12,color:"#7c83fd",letterSpacing:1}}>↑ Enter code then click below</div>}
                 </div>
@@ -959,7 +959,7 @@ function PricingPage({onSelect,currentPlan,billing,setBilling}){
 function UpgradeModal({onClose,onUpgrade,featureName}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div style={{background:"#15181D",border:"1px solid #f0b42944",borderRadius:12,padding:"32px 28px",maxWidth:400,width:"100%",textAlign:"center",fontFamily:"'DM Mono','Courier New',monospace"}}>
+      <div style={{background:"#15181D",border:"1px solid #f0b42944",borderRadius:12,padding:"32px 28px",maxWidth:400,width:"100%",textAlign:"center",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif"}}>
         <div style={{fontSize:11,letterSpacing:4,color:"#f0b429",textTransform:"uppercase",marginBottom:12}}>Pro Feature</div>
         <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:22,color:"#fff",marginBottom:10}}>Unlock {featureName}</div>
         <div style={{fontSize:15,color:"#82858C",lineHeight:1.8,marginBottom:24}}>This feature requires a Pro or Agency plan. Upgrade to access the full GENTAGAI engine.</div>
@@ -981,7 +981,7 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
   const pct=gensLimit===Infinity?0:Math.min(100,Math.round((gensUsed/gensLimit)*100));
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"flex-end"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#15181D",border:"1px solid #2A2D33",borderLeft:"1px solid #2A2D33",width:300,height:"100vh",padding:"24px 20px",display:"flex",flexDirection:"column",fontFamily:"'DM Mono','Courier New',monospace",overflowY:"auto"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#15181D",border:"1px solid #2A2D33",borderLeft:"1px solid #2A2D33",width:300,height:"100vh",padding:"24px 20px",display:"flex",flexDirection:"column",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",overflowY:"auto"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
           <div style={{fontSize:12,letterSpacing:4,color:"#82858C",textTransform:"uppercase"}}>Account</div>
           <button onClick={onClose} style={{background:"none",border:"none",color:"#6B6F7A",cursor:"pointer",fontSize:18,lineHeight:1}}>✕</button>
@@ -2457,6 +2457,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
   }
 
   const mc={copy:"#00e5ff",image:"#ff7c00",video:"#f0b429",ab:"#7c83fd",visibility:"#00ff88",campaign:"#f0b429"}[mode]||"#f0b429";
+  // Stable luxury identity accent — used for chrome (rail, panel, active nav)
+  // so the brand color doesn't shift hue every time the generation mode
+  // changes. Mode colors (mc) are reserved for the Create Studio itself.
+  const gold="#C9A961";
   const selTones=TONES.filter(t=>tone.includes(t.id));
 
   // ── PRICING SCREEN ──────────────────────────
@@ -2506,9 +2510,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
   // ── APP SCREEN ──────────────────────────────
   return(
-    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1000px 600px at 12% -10%, ${mc}14, transparent 60%),radial-gradient(ellipse 800px 550px at 100% 0%, rgba(139,124,255,0.08), transparent 60%),radial-gradient(ellipse 700px 500px at 30% 110%, ${mc}0d, transparent 60%),#07090D`,color:"#F5F6F8",fontFamily:"'DM Mono','Courier New',monospace",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
+    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1000px 600px at 12% -10%, ${mc}14, transparent 60%),radial-gradient(ellipse 800px 550px at 100% 0%, rgba(139,124,255,0.08), transparent 60%),radial-gradient(ellipse 700px 500px at 30% 110%, ${mc}0d, transparent 60%),#07090D`,color:"#F5F6F8",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
         @media(max-width:768px){
           .gbtn{font-size:13px!important;padding:15px 0!important;letter-spacing:2px!important;}
           .inp{font-size:13px!important;padding:12px 14px!important;}
@@ -2521,16 +2525,16 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         }
         *{box-sizing:border-box;margin:0;padding:0;}
         ::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-track{background:#08090B;} ::-webkit-scrollbar-thumb{background:#2A2D33;}
-        .gbtn{border:none;font-family:'DM Mono',monospace;font-weight:600;font-size:14px;letter-spacing:3px;text-transform:uppercase;padding:18px 0;cursor:pointer;transition:all .25s;width:100%;border-radius:16px;}
+        .gbtn{border:none;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-weight:600;font-size:14px;letter-spacing:3px;text-transform:uppercase;padding:18px 0;cursor:pointer;transition:all .25s;width:100%;border-radius:16px;}
         .gbtn:hover{filter:brightness(1.18);transform:translateY(-1px);box-shadow:0 8px 30px rgba(0,0,0,.55);}
         .gbtn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
-        .sm{background:rgba(255,255,255,.02);backdrop-filter:blur(12px);border:1px solid #2A2D33;color:#82858C;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:6px 12px;cursor:pointer;transition:all .15s;border-radius:9px;}
+        .sm{background:rgba(255,255,255,.02);backdrop-filter:blur(12px);border:1px solid #2A2D33;color:#82858C;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:6px 12px;cursor:pointer;transition:all .15s;border-radius:9px;}
         .sm:hover{border-color:#565A64;color:#a8c0d8;}
         .sm.on{border-color:#f0b429;color:#f0b429;background:rgba(201,168,76,.05);}
         .chip{display:flex;align-items:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);backdrop-filter:blur(16px);color:#9BA0AC;font-size:12px;letter-spacing:1px;padding:10px 14px;cursor:pointer;gap:7px;transition:all .18s;border-radius:12px;}
         .chip:hover{border-color:${mc}66;color:${mc};box-shadow:0 0 12px ${mc}22;}
         .chip.on{border-color:${mc};background:${mc}0a;color:${mc};box-shadow:0 0 16px ${mc}33;}
-        .inp{background:rgba(255,255,255,.025);backdrop-filter:blur(16px);border:1.5px solid rgba(255,255,255,.08);color:#F5F6F8;font-family:'DM Mono',monospace;font-size:14px;padding:14px 16px;width:100%;outline:none;transition:border-color .2s;border-radius:12px;}
+        .inp{background:rgba(255,255,255,.025);backdrop-filter:blur(16px);border:1.5px solid rgba(255,255,255,.08);color:#F5F6F8;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:14px;padding:14px 16px;width:100%;outline:none;transition:border-color .2s;border-radius:12px;}
         .inp:focus{border-color:${mc}44;} .inp::placeholder{color:#565A64;}
         .sl{font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-weight:500;}
         .sl::after{content:'';flex:1;height:1px;background:#1a1d24;}
@@ -2538,17 +2542,17 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         .ctc:hover{background:#15181D;border-color:${mc}44;box-shadow:0 0 16px ${mc}1a;}
         .ctc.on{border-color:${mc};background:${mc}0d;box-shadow:0 0 24px ${mc}22, inset 0 0 20px ${mc}0d;}
         .ctc.locked{opacity:.35;cursor:not-allowed;}
-        .otext{font-size:15px;line-height:1.9;color:#F0F1F4;white-space:pre-wrap;font-family:'DM Mono',monospace;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
+        .otext{font-size:15px;line-height:1.9;color:#F0F1F4;white-space:pre-wrap;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
         .blink::after{content:'█';animation:bl .7s steps(1) infinite;color:${mc};}
         @keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
         .gline{height:1px;animation:gl 1.1s linear infinite;margin:1px 0;}
         @keyframes gl{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
-        .mbtn{background:rgba(255,255,255,.02);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);color:#82858C;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:all .2s;border-radius:11px;}
+        .mbtn{background:rgba(255,255,255,.02);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);color:#82858C;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:all .2s;border-radius:11px;}
         .mbtn:hover{border-color:var(--hc,#45484F);color:var(--hc,#9BA0AC);box-shadow:0 0 12px color-mix(in srgb, var(--hc,#45484F) 35%, transparent);}
         .vp{flex:1;display:flex;flex-direction:column;overflow:hidden;}
         .hi{padding:12px 14px;margin-bottom:4px;border-radius:11px;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
         .hi:hover{background:#15181D;box-shadow:inset 3px 0 0 ${mc}88;}
-        .nt{font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;background:transparent;border:1px solid #24272E;color:#82858C;cursor:pointer;transition:all .15s;letter-spacing:1px;border-radius:4px;}
+        .nt{font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:11px;padding:5px 10px;background:transparent;border:1px solid #24272E;color:#82858C;cursor:pointer;transition:all .15s;letter-spacing:1px;border-radius:4px;}
         .nt:hover{border-color:${mc}55;color:${mc};}
         .toolc{display:flex;align-items:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);backdrop-filter:blur(16px);color:#9BA0AC;font-size:12px;padding:10px 14px;cursor:pointer;gap:6px;transition:all .18s;border-radius:11px;}
         .toolc:hover{border-color:${mc}55;color:#F0F1F4;box-shadow:0 0 12px ${mc}22;}
@@ -2607,7 +2611,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         {/* Logo / current area */}
         <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
           <div style={{display:"flex",gap:3}}>{["#ff2d2d","#f0b429","#7c83fd"].map((c,i)=><div key={i} style={{width:5,height:5,borderRadius:1,background:c}}/>)}</div>
-          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:isMobile?16:18,letterSpacing:2,color:"#fff"}}>GENTAGAI<span style={{color:mc}}>.</span></div>
+          <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?18:20,letterSpacing:.3,color:"#F5F0E8"}}>GENTAGAI<span style={{color:gold}}>.</span></div>
           {!isMobile&&<div style={{fontSize:11,color:"#45484F",letterSpacing:1,paddingLeft:10,borderLeft:"1px solid #24272E"}}>{WORKSPACES.flatMap(w=>w.pages).find(it=>it.mode===mode)?.label||"Command Center"}</div>}
         </div>
 
@@ -2618,11 +2622,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div>
               <div style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",lineHeight:1}}>Active Brand</div>
               <div style={{fontSize:12.5,fontWeight:700,color:"#F5F6F8",display:"flex",alignItems:"center",gap:6,marginTop:3}}>
-                <span style={{width:6,height:6,borderRadius:"50%",background:mc,boxShadow:`0 0 8px ${mc}`,flexShrink:0}}/>
+                <span style={{width:6,height:6,borderRadius:"50%",background:gold,boxShadow:`0 0 8px ${gold}`,flexShrink:0}}/>
                 <span style={{maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{brand||niche||"Not set yet"}</span>
               </div>
             </div>
-            <span style={{fontSize:9,color:mc,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+            <span style={{fontSize:9,color:gold,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
           </div>
           {profileSwitcherOpen&&(
             <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,minWidth:220,zIndex:60,background:"rgba(14,16,19,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.7)"}}>
@@ -2631,9 +2635,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               )}
               {brandProfiles.map(p=>(
                 <div key={p.id} onClick={()=>switchToBrandProfile(p)}
-                  style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 10px",borderRadius:8,cursor:"pointer",background:activeProfileId===p.id?`${mc}14`:"transparent"}}
+                  style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 10px",borderRadius:8,cursor:"pointer",background:activeProfileId===p.id?`${gold}14`:"transparent"}}
                   onMouseEnter={e=>{if(activeProfileId!==p.id)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
-                  onMouseLeave={e=>{e.currentTarget.style.background=activeProfileId===p.id?`${mc}14`:"transparent";}}>
+                  onMouseLeave={e=>{e.currentTarget.style.background=activeProfileId===p.id?`${gold}14`:"transparent";}}>
                   <div style={{overflow:"hidden"}}>
                     <div style={{fontSize:12,fontWeight:700,color:activeProfileId===p.id?mc:"#F0F1F4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.brand_name}</div>
                     <div style={{fontSize:9.5,color:"#565A64",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.niche||"No niche set"}</div>
@@ -2642,7 +2646,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 </div>
               ))}
               <div onClick={startNewBrandProfile}
-                style={{marginTop:6,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5,fontWeight:700,color:mc,border:`1px dashed ${mc}44`,textAlign:"center"}}>
+                style={{marginTop:6,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5,fontWeight:700,color:gold,border:`1px dashed ${gold}44`,textAlign:"center"}}>
                 + New Brand Profile
               </div>
             </div>
@@ -2652,8 +2656,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         {/* Right side — BISHOP status + account */}
         <div style={{display:"flex",alignItems:"center",gap:isMobile?8:12,flexShrink:0}}>
           {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}>
-            <div style={{width:6,height:6,borderRadius:"50%",background:running?mc:"#00ff88",animation:running?"bl .9s steps(1) infinite":"none"}}/>
-            <span style={{fontSize:10,letterSpacing:1.5,color:running?mc:"#82858C",textTransform:"uppercase"}}>{running?"BISHOP GENERATING":"BISHOP ONLINE"}</span>
+            <div style={{width:6,height:6,borderRadius:"50%",background:running?gold:"#00ff88",animation:running?"bl .9s steps(1) infinite":"none"}}/>
+            <span style={{fontSize:10,letterSpacing:1.5,color:running?gold:"#82858C",textTransform:"uppercase"}}>{running?"BISHOP GENERATING":"BISHOP ONLINE"}</span>
           </div>}
           {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} onClick={()=>setShowAccount(true)}>
             <div style={{width:40,height:3,background:"#24272E",borderRadius:2,overflow:"hidden"}}>
@@ -2671,22 +2675,22 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
         {/* ── ICON RAIL — 8 workspaces, always visible, desktop only ── */}
         {!isMobile&&(
-          <div style={{width:64,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.08)",background:"rgba(13,17,23,.7)",backdropFilter:"blur(24px)",display:"flex",flexDirection:"column",alignItems:"center",padding:"16px 0",gap:4,overflowY:"auto"}}>
-            <div style={{width:30,height:30,marginBottom:16,flexShrink:0}}>
-              <svg viewBox="0 0 40 40"><circle className="bishop-core-ring" cx="20" cy="20" r="17"/><circle className="bishop-core-ring" cx="20" cy="20" r="11"/><circle cx="20" cy="20" r="3.4" fill="#6EE7FF"/></svg>
+          <div style={{width:68,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.06)",background:"linear-gradient(180deg,rgba(17,22,29,.75),rgba(13,17,23,.6))",backdropFilter:"blur(28px)",display:"flex",flexDirection:"column",alignItems:"center",padding:"20px 0",gap:6,overflowY:"auto"}}>
+            <div style={{width:28,height:28,marginBottom:22,flexShrink:0}}>
+              <svg viewBox="0 0 40 40"><circle className="bishop-core-ring" cx="20" cy="20" r="17" style={{stroke:gold}}/><circle className="bishop-core-ring" cx="20" cy="20" r="11" style={{stroke:gold}}/><circle cx="20" cy="20" r="3.4" fill={gold}/></svg>
             </div>
             {WORKSPACES.map(w=>{
               const isActive=activeWorkspace===w.id;
               return(
                 <div key={w.id} onClick={()=>setActiveWorkspace(w.id)} title={w.label}
-                  style={{width:44,height:44,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:18,transition:"all .15s",background:isActive?`${mc}14`:"transparent",color:isActive?mc:"#6B6F7A",border:isActive?`1px solid ${mc}44`:"1px solid transparent"}}>
+                  style={{width:42,height:42,borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:17,transition:"all .2s",background:isActive?`${gold}16`:"transparent",color:isActive?gold:"#6B7280",boxShadow:isActive?`0 0 20px ${gold}22`:"none"}}>
                   {w.icon}
                 </div>
               );
             })}
             <div style={{marginTop:"auto"}}>
               <div onClick={()=>setShowAccount(true)} title="Account"
-                style={{width:44,height:44,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:11,fontWeight:700,color:currentPlan.color,border:`1px dashed ${currentPlan.color}44`}}>
+                style={{width:38,height:38,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:11,fontWeight:600,color:"#8B8D93",border:"1px solid rgba(255,255,255,.08)"}}>
                 {currentPlan.badge[0]}
               </div>
             </div>
@@ -2695,43 +2699,43 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
         {/* ── SECONDARY PANEL — pages for the active workspace only ── */}
         {!isMobile&&(
-          <div style={{width:230,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.08)",background:"rgba(13,17,23,.5)",backdropFilter:"blur(24px)",padding:"20px 16px",display:"flex",flexDirection:"column",overflowY:"auto"}}>
-            <div style={{fontSize:11,letterSpacing:2,color:"#6B6F7A",textTransform:"uppercase",fontWeight:700,marginBottom:16,paddingLeft:4}}>
+          <div style={{width:240,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.06)",background:"rgba(13,17,23,.45)",backdropFilter:"blur(28px)",padding:"24px 18px",display:"flex",flexDirection:"column",overflowY:"auto"}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:19,color:"#EDEEF0",marginBottom:20,paddingLeft:2}}>
               {WORKSPACES.find(w=>w.id===activeWorkspace)?.label}
             </div>
 
             {activeWorkspace==="brand"&&(
-              <div style={{position:"relative",marginBottom:16}}>
+              <div style={{position:"relative",marginBottom:20}}>
                 <div onClick={()=>setProfileSwitcherOpen(o=>!o)}
-                  style={{background:"rgba(255,255,255,.03)",border:`1px solid ${profileSwitcherOpen?mc+"55":"rgba(255,255,255,.08)"}`,borderRadius:12,padding:"12px 14px",cursor:"pointer"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                    <span style={{fontSize:10,letterSpacing:1,color:"#82858C",textTransform:"uppercase"}}>Active Brand</span>
-                    <span style={{fontSize:10,color:mc,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+                  style={{background:"rgba(255,255,255,.03)",border:`1px solid ${profileSwitcherOpen?gold+"55":"rgba(255,255,255,.08)"}`,borderRadius:14,padding:"14px 16px",cursor:"pointer"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
+                    <span style={{fontSize:11,letterSpacing:.3,color:"#82858C"}}>Active Brand</span>
+                    <span style={{fontSize:10,color:gold,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
                   </div>
-                  <div style={{fontSize:13,fontWeight:700,color:"#F5F6F8",display:"flex",alignItems:"center",gap:8}}>
-                    <span style={{width:7,height:7,borderRadius:"50%",background:mc,boxShadow:`0 0 8px ${mc}`,flexShrink:0}}/>
+                  <div style={{fontSize:14,fontWeight:600,color:"#F5F6F8",display:"flex",alignItems:"center",gap:8}}>
+                    <span style={{width:6,height:6,borderRadius:"50%",background:gold,boxShadow:`0 0 8px ${gold}`,flexShrink:0}}/>
                     <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{brand||niche||"Not set yet"}</span>
                   </div>
                 </div>
                 {profileSwitcherOpen&&(
-                  <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:60,background:"rgba(14,16,19,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.7)"}}>
+                  <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:60,background:"rgba(14,16,19,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:8,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.7)"}}>
                     {brandProfiles.length===0&&(
-                      <div style={{fontSize:11,color:"#565A64",padding:"10px 8px",lineHeight:1.5}}>No saved brands yet — set up a Brand Brief, then save it below.</div>
+                      <div style={{fontSize:12,color:"#565A64",padding:"10px 8px",lineHeight:1.6}}>No saved brands yet — set up a Brand Brief, then save it below.</div>
                     )}
                     {brandProfiles.map(p=>(
                       <div key={p.id} onClick={()=>switchToBrandProfile(p)}
-                        style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 10px",borderRadius:8,cursor:"pointer",background:activeProfileId===p.id?`${mc}14`:"transparent"}}
+                        style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 11px",borderRadius:9,cursor:"pointer",background:activeProfileId===p.id?`${gold}14`:"transparent"}}
                         onMouseEnter={e=>{if(activeProfileId!==p.id)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
-                        onMouseLeave={e=>{e.currentTarget.style.background=activeProfileId===p.id?`${mc}14`:"transparent";}}>
+                        onMouseLeave={e=>{e.currentTarget.style.background=activeProfileId===p.id?`${gold}14`:"transparent";}}>
                         <div style={{overflow:"hidden"}}>
-                          <div style={{fontSize:12,fontWeight:700,color:activeProfileId===p.id?mc:"#F0F1F4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.brand_name}</div>
-                          <div style={{fontSize:9.5,color:"#565A64",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.niche||"No niche set"}</div>
+                          <div style={{fontSize:13,fontWeight:600,color:activeProfileId===p.id?gold:"#F0F1F4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.brand_name}</div>
+                          <div style={{fontSize:10.5,color:"#565A64",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.niche||"No niche set"}</div>
                         </div>
                         <span onClick={e=>deleteBrandProfile(p.id,e)} style={{fontSize:11,color:"#45484F",padding:"2px 6px",flexShrink:0}}>✕</span>
                       </div>
                     ))}
                     <div onClick={startNewBrandProfile}
-                      style={{marginTop:6,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5,fontWeight:700,color:mc,border:`1px dashed ${mc}44`,textAlign:"center"}}>
+                      style={{marginTop:6,padding:"10px 11px",borderRadius:9,cursor:"pointer",fontSize:12.5,fontWeight:600,color:gold,border:`1px dashed ${gold}44`,textAlign:"center"}}>
                       + New Brand Profile
                     </div>
                   </div>
@@ -2745,13 +2749,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 <div key={it.id} onClick={()=>handleSidebarNav(it,activeWorkspace)}
                   title={it.note||(it.built?"":"Coming soon")}
                   style={{
-                    display:"flex",alignItems:"center",gap:9,padding:"11px 12px",borderRadius:11,fontSize:13.5,fontWeight:600,marginBottom:2,transition:"all .15s",
-                    ...(active?{background:`${mc}14`,color:"#F5F6F8",boxShadow:`0 0 16px ${mc}22`}:{color:it.built?"#9BA0AC":"#4a4d54"}),
+                    display:"flex",alignItems:"center",gap:9,padding:"12px 14px",borderRadius:12,fontSize:14,fontWeight:500,marginBottom:2,transition:"all .18s",
+                    ...(active?{background:`${gold}12`,color:"#F5F6F8"}:{color:it.built?"#9BA0AC":"#4a4d54"}),
                     cursor:it.built?"pointer":"not-allowed",
-                    opacity:it.built?1:.55,
+                    opacity:it.built?1:.5,
                   }}>
                   <span>{it.label}</span>
-                  {!it.built&&<span style={{fontSize:8.5,letterSpacing:.5,marginLeft:"auto",color:"#4a4d54",textTransform:"uppercase"}}>soon</span>}
+                  {!it.built&&<span style={{fontSize:9,letterSpacing:.3,marginLeft:"auto",color:"#4a4d54"}}>soon</span>}
                 </div>
               );
             })}
@@ -2762,17 +2766,17 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         {isMobile&&(
           <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:200,background:"#08090B",borderTop:"1px solid #24272E",display:"flex",padding:"0"}}>
             <button onClick={()=>setMobileTab("config")}
-              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="config"?"#0E1013":"transparent",color:mobileTab==="config"?"#00e5ff":"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderTop:mobileTab==="config"?"2px solid #00e5ff":"2px solid transparent"}}>
+              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="config"?"#0E1013":"transparent",color:mobileTab==="config"?"#00e5ff":"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",borderTop:mobileTab==="config"?"2px solid #00e5ff":"2px solid transparent"}}>
               ⚙ Configure
             </button>
             <button onClick={()=>setMobileTab("output")}
-              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="output"?"#0E1013":"transparent",color:mobileTab==="output"?"#00e5ff":"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderTop:mobileTab==="output"?"2px solid #00e5ff":"2px solid transparent",position:"relative"}}>
+              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="output"?"#0E1013":"transparent",color:mobileTab==="output"?"#00e5ff":"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",borderTop:mobileTab==="output"?"2px solid #00e5ff":"2px solid transparent",position:"relative"}}>
               {step==="running"&&<span style={{position:"absolute",top:8,right:"30%",width:6,height:6,borderRadius:"50%",background:"#00e5ff",animation:"bl .9s steps(1) infinite"}}/>}
               {step==="done"&&<span style={{position:"absolute",top:8,right:"30%",width:6,height:6,borderRadius:"50%",background:"#00ff88"}}/>}
               ▶ Output
             </button>
             <button onClick={()=>setMobileTab("sessions")}
-              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="sessions"?"#0E1013":"transparent",color:mobileTab==="sessions"?"#00e5ff":"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderTop:mobileTab==="sessions"?"2px solid #00e5ff":"2px solid transparent"}}>
+              style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="sessions"?"#0E1013":"transparent",color:mobileTab==="sessions"?"#00e5ff":"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",borderTop:mobileTab==="sessions"?"2px solid #00e5ff":"2px solid transparent"}}>
               ◈ Sessions
             </button>
           </div>
@@ -2827,7 +2831,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     <div style={{display:"flex",gap:6,marginBottom:12}}>
                       {[{id:"text",label:"Paste"},{id:"photo",label:"Photo"},{id:"instagram",label:"Instagram"}].map(t=>(
                         <button key={t.id} onClick={()=>{setLearnMode(t.id);setLearnSuggestion(null);setLearnError("");}}
-                          style={{flex:1,padding:"7px 0",fontSize:11,fontWeight:700,borderRadius:8,border:`1px solid ${learnMode===t.id?"#00ff8855":"#24272E"}`,background:learnMode===t.id?"#00ff8812":"transparent",color:learnMode===t.id?"#00ff88":"#82858C",cursor:"pointer",fontFamily:"'DM Mono',monospace"}}>
+                          style={{flex:1,padding:"7px 0",fontSize:11,fontWeight:700,borderRadius:8,border:`1px solid ${learnMode===t.id?"#00ff8855":"#24272E"}`,background:learnMode===t.id?"#00ff8812":"transparent",color:learnMode===t.id?"#00ff88":"#82858C",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif"}}>
                           {t.label}
                         </button>
                       ))}
@@ -2975,7 +2979,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     <input value={newMemoryText} onChange={e=>setNewMemoryText(e.target.value)}
                       onKeyDown={e=>e.key==="Enter"&&addBrandMemory()}
                       placeholder="e.g. never say 'cheap'"
-                      style={{flex:1,background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"9px 11px",color:"#F0F1F4",fontSize:12,fontFamily:"'DM Mono',monospace",outline:"none"}}/>
+                      style={{flex:1,background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"9px 11px",color:"#F0F1F4",fontSize:12,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",outline:"none"}}/>
                     <button onClick={addBrandMemory} disabled={!newMemoryText.trim()||savingMemory}
                       style={{background:"none",border:`1px solid ${mc}55`,color:mc,borderRadius:8,padding:"0 14px",fontSize:15,cursor:"pointer",flexShrink:0}}>+</button>
                   </div>
@@ -3023,7 +3027,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   <div style={{display:"flex",gap:6,marginBottom:12}}>
                     {[{id:"text",label:"Paste"},{id:"photo",label:"Photo"},{id:"instagram",label:"Instagram"}].map(t=>(
                       <button key={t.id} onClick={()=>{setLearnMode(t.id);setLearnSuggestion(null);setLearnError("");}}
-                        style={{flex:1,padding:"7px 0",fontSize:11,fontWeight:700,borderRadius:8,border:`1px solid ${learnMode===t.id?"#00ff8855":"#24272E"}`,background:learnMode===t.id?"#00ff8812":"transparent",color:learnMode===t.id?"#00ff88":"#82858C",cursor:"pointer",fontFamily:"'DM Mono',monospace"}}>
+                        style={{flex:1,padding:"7px 0",fontSize:11,fontWeight:700,borderRadius:8,border:`1px solid ${learnMode===t.id?"#00ff8855":"#24272E"}`,background:learnMode===t.id?"#00ff8812":"transparent",color:learnMode===t.id?"#00ff88":"#82858C",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif"}}>
                         {t.label}
                       </button>
                     ))}
@@ -3222,10 +3226,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           {mode==="image"&&(
             <div>
               <div style={{display:"flex",gap:4,marginBottom:16}}>
-                <button onClick={()=>setImageFlow("generate")} style={{flex:1,padding:"10px 0",border:`1px solid ${imageFlow==="generate"?"#ff7c00":"#24272E"}`,background:imageFlow==="generate"?"#ff7c0012":"#111c2e",color:imageFlow==="generate"?"#ff7c00":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
+                <button onClick={()=>setImageFlow("generate")} style={{flex:1,padding:"10px 0",border:`1px solid ${imageFlow==="generate"?"#ff7c00":"#24272E"}`,background:imageFlow==="generate"?"#ff7c0012":"#111c2e",color:imageFlow==="generate"?"#ff7c00":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",transition:"all .2s"}}>
                   ⬡ Generate
                 </button>
-                <button onClick={()=>setImageFlow("amplify")} style={{flex:1,padding:"10px 0",border:`1px solid ${imageFlow==="amplify"?"#00e5ff":"#24272E"}`,background:imageFlow==="amplify"?"#00e5ff12":"#111c2e",color:imageFlow==="amplify"?"#00e5ff":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
+                <button onClick={()=>setImageFlow("amplify")} style={{flex:1,padding:"10px 0",border:`1px solid ${imageFlow==="amplify"?"#00e5ff":"#24272E"}`,background:imageFlow==="amplify"?"#00e5ff12":"#111c2e",color:imageFlow==="amplify"?"#00e5ff":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",transition:"all .2s"}}>
                   ◈ Upload & Amplify
                 </button>
               </div>
@@ -3290,14 +3294,14 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                           fontSize:14,
                           fontWeight:700,
                           cursor:"pointer",
-                          fontFamily:"'DM Mono',monospace",
+                          fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",
                           letterSpacing:2,
                         }}
                       />
                     </div>
                     {activeProfileId&&vaultAssets.filter(a=>a.category==="product"||a.category==="logo").length>0&&(
                       <button onClick={()=>setVaultPickerOpen(true)}
-                        style={{width:"100%",padding:"10px 0",borderRadius:8,border:"1px dashed #00e5ff55",background:"transparent",color:"#00e5ff",fontSize:11.5,fontWeight:700,cursor:"pointer",fontFamily:"'DM Mono',monospace"}}>
+                        style={{width:"100%",padding:"10px 0",borderRadius:8,border:"1px dashed #00e5ff55",background:"transparent",color:"#00e5ff",fontSize:11.5,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif"}}>
                         📁 SELECT FROM {brand.toUpperCase()} VAULT
                       </button>
                     )}
@@ -3362,10 +3366,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           {mode==="video"&&(
             <div>
               <div style={{display:"flex",gap:4,marginBottom:16}}>
-                <button onClick={()=>setVideoFlow("generate")} style={{flex:1,padding:"10px 0",border:`1px solid ${videoFlow==="generate"?"#f0b429":"#24272E"}`,background:videoFlow==="generate"?"#f0b42912":"#111c2e",color:videoFlow==="generate"?"#f0b429":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
+                <button onClick={()=>setVideoFlow("generate")} style={{flex:1,padding:"10px 0",border:`1px solid ${videoFlow==="generate"?"#f0b429":"#24272E"}`,background:videoFlow==="generate"?"#f0b42912":"#111c2e",color:videoFlow==="generate"?"#f0b429":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",transition:"all .2s"}}>
                   ▷ Generate Script
                 </button>
-                <button onClick={()=>setVideoFlow("amplify")} style={{flex:1,padding:"10px 0",border:`1px solid ${videoFlow==="amplify"?"#00e5ff":"#24272E"}`,background:videoFlow==="amplify"?"#00e5ff12":"#111c2e",color:videoFlow==="amplify"?"#00e5ff":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",transition:"all .2s"}}>
+                <button onClick={()=>setVideoFlow("amplify")} style={{flex:1,padding:"10px 0",border:`1px solid ${videoFlow==="amplify"?"#00e5ff":"#24272E"}`,background:videoFlow==="amplify"?"#00e5ff12":"#111c2e",color:videoFlow==="amplify"?"#00e5ff":"#82858C",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",transition:"all .2s"}}>
                   ◈ Upload & Amplify
                 </button>
               </div>
@@ -3431,7 +3435,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                           fontSize:14,
                           fontWeight:700,
                           cursor:"pointer",
-                          fontFamily:"'DM Mono',monospace",
+                          fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",
                           letterSpacing:2,
                         }}
                       />
@@ -3659,7 +3663,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         <div style={{display:"flex",gap:6,marginBottom:14}}>
           {[3,5,7,10].map(n=>(
             <button key={n} onClick={()=>setCLength(n)}
-              style={{flex:1,padding:"9px 0",borderRadius:8,border:`1px solid ${cLength===n?"#f0b42966":"#24272E"}`,background:cLength===n?"#f0b42912":"transparent",color:cLength===n?"#f0b429":"#6B6F7A",cursor:"pointer",fontFamily:"'DM Mono',monospace",fontSize:12,fontWeight:700}}>
+              style={{flex:1,padding:"9px 0",borderRadius:8,border:`1px solid ${cLength===n?"#f0b42966":"#24272E"}`,background:cLength===n?"#f0b42912":"transparent",color:cLength===n?"#f0b429":"#6B6F7A",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",fontSize:12,fontWeight:700}}>
               {n}
             </button>
           ))}
@@ -3719,13 +3723,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                             <div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase",marginBottom:3}}>{label}</div>
                             <input type="number" min="0" value={draft[field]}
                               onChange={e=>updateMetricsDraft(p.id,field,e.target.value)}
-                              style={{width:"100%",background:"#0E1013",border:"1px solid #24272E",borderRadius:5,padding:"6px 7px",color:"#F0F1F4",fontSize:12,fontFamily:"'DM Mono',monospace",outline:"none"}}/>
+                              style={{width:"100%",background:"#0E1013",border:"1px solid #24272E",borderRadius:5,padding:"6px 7px",color:"#F0F1F4",fontSize:12,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",outline:"none"}}/>
                           </div>
                         ))}
                       </div>
                       <input placeholder="Notes (what worked, what didn't...)" value={draft.notes}
                         onChange={e=>updateMetricsDraft(p.id,"notes",e.target.value)}
-                        style={{width:"100%",background:"#0E1013",border:"1px solid #24272E",borderRadius:5,padding:"7px 9px",color:"#F0F1F4",fontSize:11.5,fontFamily:"'DM Mono',monospace",outline:"none",marginBottom:8}}/>
+                        style={{width:"100%",background:"#0E1013",border:"1px solid #24272E",borderRadius:5,padding:"7px 9px",color:"#F0F1F4",fontSize:11.5,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",outline:"none",marginBottom:8}}/>
                       <button className="sm" disabled={saving} onClick={()=>savePerformanceLog(p.id)} style={{borderColor:"#00ff8855",color:"#00ff88"}}>
                         {saving?"⟳ SAVING...":"💾 SAVE METRICS"}
                       </button>
@@ -3946,7 +3950,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                           :"Use the script above to create your video, then come back to post it."}
                         </div>
                       </div>
-                      <button onClick={downloadFile} style={{padding:"10px 16px",border:"1px solid #24272E",background:"transparent",color:"#82858C",fontSize:12,letterSpacing:1,cursor:"pointer",fontFamily:"'DM Mono',monospace",borderRadius:4,flexShrink:0,display:uploadedImage||uploadedVideo?"block":"none"}}>↓ Download</button>
+                      <button onClick={downloadFile} style={{padding:"10px 16px",border:"1px solid #24272E",background:"transparent",color:"#82858C",fontSize:12,letterSpacing:1,cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",borderRadius:4,flexShrink:0,display:uploadedImage||uploadedVideo?"block":"none"}}>↓ Download</button>
                     </div>
 
                     {/* Upload your finished image/video if not already uploaded */}
@@ -3963,7 +3967,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                               <div style={{fontSize:12,color:"#6B6F7A",marginBottom:14}}>JPG · PNG · WEBP · GIF</div>
                               <input type="file" accept="image/*"
                                 onChange={e=>{if(e.target.files&&e.target.files[0])handleImageFile(e.target.files[0]);}}
-                                style={{display:"block",width:"100%",padding:"12px",background:"#00e5ff",color:"#000",border:"none",borderRadius:7,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'DM Mono',monospace"}}
+                                style={{display:"block",width:"100%",padding:"12px",background:"#00e5ff",color:"#000",border:"none",borderRadius:7,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif"}}
                               />
                             </div>
                           </>
@@ -3975,7 +3979,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                               <div style={{fontSize:12,color:"#6B6F7A",marginBottom:14}}>MP4 · MOV · WEBM · AVI</div>
                               <input type="file" accept="video/*"
                                 onChange={e=>{if(e.target.files&&e.target.files[0])handleVideoFile(e.target.files[0]);}}
-                                style={{display:"block",width:"100%",padding:"12px",background:"#f0b429",color:"#000",border:"none",borderRadius:7,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'DM Mono',monospace"}}
+                                style={{display:"block",width:"100%",padding:"12px",background:"#f0b429",color:"#000",border:"none",borderRadius:7,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif"}}
                               />
                             </div>
                           </>
@@ -4014,7 +4018,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",textTransform:"uppercase",marginBottom:8,fontWeight:500}}>Your Post Caption</div>
                       <textarea value={publishCaption} onChange={e=>setPublishCaption(e.target.value)}
                         placeholder={output.slice(0,200)||`${brand} — ${productName||niche} #newdrop`}
-                        style={{width:"100%",background:"#0E1013",border:"1.5px solid #2A2D33",color:"#F5F6F8",fontFamily:"'DM Mono',monospace",fontSize:14,padding:"14px 16px",resize:"vertical",minHeight:90,outline:"none",lineHeight:1.8,borderRadius:6}}/>
+                        style={{width:"100%",background:"#0E1013",border:"1.5px solid #2A2D33",color:"#F5F6F8",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",fontSize:14,padding:"14px 16px",resize:"vertical",minHeight:90,outline:"none",lineHeight:1.8,borderRadius:6}}/>
                       <div style={{fontSize:11,color:"#565A64",marginTop:4}}>{publishCaption.length>0?`${publishCaption.length} chars — copy-paste ready`:"Leave blank to use the AI-generated content above"}</div>
                     </div>
 
@@ -4023,7 +4027,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
                         <div style={{fontSize:12,letterSpacing:2,color:"#9BA0AC",textTransform:"uppercase",fontWeight:500}}>Your Platform Profiles</div>
                         <button onClick={()=>setShowURLSetup(s=>!s)}
-                          style={{fontSize:11,padding:"5px 12px",border:"1px solid #24272E",background:showURLSetup?"#1a1d24":"transparent",color:"#82858C",cursor:"pointer",fontFamily:"'DM Mono',monospace",borderRadius:4,letterSpacing:1}}>
+                          style={{fontSize:11,padding:"5px 12px",border:"1px solid #24272E",background:showURLSetup?"#1a1d24":"transparent",color:"#82858C",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",borderRadius:4,letterSpacing:1}}>
                           {showURLSetup?"Hide":"⚙ Setup URLs"}
                         </button>
                       </div>
@@ -4044,7 +4048,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                                     setPlatformURLs(u=>({...u,[pf.id]:v}));
                                     try{const s=JSON.parse(localStorage.getItem("gentagai_platform_urls")||"{}");s[pf.id]=v;localStorage.setItem("gentagai_platform_urls",JSON.stringify(s));}catch{}
                                   }}
-                                  style={{width:"100%",background:"#08090B",border:"1px solid #24272E",color:"#F0F1F4",fontFamily:"'DM Mono',monospace",fontSize:12,padding:"10px 12px",outline:"none",borderRadius:4}}
+                                  style={{width:"100%",background:"#08090B",border:"1px solid #24272E",color:"#F0F1F4",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",fontSize:12,padding:"10px 12px",outline:"none",borderRadius:4}}
                                 />
                               </div>
                               {platformURLs[pf.id]&&<div style={{width:8,height:8,borderRadius:"50%",background:"#00ff88",flexShrink:0}}/>}
@@ -4089,7 +4093,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                                   <button
                                     disabled={!mediaReady||isBusy}
                                     onClick={()=>postizPublishNow(intg)}
-                                    style={{fontSize:11,padding:"7px 14px",border:"none",borderRadius:4,fontWeight:600,cursor:mediaReady&&!isBusy?"pointer":"not-allowed",flexShrink:0,fontFamily:"'DM Mono',monospace",
+                                    style={{fontSize:11,padding:"7px 14px",border:"none",borderRadius:4,fontWeight:600,cursor:mediaReady&&!isBusy?"pointer":"not-allowed",flexShrink:0,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",
                                       background:isDone?"#00ff8822":!mediaReady||isBusy?"#1a1d24":"linear-gradient(135deg,#00ff88,#00b894)",
                                       color:isDone?"#00ff88":!mediaReady||isBusy?"#45484F":"#000"}}>
                                     {isDone?"✓ Posted":isBusy?"Posting...":"Post Now"}
@@ -4132,7 +4136,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {publishPicks.length>0&&(
                       <div>
                         <button onClick={publishSelected}
-                          style={{width:"100%",padding:"16px 0",border:"none",background:"linear-gradient(135deg,#00e5ff,#0055ff)",color:"#000",fontSize:14,letterSpacing:3,textTransform:"uppercase",cursor:"pointer",fontFamily:"'DM Mono',monospace",fontWeight:600,borderRadius:6,marginBottom:10}}>
+                          style={{width:"100%",padding:"16px 0",border:"none",background:"linear-gradient(135deg,#00e5ff,#0055ff)",color:"#000",fontSize:14,letterSpacing:3,textTransform:"uppercase",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",fontWeight:600,borderRadius:6,marginBottom:10}}>
                           {publishPicks.length===1
                             ?`↗ POST TO ${PUBLISH_PLATFORMS.find(p=>p.id===publishPicks[0])?.label.toUpperCase()}`
                             :`↗ POST TO ${publishPicks.length} PLATFORMS AT ONCE`}
@@ -4211,7 +4215,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {/* Mobile share button */}
                     <div style={{marginTop:16,textAlign:"center"}}>
                       <button onClick={webShare}
-                        style={{padding:"12px 24px",border:"1px solid #24272E",background:"transparent",color:"#82858C",fontSize:12,letterSpacing:2,cursor:"pointer",fontFamily:"'DM Mono',monospace",borderRadius:6,textTransform:"uppercase"}}>
+                        style={{padding:"12px 24px",border:"1px solid #24272E",background:"transparent",color:"#82858C",fontSize:12,letterSpacing:2,cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",borderRadius:6,textTransform:"uppercase"}}>
                         📱 Mobile Share (iOS/Android)
                       </button>
                       <div style={{fontSize:11,color:"#45484F",marginTop:6}}>Opens native share sheet on mobile devices</div>
