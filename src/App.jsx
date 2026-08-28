@@ -1625,6 +1625,27 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
   // panel is showing. Independent of `mode`, which drives content. ──
   const [activeWorkspace,setActiveWorkspace]=useState("bishop");
 
+  // ── ASK BISHOP (⌘K) — a real quick-jump palette over the actual nav tree,
+  // not a simulated AI command executor. Searches WORKSPACES pages only. ──
+  const [commandOpen,setCommandOpen]=useState(false);
+  const [commandQuery,setCommandQuery]=useState("");
+  useEffect(()=>{
+    function onKey(e){
+      if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){
+        e.preventDefault();setCommandOpen(o=>!o);setCommandQuery("");
+      }
+      if(e.key==="Escape")setCommandOpen(false);
+    }
+    window.addEventListener("keydown",onKey);
+    return()=>window.removeEventListener("keydown",onKey);
+  },[]);
+  const commandResults=WORKSPACES.flatMap(w=>w.pages.map(p=>({...p,workspaceId:w.id,workspaceLabel:w.label})))
+    .filter(p=>!commandQuery.trim()||p.label.toLowerCase().includes(commandQuery.trim().toLowerCase())||p.workspaceLabel.toLowerCase().includes(commandQuery.trim().toLowerCase()));
+  function runCommand(item){
+    handleSidebarNav(item,item.workspaceId);
+    setCommandOpen(false);setCommandQuery("");
+  }
+
   // ── Plan selection / Stripe ─────────────────
   async function handlePlanSelect(pid,bill,enteredCode){
     // ── Agency code check ──
@@ -2510,7 +2531,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
   // ── APP SCREEN ──────────────────────────────
   return(
-    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1200px 700px at 15% -15%, ${gold}12, transparent 60%),radial-gradient(ellipse 900px 600px at 100% 10%, ${mc}0f, transparent 60%),radial-gradient(ellipse 800px 550px at 25% 115%, rgba(139,124,255,0.06), transparent 60%),#07090D`,color:"#F5F6F8",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
+    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1200px 700px at 15% -15%, ${gold}12, transparent 60%),radial-gradient(ellipse 900px 600px at 100% 10%, ${mc}0f, transparent 60%),radial-gradient(ellipse 800px 550px at 25% 115%, rgba(139,124,255,0.06), transparent 60%),#060A0F`,color:"#F5F6F8",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
         @media(max-width:768px){
@@ -2531,15 +2552,15 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         .sm{background:rgba(255,255,255,.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);color:#9BA0AC;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.2px;text-transform:none;padding:8px 16px;cursor:pointer;transition:all .2s;border-radius:999px;}
         .sm:hover{border-color:rgba(255,255,255,.22);color:#e8eaed;}
         .sm.on{border-color:${gold};color:${gold};background:${gold}14;}
-        .chip{display:flex;align-items:center;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);backdrop-filter:blur(20px);color:#A8ABB2;font-size:13.5px;letter-spacing:0;padding:12px 16px;cursor:pointer;gap:8px;transition:all .2s;border-radius:16px;}
-        .chip:hover{border-color:${gold}55;color:#EDEEF0;box-shadow:0 4px 20px rgba(0,0,0,.25);}
+        .chip{display:flex;align-items:center;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.045);backdrop-filter:blur(20px);color:#A8ABB2;font-size:13.5px;letter-spacing:0;padding:12px 16px;cursor:pointer;gap:8px;transition:all .2s;border-radius:16px;}
+        .chip:hover{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.065);color:#EDEEF0;}
         .chip.on{border-color:${gold}77;background:${gold}12;color:${gold};}
-        .inp{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.09);color:#F0F1F4;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:15px;padding:15px 17px;width:100%;outline:none;transition:all .2s;border-radius:16px;}
+        .inp{background:rgba(255,255,255,.045);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);color:#F0F1F4;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:15px;padding:15px 17px;width:100%;outline:none;transition:all .2s;border-radius:16px;}
         .inp:focus{border-color:${gold}66;background:rgba(255,255,255,.045);} .inp::placeholder{color:#5C606A;}
         .sl{font-size:13px;letter-spacing:.2px;text-transform:none;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-weight:600;color:#B8BAC0;}
         .sl::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07);}
-        .ctc{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.09);padding:16px 18px;cursor:pointer;transition:all .2s;border-radius:18px;}
-        .ctc:hover{background:rgba(255,255,255,.05);border-color:${gold}44;}
+        .ctc{background:rgba(255,255,255,.045);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);padding:16px 18px;cursor:pointer;transition:all .2s;border-radius:18px;}
+        .ctc:hover{background:rgba(255,255,255,.065);border-color:rgba(255,255,255,.14);}
         .ctc.on{border-color:${gold}88;background:${gold}0d;box-shadow:0 8px 28px rgba(0,0,0,.3);}
         .ctc.locked{opacity:.35;cursor:not-allowed;}
         .otext{font-size:15.5px;line-height:1.85;color:#E8E9EB;white-space:pre-wrap;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
@@ -2554,7 +2575,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         .hi:hover{background:rgba(255,255,255,.04);border-left-color:${gold}88;}
         .nt{font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:12px;padding:6px 12px;background:transparent;border:1px solid rgba(255,255,255,.1);color:#9BA0AC;cursor:pointer;transition:all .15s;letter-spacing:0;border-radius:999px;}
         .nt:hover{border-color:${gold}55;color:${gold};}
-        .toolc{display:flex;align-items:center;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);backdrop-filter:blur(20px);color:#A8ABB2;font-size:13.5px;padding:12px 16px;cursor:pointer;gap:7px;transition:all .2s;border-radius:16px;}
+        .toolc{display:flex;align-items:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.045);backdrop-filter:blur(20px);color:#A8ABB2;font-size:13.5px;padding:12px 16px;cursor:pointer;gap:7px;transition:all .2s;border-radius:16px;}
         .toolc:hover{border-color:${gold}55;color:#F0F1F4;}
         .lock-icon{font-size:9px;color:#6B6F7A;margin-left:4px;}
         .bishop-sidebar{background:rgba(8,9,11,.7);backdrop-filter:blur(24px);}
@@ -2653,12 +2674,21 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           )}
         </div>
 
-        {/* Right side — BISHOP status + account */}
+        {/* Right side — BISHOP status + Ask BISHOP + account */}
         <div style={{display:"flex",alignItems:"center",gap:isMobile?8:12,flexShrink:0}}>
           {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}>
             <div style={{width:6,height:6,borderRadius:"50%",background:running?gold:"#00ff88",animation:running?"bl .9s steps(1) infinite":"none"}}/>
             <span style={{fontSize:10,letterSpacing:1.5,color:running?gold:"#82858C",textTransform:"uppercase"}}>{running?"BISHOP GENERATING":"BISHOP ONLINE"}</span>
           </div>}
+          {!isMobile&&(
+            <div onClick={()=>{setCommandOpen(true);setCommandQuery("");}}
+              style={{display:"flex",alignItems:"center",gap:8,padding:"7px 12px",borderRadius:999,border:"1px solid rgba(255,255,255,.08)",background:"rgba(255,255,255,.03)",cursor:"pointer",transition:"all .15s"}}
+              onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(255,255,255,.14)"}
+              onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,.08)"}>
+              <span style={{fontSize:12,color:"#9BA0AC"}}>Ask BISHOP</span>
+              <span style={{fontSize:10,color:"#565A64",border:"1px solid rgba(255,255,255,.1)",borderRadius:5,padding:"1px 5px"}}>⌘K</span>
+            </div>
+          )}
           {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} onClick={()=>setShowAccount(true)}>
             <div style={{width:40,height:3,background:"#24272E",borderRadius:2,overflow:"hidden"}}>
               <div style={{height:"100%",background:genPct>80?"#ff2d2d":currentPlan.color,width:`${genPct}%`,transition:"width .5s"}}/>
@@ -2668,6 +2698,34 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           <div onClick={()=>setShowAccount(true)} style={{fontSize:isMobile?10:11,letterSpacing:1,padding:"4px 10px",border:`1px solid ${currentPlan.color}44`,color:currentPlan.color,textTransform:"uppercase",cursor:"pointer",borderRadius:3}}>{currentPlan.badge}</div>
           {!isMobile&&lastSaved&&<div style={{fontSize:9,color:saveFlash?"#00ff88":"#2A2D33",transition:"color .3s"}}>● SAVED</div>}
         </div>
+
+        {/* ── ASK BISHOP — real quick-jump palette, ⌘K ── */}
+        {commandOpen&&(
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.6)",backdropFilter:"blur(4px)",zIndex:300,display:"flex",alignItems:"flex-start",justifyContent:"center",paddingTop:"12vh"}} onClick={()=>setCommandOpen(false)}>
+            <div onClick={e=>e.stopPropagation()} style={{width:"90%",maxWidth:520,background:"rgba(14,18,25,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:18,boxShadow:"0 30px 80px rgba(0,0,0,.6)",overflow:"hidden"}}>
+              <div style={{padding:"14px 18px",borderBottom:"1px solid rgba(255,255,255,.08)"}}>
+                <input autoFocus value={commandQuery} onChange={e=>setCommandQuery(e.target.value)}
+                  placeholder="Jump to a page — Brand Brief, Campaigns, AI Viz..."
+                  style={{width:"100%",background:"transparent",border:"none",outline:"none",color:"#F0F1F4",fontSize:16,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif"}}/>
+              </div>
+              <div style={{maxHeight:340,overflowY:"auto",padding:8}}>
+                {commandResults.length===0&&<div style={{padding:"20px 14px",fontSize:13,color:"#565A64"}}>Nothing matches that.</div>}
+                {commandResults.map(it=>(
+                  <div key={it.workspaceId+it.id} onClick={()=>it.built&&runCommand(it)}
+                    style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 14px",borderRadius:12,cursor:it.built?"pointer":"not-allowed",opacity:it.built?1:.45,transition:"background .12s"}}
+                    onMouseEnter={e=>{if(it.built)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
+                    onMouseLeave={e=>{e.currentTarget.style.background="transparent";}}>
+                    <div>
+                      <span style={{fontSize:14,color:"#F0F1F4",fontWeight:500}}>{it.label}</span>
+                      <span style={{fontSize:11,color:"#565A64",marginLeft:8}}>{it.workspaceLabel}</span>
+                    </div>
+                    {!it.built&&<span style={{fontSize:9,color:"#4a4d54"}}>soon</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* BODY */}
@@ -2675,7 +2733,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
         {/* ── ICON RAIL — 8 workspaces, always visible, desktop only ── */}
         {!isMobile&&(
-          <div style={{width:68,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.06)",background:"linear-gradient(180deg,rgba(17,22,29,.75),rgba(13,17,23,.6))",backdropFilter:"blur(28px)",display:"flex",flexDirection:"column",alignItems:"center",padding:"20px 0",gap:6,overflowY:"auto"}}>
+          <div style={{width:76,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.08)",background:"linear-gradient(180deg,rgba(15,23,32,.8),rgba(10,16,23,.65))",backdropFilter:"blur(28px)",display:"flex",flexDirection:"column",alignItems:"center",padding:"20px 0",gap:6,overflowY:"auto"}}>
             <div style={{width:34,height:34,marginBottom:22,flexShrink:0}}>
               <img src="/bishop-mascot.png" alt="BISHOP" style={{width:"100%",height:"100%",objectFit:"contain"}}/>
             </div>
