@@ -2510,7 +2510,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
   // ── APP SCREEN ──────────────────────────────
   return(
-    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1000px 600px at 12% -10%, ${mc}14, transparent 60%),radial-gradient(ellipse 800px 550px at 100% 0%, rgba(139,124,255,0.08), transparent 60%),radial-gradient(ellipse 700px 500px at 30% 110%, ${mc}0d, transparent 60%),#07090D`,color:"#F5F6F8",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
+    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1200px 700px at 15% -15%, ${gold}12, transparent 60%),radial-gradient(ellipse 900px 600px at 100% 10%, ${mc}0f, transparent 60%),radial-gradient(ellipse 800px 550px at 25% 115%, rgba(139,124,255,0.06), transparent 60%),#07090D`,color:"#F5F6F8",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
         @media(max-width:768px){
@@ -2525,37 +2525,37 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         }
         *{box-sizing:border-box;margin:0;padding:0;}
         ::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-track{background:#08090B;} ::-webkit-scrollbar-thumb{background:#2A2D33;}
-        .gbtn{border:none;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-weight:600;font-size:14px;letter-spacing:3px;text-transform:uppercase;padding:18px 0;cursor:pointer;transition:all .25s;width:100%;border-radius:16px;}
-        .gbtn:hover{filter:brightness(1.18);transform:translateY(-1px);box-shadow:0 8px 30px rgba(0,0,0,.55);}
-        .gbtn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
-        .sm{background:rgba(255,255,255,.02);backdrop-filter:blur(12px);border:1px solid #2A2D33;color:#82858C;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:6px 12px;cursor:pointer;transition:all .15s;border-radius:9px;}
-        .sm:hover{border-color:#565A64;color:#a8c0d8;}
-        .sm.on{border-color:#f0b429;color:#f0b429;background:rgba(201,168,76,.05);}
-        .chip{display:flex;align-items:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);backdrop-filter:blur(16px);color:#9BA0AC;font-size:12px;letter-spacing:1px;padding:10px 14px;cursor:pointer;gap:7px;transition:all .18s;border-radius:12px;}
-        .chip:hover{border-color:${mc}66;color:${mc};box-shadow:0 0 12px ${mc}22;}
-        .chip.on{border-color:${mc};background:${mc}0a;color:${mc};box-shadow:0 0 16px ${mc}33;}
-        .inp{background:rgba(255,255,255,.025);backdrop-filter:blur(16px);border:1.5px solid rgba(255,255,255,.08);color:#F5F6F8;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:14px;padding:14px 16px;width:100%;outline:none;transition:border-color .2s;border-radius:12px;}
-        .inp:focus{border-color:${mc}44;} .inp::placeholder{color:#565A64;}
-        .sl{font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-weight:500;}
-        .sl::after{content:'';flex:1;height:1px;background:#1a1d24;}
-        .ctc{background:rgba(255,255,255,.025);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);padding:14px 16px;cursor:pointer;transition:all .18s;border-radius:14px;}
-        .ctc:hover{background:#15181D;border-color:${mc}44;box-shadow:0 0 16px ${mc}1a;}
-        .ctc.on{border-color:${mc};background:${mc}0d;box-shadow:0 0 24px ${mc}22, inset 0 0 20px ${mc}0d;}
+        .gbtn{border:none;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-weight:600;font-size:15px;letter-spacing:.2px;text-transform:none;padding:17px 0;cursor:pointer;transition:all .3s cubic-bezier(.2,.8,.2,1);width:100%;border-radius:999px;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.35);}
+        .gbtn:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 10px 34px rgba(0,0,0,.5);}
+        .gbtn:disabled{opacity:.32;cursor:not-allowed;transform:none;box-shadow:none;}
+        .sm{background:rgba(255,255,255,.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);color:#9BA0AC;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.2px;text-transform:none;padding:8px 16px;cursor:pointer;transition:all .2s;border-radius:999px;}
+        .sm:hover{border-color:rgba(255,255,255,.22);color:#e8eaed;}
+        .sm.on{border-color:${gold};color:${gold};background:${gold}14;}
+        .chip{display:flex;align-items:center;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);backdrop-filter:blur(20px);color:#A8ABB2;font-size:13.5px;letter-spacing:0;padding:12px 16px;cursor:pointer;gap:8px;transition:all .2s;border-radius:16px;}
+        .chip:hover{border-color:${gold}55;color:#EDEEF0;box-shadow:0 4px 20px rgba(0,0,0,.25);}
+        .chip.on{border-color:${gold}77;background:${gold}12;color:${gold};}
+        .inp{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.09);color:#F0F1F4;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:15px;padding:15px 17px;width:100%;outline:none;transition:all .2s;border-radius:16px;}
+        .inp:focus{border-color:${gold}66;background:rgba(255,255,255,.045);} .inp::placeholder{color:#5C606A;}
+        .sl{font-size:13px;letter-spacing:.2px;text-transform:none;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-weight:600;color:#B8BAC0;}
+        .sl::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07);}
+        .ctc{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.09);padding:16px 18px;cursor:pointer;transition:all .2s;border-radius:18px;}
+        .ctc:hover{background:rgba(255,255,255,.05);border-color:${gold}44;}
+        .ctc.on{border-color:${gold}88;background:${gold}0d;box-shadow:0 8px 28px rgba(0,0,0,.3);}
         .ctc.locked{opacity:.35;cursor:not-allowed;}
-        .otext{font-size:15px;line-height:1.9;color:#F0F1F4;white-space:pre-wrap;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
-        .blink::after{content:'█';animation:bl .7s steps(1) infinite;color:${mc};}
-        @keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+        .otext{font-size:15.5px;line-height:1.85;color:#E8E9EB;white-space:pre-wrap;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;word-break:break-word;overflow-wrap:break-word;max-width:100%;}
+        .blink::after{content:'●';animation:bl .8s ease-in-out infinite;color:${gold};margin-left:2px;}
+        @keyframes bl{0%,100%{opacity:1}50%{opacity:.15}}
         .gline{height:1px;animation:gl 1.1s linear infinite;margin:1px 0;}
         @keyframes gl{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
-        .mbtn{background:rgba(255,255,255,.02);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);color:#82858C;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:all .2s;border-radius:11px;}
-        .mbtn:hover{border-color:var(--hc,#45484F);color:var(--hc,#9BA0AC);box-shadow:0 0 12px color-mix(in srgb, var(--hc,#45484F) 35%, transparent);}
+        .mbtn{background:rgba(255,255,255,.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.09);color:#9BA0AC;font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;padding:10px 18px;cursor:pointer;transition:all .2s;border-radius:999px;}
+        .mbtn:hover{border-color:var(--hc,#45484F);color:var(--hc,#9BA0AC);}
         .vp{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-        .hi{padding:12px 14px;margin-bottom:4px;border-radius:11px;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
-        .hi:hover{background:#15181D;box-shadow:inset 3px 0 0 ${mc}88;}
-        .nt{font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:11px;padding:5px 10px;background:transparent;border:1px solid #24272E;color:#82858C;cursor:pointer;transition:all .15s;letter-spacing:1px;border-radius:4px;}
-        .nt:hover{border-color:${mc}55;color:${mc};}
-        .toolc{display:flex;align-items:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);backdrop-filter:blur(16px);color:#9BA0AC;font-size:12px;padding:10px 14px;cursor:pointer;gap:6px;transition:all .18s;border-radius:11px;}
-        .toolc:hover{border-color:${mc}55;color:#F0F1F4;box-shadow:0 0 12px ${mc}22;}
+        .hi{padding:13px 15px;margin-bottom:4px;border-radius:14px;cursor:pointer;transition:background .15s;border-left:2px solid transparent;}
+        .hi:hover{background:rgba(255,255,255,.04);border-left-color:${gold}88;}
+        .nt{font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;font-size:12px;padding:6px 12px;background:transparent;border:1px solid rgba(255,255,255,.1);color:#9BA0AC;cursor:pointer;transition:all .15s;letter-spacing:0;border-radius:999px;}
+        .nt:hover{border-color:${gold}55;color:${gold};}
+        .toolc{display:flex;align-items:center;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);backdrop-filter:blur(20px);color:#A8ABB2;font-size:13.5px;padding:12px 16px;cursor:pointer;gap:7px;transition:all .2s;border-radius:16px;}
+        .toolc:hover{border-color:${gold}55;color:#F0F1F4;}
         .lock-icon{font-size:9px;color:#6B6F7A;margin-left:4px;}
         .bishop-sidebar{background:rgba(8,9,11,.7);backdrop-filter:blur(24px);}
         .bishop-core-ring{fill:none;stroke:#6EE7FF;stroke-width:1.4;opacity:.5;animation:corePulse 2.6s ease-in-out infinite;transform-origin:center;}
@@ -3849,46 +3849,56 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               const knowledgePct=Math.round((readyCount/checks.length)*100);
               const configured=!!(brand.trim()&&niche.trim());
               return(
-                <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:16,userSelect:"none",padding:"0 20px"}}>
-                  <div style={{width:64,height:64}}>
-                    <svg viewBox="0 0 40 40">
-                      <circle className="bishop-core-ring" cx="20" cy="20" r="17" style={{stroke:mc,animationDuration:configured?"2.6s":"4s"}}/>
-                      <circle className="bishop-core-ring" cx="20" cy="20" r="11" style={{stroke:mc,animationDelay:".4s",animationDuration:configured?"2.6s":"4s"}}/>
-                      <circle cx="20" cy="20" r="3.4" fill={mc} style={{filter:`drop-shadow(0 0 10px ${mc})`}}/>
-                    </svg>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:22,userSelect:"none",padding:"0 20px"}}>
+                  {/* BISHOP mascot — placeholder built in his palette until the real
+                      artwork is hosted (drop it in /public and swap the src below) */}
+                  <div style={{position:"relative",width:96,height:96,animation:configured?"bishopFloat 4s ease-in-out infinite":"none"}}>
+                    <div style={{position:"absolute",inset:-14,borderRadius:"50%",background:`radial-gradient(circle,${gold}22,transparent 70%)`,filter:"blur(4px)"}}/>
+                    <div style={{position:"relative",width:96,height:96,borderRadius:30,background:"linear-gradient(155deg,#FF8C3D,#E8622C)",boxShadow:"0 12px 32px rgba(0,0,0,.4), inset 0 2px 4px rgba(255,255,255,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <div style={{width:64,height:40,borderRadius:18,background:"#0B0D12",display:"flex",alignItems:"center",justifyContent:"center",gap:12}}>
+                        <div style={{width:12,height:12,borderRadius:"50%",background:"#5CE8F5",boxShadow:"0 0 10px #5CE8F5,0 0 20px #5CE8F5aa"}}/>
+                        <div style={{width:12,height:12,borderRadius:"50%",background:"#5CE8F5",boxShadow:"0 0 10px #5CE8F5,0 0 20px #5CE8F5aa"}}/>
+                      </div>
+                    </div>
+                    <div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",width:6,height:6,borderRadius:"50%",background:gold,boxShadow:`0 0 8px ${gold}`}}/>
                   </div>
-                  <div style={{fontSize:10.5,letterSpacing:3,color:mc,textTransform:"uppercase",fontWeight:700}}>BISHOP CORE {configured?"ONLINE":"STANDBY"}</div>
+                  <style>{`@keyframes bishopFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
 
                   {!configured?(
                     <>
-                      <div style={{fontSize:13,color:"#82858C",textAlign:"center",lineHeight:1.6,maxWidth:280}}>Brand not configured yet — BISHOP needs a name and niche before it can work.</div>
-                      <button className="sm" onClick={()=>{handleModeSwitch("brand-brief");setActiveWorkspace("brand");setTimeout(()=>brandInputRef.current?.focus(),100);}} style={{borderColor:`${mc}55`,color:mc,padding:"9px 18px"}}>COMPLETE BRAND BRIEF →</button>
+                      <div style={{textAlign:"center"}}>
+                        <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:24,color:"#F0F1F4",marginBottom:8}}>BISHOP is ready when you are</div>
+                        <div style={{fontSize:14,color:"#82858C",lineHeight:1.6,maxWidth:300}}>He just needs to know your brand's name and niche before he can start creating.</div>
+                      </div>
+                      <button className="gbtn" onClick={()=>{handleModeSwitch("brand-brief");setActiveWorkspace("brand");setTimeout(()=>brandInputRef.current?.focus(),100);}} style={{width:"auto",padding:"14px 32px",background:`linear-gradient(135deg,${gold},#B8935A)`,color:"#0B0D12"}}>Complete Brand Brief →</button>
                     </>
                   ):(
                     <>
-                      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:26,letterSpacing:1,color:"#F5F6F8",textAlign:"center",marginTop:-4}}>{brand.toUpperCase()} LOADED</div>
+                      <div style={{textAlign:"center"}}>
+                        <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:26,color:"#F0F1F4"}}>{brand} is loaded</div>
+                        <div style={{fontSize:13,color:"#6B7280",marginTop:4}}>BISHOP knows this brand — ready to create.</div>
+                      </div>
 
-                      <div style={{width:"100%",maxWidth:260}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:6}}>
-                          <span style={{fontSize:9.5,letterSpacing:2,color:mc,textTransform:"uppercase",fontWeight:700}}>Bishop Knowledge</span>
-                          <span style={{fontSize:13,fontWeight:800,color:knowledgePct===100?"#00ff88":mc,fontFamily:"'Syne',sans-serif"}}>{knowledgePct}%</span>
+                      <div style={{width:"100%",maxWidth:300,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:18,padding:"18px 20px"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:10}}>
+                          <span style={{fontSize:12,color:"#9BA0AC",fontWeight:500}}>BISHOP Knowledge</span>
+                          <span style={{fontSize:15,fontWeight:700,color:knowledgePct===100?"#4ADE80":gold,fontFamily:"'Fraunces',serif"}}>{knowledgePct}%</span>
                         </div>
-                        <div style={{width:"100%",height:6,background:"rgba(255,255,255,.06)",borderRadius:4,overflow:"hidden"}}>
-                          <div style={{height:"100%",width:`${knowledgePct}%`,background:knowledgePct===100?"linear-gradient(90deg,#00ff88,#00b894)":`linear-gradient(90deg,${mc},${mc}aa)`,borderRadius:4,transition:"width .5s ease",boxShadow:`0 0 10px ${knowledgePct===100?"#00ff8866":mc+"66"}`}}/>
+                        <div style={{width:"100%",height:5,background:"rgba(255,255,255,.06)",borderRadius:4,overflow:"hidden",marginBottom:14}}>
+                          <div style={{height:"100%",width:`${knowledgePct}%`,background:knowledgePct===100?"linear-gradient(90deg,#4ADE80,#22C55E)":`linear-gradient(90deg,${gold},#B8935A)`,borderRadius:4,transition:"width .5s ease"}}/>
+                        </div>
+                        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                          {checks.map(c=>(
+                            <div key={c.label} style={{display:"flex",alignItems:"center",gap:9,fontSize:13}}>
+                              <span style={{color:c.ok?"#4ADE80":"#4a4d54",width:14,flexShrink:0}}>{c.ok?"✓":"○"}</span>
+                              <span style={{color:c.ok?"#D5D7DB":"#6B7280"}}>{c.label}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
 
-                      <div style={{display:"flex",flexDirection:"column",gap:6,width:"100%",maxWidth:260}}>
-                        {checks.map(c=>(
-                          <div key={c.label} style={{display:"flex",alignItems:"center",gap:8,fontSize:12}}>
-                            <span style={{color:c.ok?"#00ff88":"#45484F",width:14,flexShrink:0}}>{c.ok?"✓":"○"}</span>
-                            <span style={{color:c.ok?"#C9CDD3":"#565A64"}}>{c.label}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div style={{display:"flex",alignItems:"center",gap:6,fontSize:9.5,letterSpacing:1,color:"#45484F",textTransform:"uppercase",marginTop:4}}>
-                        <span style={{color:mc}}>CREATE</span>→<span>TEST</span>→<span>PUBLISH</span>→<span>ANALYZE</span>
+                      <div style={{display:"flex",alignItems:"center",gap:8,fontSize:11,color:"#565A64"}}>
+                        <span style={{color:gold,fontWeight:600}}>Create</span><span>→</span><span>Test</span><span>→</span><span>Publish</span><span>→</span><span>Analyze</span>
                       </div>
                     </>
                   )}
