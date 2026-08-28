@@ -2676,8 +2676,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         {/* ── ICON RAIL — 8 workspaces, always visible, desktop only ── */}
         {!isMobile&&(
           <div style={{width:68,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.06)",background:"linear-gradient(180deg,rgba(17,22,29,.75),rgba(13,17,23,.6))",backdropFilter:"blur(28px)",display:"flex",flexDirection:"column",alignItems:"center",padding:"20px 0",gap:6,overflowY:"auto"}}>
-            <div style={{width:28,height:28,marginBottom:22,flexShrink:0}}>
-              <svg viewBox="0 0 40 40"><circle className="bishop-core-ring" cx="20" cy="20" r="17" style={{stroke:gold}}/><circle className="bishop-core-ring" cx="20" cy="20" r="11" style={{stroke:gold}}/><circle cx="20" cy="20" r="3.4" fill={gold}/></svg>
+            <div style={{width:34,height:34,marginBottom:22,flexShrink:0}}>
+              <img src="/bishop-mascot.png" alt="BISHOP" style={{width:"100%",height:"100%",objectFit:"contain"}}/>
             </div>
             {WORKSPACES.map(w=>{
               const isActive=activeWorkspace===w.id;
@@ -3850,17 +3850,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               const configured=!!(brand.trim()&&niche.trim());
               return(
                 <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:22,userSelect:"none",padding:"0 20px"}}>
-                  {/* BISHOP mascot — placeholder built in his palette until the real
-                      artwork is hosted (drop it in /public and swap the src below) */}
-                  <div style={{position:"relative",width:96,height:96,animation:configured?"bishopFloat 4s ease-in-out infinite":"none"}}>
-                    <div style={{position:"absolute",inset:-14,borderRadius:"50%",background:`radial-gradient(circle,${gold}22,transparent 70%)`,filter:"blur(4px)"}}/>
-                    <div style={{position:"relative",width:96,height:96,borderRadius:30,background:"linear-gradient(155deg,#FF8C3D,#E8622C)",boxShadow:"0 12px 32px rgba(0,0,0,.4), inset 0 2px 4px rgba(255,255,255,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <div style={{width:64,height:40,borderRadius:18,background:"#0B0D12",display:"flex",alignItems:"center",justifyContent:"center",gap:12}}>
-                        <div style={{width:12,height:12,borderRadius:"50%",background:"#5CE8F5",boxShadow:"0 0 10px #5CE8F5,0 0 20px #5CE8F5aa"}}/>
-                        <div style={{width:12,height:12,borderRadius:"50%",background:"#5CE8F5",boxShadow:"0 0 10px #5CE8F5,0 0 20px #5CE8F5aa"}}/>
-                      </div>
-                    </div>
-                    <div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",width:6,height:6,borderRadius:"50%",background:gold,boxShadow:`0 0 8px ${gold}`}}/>
+                  {/* BISHOP mascot — real THREE11 Motion Tech artwork, served from /public */}
+                  <div style={{position:"relative",width:120,height:120,animation:configured?"bishopFloat 4s ease-in-out infinite":"none"}}>
+                    <div style={{position:"absolute",inset:-20,borderRadius:"50%",background:`radial-gradient(circle,${gold}22,transparent 70%)`,filter:"blur(6px)"}}/>
+                    <img src="/bishop-mascot.png" alt="BISHOP" style={{position:"relative",width:120,height:120,objectFit:"contain",filter:"drop-shadow(0 10px 24px rgba(0,0,0,.4))"}}/>
                   </div>
                   <style>{`@keyframes bishopFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
 
