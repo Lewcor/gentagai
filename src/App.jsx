@@ -3850,15 +3850,15 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               const configured=!!(brand.trim()&&niche.trim());
               return(
                 <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:22,userSelect:"none",padding:"0 20px"}}>
-                  {/* BISHOP mascot — real THREE11 Motion Tech artwork, served from /public */}
-                  <div style={{position:"relative",width:120,height:120,animation:configured?"bishopFloat 4s ease-in-out infinite":"none"}}>
-                    <div style={{position:"absolute",inset:-20,borderRadius:"50%",background:`radial-gradient(circle,${gold}22,transparent 70%)`,filter:"blur(6px)"}}/>
-                    <img src="/bishop-mascot.png" alt="BISHOP" style={{position:"relative",width:120,height:120,objectFit:"contain",filter:"drop-shadow(0 10px 24px rgba(0,0,0,.4))"}}/>
-                  </div>
                   <style>{`@keyframes bishopFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
 
                   {!configured?(
                     <>
+                      {/* BISHOP mascot — real THREE11 Motion Tech artwork, served from /public */}
+                      <div style={{position:"relative",width:120,height:120}}>
+                        <div style={{position:"absolute",inset:-20,borderRadius:"50%",background:`radial-gradient(circle,${gold}22,transparent 70%)`,filter:"blur(6px)"}}/>
+                        <img src="/bishop-mascot.png" alt="BISHOP" style={{position:"relative",width:120,height:120,objectFit:"contain",filter:"drop-shadow(0 10px 24px rgba(0,0,0,.4))"}}/>
+                      </div>
                       <div style={{textAlign:"center"}}>
                         <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:24,color:"#F0F1F4",marginBottom:8}}>BISHOP is ready when you are</div>
                         <div style={{fontSize:14,color:"#82858C",lineHeight:1.6,maxWidth:300}}>He just needs to know your brand's name and niche before he can start creating.</div>
@@ -3866,34 +3866,59 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       <button className="gbtn" onClick={()=>{handleModeSwitch("brand-brief");setActiveWorkspace("brand");setTimeout(()=>brandInputRef.current?.focus(),100);}} style={{width:"auto",padding:"14px 32px",background:`linear-gradient(135deg,${gold},#B8935A)`,color:"#0B0D12"}}>Complete Brand Brief →</button>
                     </>
                   ):(
-                    <>
-                      <div style={{textAlign:"center"}}>
-                        <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:26,color:"#F0F1F4"}}>{brand} is loaded</div>
-                        <div style={{fontSize:13,color:"#6B7280",marginTop:4}}>BISHOP knows this brand — ready to create.</div>
+                    <div style={{width:"100%",maxWidth:920,display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:14,padding:isMobile?"0":"8px 0"}}>
+
+                      {/* Hero tile — mascot + welcome, spans 2x2 */}
+                      <div style={{gridColumn:"span 2",gridRow:"span 2",background:"rgba(255,255,255,.035)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,.09)",borderRadius:24,padding:isMobile?"24px 20px":"32px 28px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",gap:14}}>
+                        <div style={{position:"relative",width:76,height:76,animation:"bishopFloat 4s ease-in-out infinite"}}>
+                          <div style={{position:"absolute",inset:-14,borderRadius:"50%",background:`radial-gradient(circle,${gold}20,transparent 70%)`,filter:"blur(4px)"}}/>
+                          <img src="/bishop-mascot.png" alt="BISHOP" style={{position:"relative",width:76,height:76,objectFit:"contain",filter:"drop-shadow(0 8px 18px rgba(0,0,0,.4))"}}/>
+                        </div>
+                        <div>
+                          <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?20:24,color:"#F0F1F4"}}>{brand} is loaded</div>
+                          <div style={{fontSize:12.5,color:"#6B7280",marginTop:5}}>BISHOP knows this brand — ready to create.</div>
+                        </div>
                       </div>
 
-                      <div style={{width:"100%",maxWidth:300,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:18,padding:"18px 20px"}}>
+                      {/* Knowledge tile — spans 2x1 */}
+                      <div style={{gridColumn:"span 2",background:"rgba(255,255,255,.03)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:22,padding:"18px 20px"}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:10}}>
                           <span style={{fontSize:12,color:"#9BA0AC",fontWeight:500}}>BISHOP Knowledge</span>
-                          <span style={{fontSize:15,fontWeight:700,color:knowledgePct===100?"#4ADE80":gold,fontFamily:"'Fraunces',serif"}}>{knowledgePct}%</span>
+                          <span style={{fontSize:22,fontWeight:700,color:knowledgePct===100?"#4ADE80":gold,fontFamily:"'Fraunces',serif"}}>{knowledgePct}%</span>
                         </div>
-                        <div style={{width:"100%",height:5,background:"rgba(255,255,255,.06)",borderRadius:4,overflow:"hidden",marginBottom:14}}>
+                        <div style={{width:"100%",height:5,background:"rgba(255,255,255,.06)",borderRadius:4,overflow:"hidden"}}>
                           <div style={{height:"100%",width:`${knowledgePct}%`,background:knowledgePct===100?"linear-gradient(90deg,#4ADE80,#22C55E)":`linear-gradient(90deg,${gold},#B8935A)`,borderRadius:4,transition:"width .5s ease"}}/>
                         </div>
-                        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                      </div>
+
+                      {/* Checklist tile — spans 2x1 */}
+                      <div style={{gridColumn:"span 2",background:"rgba(255,255,255,.03)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:22,padding:"18px 20px"}}>
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                           {checks.map(c=>(
-                            <div key={c.label} style={{display:"flex",alignItems:"center",gap:9,fontSize:13}}>
-                              <span style={{color:c.ok?"#4ADE80":"#4a4d54",width:14,flexShrink:0}}>{c.ok?"✓":"○"}</span>
+                            <div key={c.label} style={{display:"flex",alignItems:"center",gap:7,fontSize:12.5}}>
+                              <span style={{color:c.ok?"#4ADE80":"#4a4d54",flexShrink:0}}>{c.ok?"✓":"○"}</span>
                               <span style={{color:c.ok?"#D5D7DB":"#6B7280"}}>{c.label}</span>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      <div style={{display:"flex",alignItems:"center",gap:8,fontSize:11,color:"#565A64"}}>
-                        <span style={{color:gold,fontWeight:600}}>Create</span><span>→</span><span>Test</span><span>→</span><span>Publish</span><span>→</span><span>Analyze</span>
-                      </div>
-                    </>
+                      {/* Quick action tiles — 1x1 each, real navigation */}
+                      {[
+                        {label:"Create Content",sub:"Copy · Images · Video",action:()=>{handleModeSwitch("copy");setActiveWorkspace("create");}},
+                        {label:"Campaigns",sub:"Build & manage",action:()=>{handleModeSwitch("campaign");setActiveWorkspace("campaigns");}},
+                        {label:"AI Viz",sub:"Visibility check",action:()=>{handleModeSwitch("visibility");setActiveWorkspace("intelligence");}},
+                        {label:"Connections",sub:"Social accounts",action:()=>setShowAccount(true)},
+                      ].map(t=>(
+                        <div key={t.label} onClick={t.action}
+                          style={{background:"rgba(255,255,255,.03)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"16px 16px",cursor:"pointer",transition:"all .2s",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:88}}
+                          onMouseEnter={e=>{e.currentTarget.style.borderColor=`${gold}55`;e.currentTarget.style.transform="translateY(-3px)";}}
+                          onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.transform="translateY(0)";}}>
+                          <div style={{fontSize:13.5,fontWeight:600,color:"#EDEEF0"}}>{t.label}</div>
+                          <div style={{fontSize:11,color:"#6B7280",marginTop:4}}>{t.sub}</div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               );
