@@ -149,50 +149,53 @@ const VIDEO_TOOLS = [
 ];
 
 // ─────────────────────────────────────────────
-// SIDEBAR NAV — redesign brief structure. Phase 1: chrome + navigation only.
-// "built:true" items map to real, working state/handlers below. "built:false"
-// items are genuinely not implemented yet and render disabled — per the
-// brief's rule against pretending a control works when it doesn't.
-// "action" items open an existing panel instead of switching mode.
+// WORKSPACES — Redesign 2.0: two-level nav. A slim icon rail shows the 8
+// workspaces; clicking one opens a secondary panel with just that
+// workspace's pages, instead of one long flat list always on screen.
+// "built:true" pages map to real, working state/handlers. "built:false"
+// pages are genuinely not implemented yet and render disabled — never
+// faked. "action" pages open an existing panel instead of switching mode.
 // ─────────────────────────────────────────────
-const SIDEBAR_NAV = [
-  {group:"BISHOP",items:[
+const WORKSPACES = [
+  {id:"bishop",icon:"◈",label:"BISHOP",pages:[
     {id:"command-center",label:"Command Center",mode:"copy",built:true},
     {id:"next-moves",label:"Next Moves",built:false},
   ]},
-  {group:"BRAND",items:[
+  {id:"brand",icon:"◆",label:"Brand",pages:[
     {id:"brand-brief",label:"Brand Brief",mode:"brand-brief",built:true},
-    {id:"product-intel",label:"Product Intel",mode:"copy",built:true,note:"Dedicated page — Phase 3"},
     {id:"brand-memory",label:"Brand Memory",mode:"brand-brief",built:true},
-    {id:"brand-vault",label:"Brand Vault",mode:"copy",built:true,action:"vault"},
+    {id:"brand-vault",label:"Brand Vault",built:false,note:"Dedicated page — coming next"},
+    {id:"learn-brand",label:"Learn My Brand",mode:"brand-brief",built:true},
   ]},
-  {group:"CREATE",items:[
+  {id:"products",icon:"▣",label:"Products",pages:[
+    {id:"product-library",label:"Product Library",mode:"copy",built:true,note:"Dedicated page — coming soon"},
+  ]},
+  {id:"create",icon:"▶",label:"Create",pages:[
     {id:"copy",label:"Copy",mode:"copy",built:true},
     {id:"image",label:"Images",mode:"image",built:true},
     {id:"video",label:"Video",mode:"video",built:true},
     {id:"ab",label:"A/B Lab",mode:"ab",built:true},
   ]},
-  {group:"CAMPAIGNS",items:[
+  {id:"campaigns",icon:"⬡",label:"Campaigns",pages:[
     {id:"campaign-builder",label:"Campaign Builder",mode:"campaign",built:true},
     {id:"campaigns",label:"Campaigns",mode:"campaign",built:true},
     {id:"calendar",label:"Calendar",built:false},
     {id:"approvals",label:"Approvals",built:false},
   ]},
-  {group:"INTELLIGENCE",items:[
-    {id:"learn-brand",label:"Learn My Brand",mode:"copy",built:true,action:"learn"},
+  {id:"intelligence",icon:"◉",label:"Intelligence",pages:[
     {id:"ai-viz",label:"AI Viz",mode:"visibility",built:true},
     {id:"performance",label:"Performance",mode:"campaign",built:true},
     {id:"bishop-insights",label:"BISHOP Insights",built:false},
   ]},
-  {group:"BRIDGE",items:[
-    {id:"publishing",label:"Publishing",built:false,note:"Opens after generating content"},
+  {id:"bridge",icon:"⌁",label:"Bridge",pages:[
     {id:"connections",label:"Connections",built:true,action:"account"},
+    {id:"publishing",label:"Publishing",built:false,note:"Opens after generating content"},
     {id:"automation",label:"Automation",built:false},
   ]},
-  {group:"ACCOUNT",items:[
+  {id:"account",icon:"⚙",label:"Account",pages:[
     {id:"agency",label:"Agency",built:true,action:"account"},
-    {id:"team",label:"Team",built:false},
     {id:"billing",label:"Billing",built:true,action:"account"},
+    {id:"team",label:"Team",built:false},
     {id:"settings",label:"Settings",built:false},
   ]},
 ];
@@ -1329,6 +1332,7 @@ export default function Gentagai(){
     setActiveProfileId(null);
     setProfileSwitcherOpen(false);
     setMode("brand-brief");
+    setActiveWorkspace("brand");
     if(isMobile)setMobileTab("config");
     setTimeout(()=>brandInputRef.current?.focus(),100);
   }
@@ -1617,6 +1621,10 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     return()=>window.removeEventListener("resize",fn);
   },[]);
 
+  // ── WORKSPACE NAV (2.0 shell) — which icon-rail workspace's secondary
+  // panel is showing. Independent of `mode`, which drives content. ──
+  const [activeWorkspace,setActiveWorkspace]=useState("bishop");
+
   // ── Plan selection / Stripe ─────────────────
   async function handlePlanSelect(pid,bill,enteredCode){
     // ── Agency code check ──
@@ -1664,7 +1672,8 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
   }
 
   // ── Sidebar nav click — routes to real state/panels; no-ops on not-yet-built items ──
-  function handleSidebarNav(item){
+  function handleSidebarNav(item,workspaceId){
+    if(workspaceId)setActiveWorkspace(workspaceId);
     if(!item.built)return;
     if(item.mode)handleModeSwitch(item.mode);
     if(item.action==="vault")setVaultOpen(true);
@@ -2497,7 +2506,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
   // ── APP SCREEN ──────────────────────────────
   return(
-    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1000px 600px at 12% -10%, ${mc}14, transparent 60%),radial-gradient(ellipse 800px 550px at 100% 0%, rgba(139,124,255,0.08), transparent 60%),radial-gradient(ellipse 700px 500px at 30% 110%, ${mc}0d, transparent 60%),#060708`,color:"#F5F6F8",fontFamily:"'DM Mono','Courier New',monospace",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
+    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1000px 600px at 12% -10%, ${mc}14, transparent 60%),radial-gradient(ellipse 800px 550px at 100% 0%, rgba(139,124,255,0.08), transparent 60%),radial-gradient(ellipse 700px 500px at 30% 110%, ${mc}0d, transparent 60%),#07090D`,color:"#F5F6F8",fontFamily:"'DM Mono','Courier New',monospace",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
         @media(max-width:768px){
@@ -2599,7 +2608,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
           <div style={{display:"flex",gap:3}}>{["#ff2d2d","#f0b429","#7c83fd"].map((c,i)=><div key={i} style={{width:5,height:5,borderRadius:1,background:c}}/>)}</div>
           <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:isMobile?16:18,letterSpacing:2,color:"#fff"}}>GENTAGAI<span style={{color:mc}}>.</span></div>
-          {!isMobile&&<div style={{fontSize:11,color:"#45484F",letterSpacing:1,paddingLeft:10,borderLeft:"1px solid #24272E"}}>{SIDEBAR_NAV.flatMap(g=>g.items).find(it=>it.mode===mode)?.label||"Command Center"}</div>}
+          {!isMobile&&<div style={{fontSize:11,color:"#45484F",letterSpacing:1,paddingLeft:10,borderLeft:"1px solid #24272E"}}>{WORKSPACES.flatMap(w=>w.pages).find(it=>it.mode===mode)?.label||"Command Center"}</div>}
         </div>
 
         {/* Active Brand Selector — center; same profile-switching logic, relocated per brief */}
@@ -2660,179 +2669,92 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       {/* BODY */}
       <div style={{display:"flex",flex:1,overflow:"hidden",minHeight:0}}>
 
-        {/* ── BISHOP SIDEBAR — desktop only ── */}
+        {/* ── ICON RAIL — 8 workspaces, always visible, desktop only ── */}
         {!isMobile&&(
-          <div className="bishop-sidebar" style={{width:220,flexShrink:0,borderRight:"1px solid #1a1d24",padding:"16px 12px",display:"flex",flexDirection:"column",overflowY:"auto"}}>
-            <div style={{display:"flex",alignItems:"center",gap:9,padding:"6px 4px 14px 4px",borderBottom:"1px solid #1a1d24",marginBottom:12}}>
-              <div style={{width:26,height:26,flexShrink:0}}>
-                <svg viewBox="0 0 40 40"><circle className="bishop-core-ring" cx="20" cy="20" r="17"/><circle className="bishop-core-ring" cx="20" cy="20" r="11"/><circle cx="20" cy="20" r="3.4" fill="#6EE7FF"/></svg>
-              </div>
-              <div>
-                <div style={{fontSize:13.5,fontWeight:800,color:"#F5F6F8",fontFamily:"'Syne',sans-serif"}}>GENTAGAI</div>
-                <div style={{fontSize:8.5,color:"#6EE7FF",letterSpacing:"1px",fontWeight:700}}>BISHOP CORE</div>
+          <div style={{width:64,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.08)",background:"rgba(13,17,23,.7)",backdropFilter:"blur(24px)",display:"flex",flexDirection:"column",alignItems:"center",padding:"16px 0",gap:4,overflowY:"auto"}}>
+            <div style={{width:30,height:30,marginBottom:16,flexShrink:0}}>
+              <svg viewBox="0 0 40 40"><circle className="bishop-core-ring" cx="20" cy="20" r="17"/><circle className="bishop-core-ring" cx="20" cy="20" r="11"/><circle cx="20" cy="20" r="3.4" fill="#6EE7FF"/></svg>
+            </div>
+            {WORKSPACES.map(w=>{
+              const isActive=activeWorkspace===w.id;
+              return(
+                <div key={w.id} onClick={()=>setActiveWorkspace(w.id)} title={w.label}
+                  style={{width:44,height:44,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:18,transition:"all .15s",background:isActive?`${mc}14`:"transparent",color:isActive?mc:"#6B6F7A",border:isActive?`1px solid ${mc}44`:"1px solid transparent"}}>
+                  {w.icon}
+                </div>
+              );
+            })}
+            <div style={{marginTop:"auto"}}>
+              <div onClick={()=>setShowAccount(true)} title="Account"
+                style={{width:44,height:44,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:11,fontWeight:700,color:currentPlan.color,border:`1px dashed ${currentPlan.color}44`}}>
+                {currentPlan.badge[0]}
               </div>
             </div>
+          </div>
+        )}
 
-            <div style={{position:"relative",marginBottom:14}}>
-              <div onClick={()=>setProfileSwitcherOpen(o=>!o)}
-                style={{background:"rgba(255,255,255,.03)",border:`1px solid ${profileSwitcherOpen?mc+"55":"#1a1d24"}`,borderRadius:10,padding:"10px 11px",cursor:"pointer"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                  <span style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase"}}>Active Brand</span>
-                  <span style={{fontSize:9,color:mc,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
-                </div>
-                <div style={{fontSize:12,fontWeight:700,color:"#F5F6F8",display:"flex",alignItems:"center",gap:7}}>
-                  <span style={{width:7,height:7,borderRadius:"50%",background:mc,boxShadow:`0 0 8px ${mc}`,flexShrink:0}}/>
-                  <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{brand||niche||"Not set yet"}</span>
-                </div>
-              </div>
+        {/* ── SECONDARY PANEL — pages for the active workspace only ── */}
+        {!isMobile&&(
+          <div style={{width:230,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.08)",background:"rgba(13,17,23,.5)",backdropFilter:"blur(24px)",padding:"20px 16px",display:"flex",flexDirection:"column",overflowY:"auto"}}>
+            <div style={{fontSize:11,letterSpacing:2,color:"#6B6F7A",textTransform:"uppercase",fontWeight:700,marginBottom:16,paddingLeft:4}}>
+              {WORKSPACES.find(w=>w.id===activeWorkspace)?.label}
+            </div>
 
-              {profileSwitcherOpen&&(
-                <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:60,background:"rgba(14,16,19,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.7)"}}>
-                  {brandProfiles.length===0&&(
-                    <div style={{fontSize:11,color:"#565A64",padding:"10px 8px",lineHeight:1.5}}>No saved brands yet — set up a Brand Brief, then save it below.</div>
-                  )}
-                  {brandProfiles.map(p=>(
-                    <div key={p.id} onClick={()=>switchToBrandProfile(p)}
-                      style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 10px",borderRadius:8,cursor:"pointer",background:activeProfileId===p.id?`${mc}14`:"transparent"}}
-                      onMouseEnter={e=>{if(activeProfileId!==p.id)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
-                      onMouseLeave={e=>{e.currentTarget.style.background=activeProfileId===p.id?`${mc}14`:"transparent";}}>
-                      <div style={{overflow:"hidden"}}>
-                        <div style={{fontSize:12,fontWeight:700,color:activeProfileId===p.id?mc:"#F0F1F4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.brand_name}</div>
-                        <div style={{fontSize:9.5,color:"#565A64",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.niche||"No niche set"}</div>
-                      </div>
-                      <span onClick={e=>deleteBrandProfile(p.id,e)} style={{fontSize:11,color:"#45484F",padding:"2px 6px",flexShrink:0}}>✕</span>
-                    </div>
-                  ))}
-                  <div onClick={startNewBrandProfile}
-                    style={{marginTop:6,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5,fontWeight:700,color:mc,border:`1px dashed ${mc}44`,textAlign:"center"}}>
-                    + New Brand Profile
+            {activeWorkspace==="brand"&&(
+              <div style={{position:"relative",marginBottom:16}}>
+                <div onClick={()=>setProfileSwitcherOpen(o=>!o)}
+                  style={{background:"rgba(255,255,255,.03)",border:`1px solid ${profileSwitcherOpen?mc+"55":"rgba(255,255,255,.08)"}`,borderRadius:12,padding:"12px 14px",cursor:"pointer"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <span style={{fontSize:10,letterSpacing:1,color:"#82858C",textTransform:"uppercase"}}>Active Brand</span>
+                    <span style={{fontSize:10,color:mc,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+                  </div>
+                  <div style={{fontSize:13,fontWeight:700,color:"#F5F6F8",display:"flex",alignItems:"center",gap:8}}>
+                    <span style={{width:7,height:7,borderRadius:"50%",background:mc,boxShadow:`0 0 8px ${mc}`,flexShrink:0}}/>
+                    <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{brand||niche||"Not set yet"}</span>
                   </div>
                 </div>
-              )}
-            </div>
-
-            <div style={{display:"flex",gap:6,marginBottom:14}}>
-              <button className="sm" disabled={savingProfile||!brand.trim()}
-                onClick={activeProfileId?updateActiveBrandProfile:saveNewBrandProfile}
-                style={{flex:1,borderColor:`${mc}55`,color:mc,fontSize:10}}>
-                {savingProfile?"⟳ SAVING...":activeProfileId?"◆ UPDATE PROFILE":"◆ SAVE AS PROFILE"}
-              </button>
-            </div>
-            {profileError&&<div style={{fontSize:10.5,color:"#ff6a6a",marginTop:-8,marginBottom:14,lineHeight:1.4}}>{profileError}</div>}
-
-            {activeProfileId?(
-              <div style={{background:"rgba(255,255,255,.03)",border:"1px solid #1a1d24",borderRadius:10,padding:"10px 11px",marginBottom:14}}>
-                <div style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
-                  🧠 {brand.toUpperCase()} MEMORY
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:8,maxHeight:180,overflowY:"auto"}}>
-                  {brandMemories.length===0&&<div style={{fontSize:10.5,color:"#45484F",lineHeight:1.5}}>Nothing remembered yet — add a standing rule below.</div>}
-                  {brandMemories.map(mem=>(
-                    <div key={mem.id} style={{display:"flex",alignItems:"flex-start",gap:6,padding:"5px 6px",borderRadius:6,background:mem.active?"rgba(255,255,255,.02)":"transparent"}}>
-                      <span onClick={()=>toggleBrandMemory(mem)} style={{cursor:"pointer",fontSize:11,color:mem.active?"#00ff88":"#45484F",flexShrink:0,marginTop:1}}>{mem.active?"✓":"○"}</span>
-                      <span style={{fontSize:11,color:mem.active?"#C9CDD3":"#45484F",lineHeight:1.4,flex:1,textDecoration:mem.active?"none":"line-through"}}>{mem.content}</span>
-                      <span onClick={()=>deleteBrandMemory(mem.id)} style={{cursor:"pointer",fontSize:10,color:"#45484F",flexShrink:0}}>✕</span>
-                    </div>
-                  ))}
-                </div>
-                <div style={{display:"flex",gap:5}}>
-                  <input value={newMemoryText} onChange={e=>setNewMemoryText(e.target.value)}
-                    onKeyDown={e=>e.key==="Enter"&&addBrandMemory()}
-                    placeholder="e.g. never say 'cheap'"
-                    style={{flex:1,background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"7px 9px",color:"#F0F1F4",fontSize:11,fontFamily:"'DM Mono',monospace",outline:"none"}}/>
-                  <button onClick={addBrandMemory} disabled={!newMemoryText.trim()||savingMemory}
-                    style={{background:"none",border:`1px solid ${mc}55`,color:mc,borderRadius:8,padding:"0 10px",fontSize:14,cursor:"pointer",flexShrink:0}}>+</button>
-                </div>
-                {memoryError&&<div style={{fontSize:10,color:"#ff6a6a",marginTop:6}}>{memoryError}</div>}
-              </div>
-            ):(
-              <div style={{fontSize:10,color:"#45484F",marginBottom:14,lineHeight:1.5,padding:"0 2px"}}>💡 Save a brand profile above to unlock BISHOP Memory for it.</div>
-            )}
-
-            {activeProfileId&&(
-              <div style={{background:"rgba(255,255,255,.03)",border:"1px solid #1a1d24",borderRadius:10,padding:"10px 11px",marginBottom:14}}>
-                <div onClick={()=>setVaultOpen(o=>!o)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}}>
-                  <div style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase"}}>📁 {brand.toUpperCase()} VAULT ({vaultAssets.length})</div>
-                  <span style={{fontSize:9,color:mc,transform:vaultOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
-                </div>
-
-                {vaultOpen&&(
-                  <div style={{marginTop:10}}>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:8}}>
-                      {VAULT_CATEGORIES.map(c=>(
-                        <button key={c.id} onClick={()=>setVaultCategory(c.id)}
-                          style={{fontSize:9.5,padding:"4px 8px",borderRadius:6,border:`1px solid ${vaultCategory===c.id?mc+"66":"#24272E"}`,background:vaultCategory===c.id?`${mc}12`:"transparent",color:vaultCategory===c.id?mc:"#6B6F7A",cursor:"pointer"}}>
-                          {c.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:8}}>
-                      {vaultAssets.filter(a=>a.category===vaultCategory).map(a=>(
-                        <div key={a.id} style={{position:"relative",aspectRatio:"1",borderRadius:7,overflow:"hidden",border:"1px solid #1a1d24",background:"#0E1013"}}>
-                          {(a.file_type||"").startsWith("image/")?(
-                            <img src={a.url} alt={a.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                          ):(
-                            <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🎬</div>
-                          )}
-                          <span onClick={()=>deleteVaultAsset(a.id)} style={{position:"absolute",top:2,right:2,width:15,height:15,borderRadius:"50%",background:"rgba(0,0,0,.7)",color:"#fff",fontSize:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>✕</span>
+                {profileSwitcherOpen&&(
+                  <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:60,background:"rgba(14,16,19,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.7)"}}>
+                    {brandProfiles.length===0&&(
+                      <div style={{fontSize:11,color:"#565A64",padding:"10px 8px",lineHeight:1.5}}>No saved brands yet — set up a Brand Brief, then save it below.</div>
+                    )}
+                    {brandProfiles.map(p=>(
+                      <div key={p.id} onClick={()=>switchToBrandProfile(p)}
+                        style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 10px",borderRadius:8,cursor:"pointer",background:activeProfileId===p.id?`${mc}14`:"transparent"}}
+                        onMouseEnter={e=>{if(activeProfileId!==p.id)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
+                        onMouseLeave={e=>{e.currentTarget.style.background=activeProfileId===p.id?`${mc}14`:"transparent";}}>
+                        <div style={{overflow:"hidden"}}>
+                          <div style={{fontSize:12,fontWeight:700,color:activeProfileId===p.id?mc:"#F0F1F4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.brand_name}</div>
+                          <div style={{fontSize:9.5,color:"#565A64",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.niche||"No niche set"}</div>
                         </div>
-                      ))}
-                      {vaultAssets.filter(a=>a.category===vaultCategory).length===0&&(
-                        <div style={{gridColumn:"1/4",fontSize:10,color:"#45484F",padding:"8px 0"}}>No {VAULT_CATEGORIES.find(c=>c.id===vaultCategory)?.label.toLowerCase()} saved yet.</div>
-                      )}
+                        <span onClick={e=>deleteBrandProfile(p.id,e)} style={{fontSize:11,color:"#45484F",padding:"2px 6px",flexShrink:0}}>✕</span>
+                      </div>
+                    ))}
+                    <div onClick={startNewBrandProfile}
+                      style={{marginTop:6,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5,fontWeight:700,color:mc,border:`1px dashed ${mc}44`,textAlign:"center"}}>
+                      + New Brand Profile
                     </div>
-
-                    <label style={{display:"block",border:`1px dashed ${mc}44`,borderRadius:8,padding:"7px 0",textAlign:"center",fontSize:10.5,fontWeight:700,color:mc,cursor:vaultUploading?"default":"pointer",opacity:vaultUploading?.5:1}}>
-                      {vaultUploading?"⟳ UPLOADING...":"+ ADD TO VAULT"}
-                      <input type="file" accept="image/*,video/*" style={{display:"none"}} disabled={vaultUploading}
-                        onChange={e=>{if(e.target.files?.[0])uploadToVault(e.target.files[0],vaultCategory);}}/>
-                    </label>
                   </div>
                 )}
               </div>
             )}
 
-            <div style={{marginBottom:14}}>
-              <div style={{fontSize:9,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",marginBottom:6}}>Campaign Goal</div>
-              <input value={goal} onChange={e=>setGoal(e.target.value)} placeholder="Drive sales, Launch Drop 001"
-                style={{width:"100%",background:"rgba(255,255,255,.025)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 11px",color:"#F0F1F4",fontSize:12,fontFamily:"'DM Mono',monospace",outline:"none"}}/>
-            </div>
-            {(mode==="copy"||mode==="ab")&&(
-              <div style={{marginBottom:14}}>
-                <div style={{fontSize:9,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",marginBottom:6}}>SEO Keywords</div>
-                <input value={keywords} onChange={e=>setKeywords(e.target.value)} placeholder="urban streetwear, limited drop"
-                  style={{width:"100%",background:"rgba(255,255,255,.025)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 11px",color:"#F0F1F4",fontSize:12,fontFamily:"'DM Mono',monospace",outline:"none"}}/>
-              </div>
-            )}
-
-            {SIDEBAR_NAV.map(g=>(
-              <div key={g.group} style={{marginBottom:10}}>
-                <div style={{fontSize:8.5,letterSpacing:"1.5px",color:"#45484F",textTransform:"uppercase",padding:"8px 8px 4px",fontWeight:700}}>{g.group}</div>
-                {g.items.map(it=>{
-                  const active=it.mode&&mode===it.mode&&(it.action?false:true);
-                  return(
-                    <div key={it.id} className="bishop-navitem" onClick={()=>handleSidebarNav(it)}
-                      title={it.note||(it.built?"":"Coming soon")}
-                      style={{
-                        ...(active?{background:`${mc}14`,color:"#F5F6F8",boxShadow:`0 0 16px ${mc}22`}:{color:it.built?"#9BA0AC":"#3a3d44"}),
-                        cursor:it.built?"pointer":"not-allowed",
-                        opacity:it.built?1:.55,
-                        fontSize:12.5,
-                      }}>
-                      <span>{it.label}</span>
-                      {!it.built&&<span style={{fontSize:8.5,letterSpacing:.5,marginLeft:"auto",color:"#3a3d44",textTransform:"uppercase"}}>soon</span>}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-
-            <div style={{marginTop:"auto",paddingTop:12,borderTop:"1px solid #1a1d24"}}>
-              <div onClick={()=>setShowAccount(true)} style={{fontSize:11,fontWeight:700,color:"#6EE7FF",padding:"9px 8px",borderRadius:8,border:"1px dashed #1a1d24",cursor:"pointer",textAlign:"center"}}>
-                {currentPlan.badge} · Account
-              </div>
-            </div>
+            {WORKSPACES.find(w=>w.id===activeWorkspace)?.pages.map(it=>{
+              const active=it.mode&&mode===it.mode;
+              return(
+                <div key={it.id} onClick={()=>handleSidebarNav(it,activeWorkspace)}
+                  title={it.note||(it.built?"":"Coming soon")}
+                  style={{
+                    display:"flex",alignItems:"center",gap:9,padding:"11px 12px",borderRadius:11,fontSize:13.5,fontWeight:600,marginBottom:2,transition:"all .15s",
+                    ...(active?{background:`${mc}14`,color:"#F5F6F8",boxShadow:`0 0 16px ${mc}22`}:{color:it.built?"#9BA0AC":"#4a4d54"}),
+                    cursor:it.built?"pointer":"not-allowed",
+                    opacity:it.built?1:.55,
+                  }}>
+                  <span>{it.label}</span>
+                  {!it.built&&<span style={{fontSize:8.5,letterSpacing:.5,marginLeft:"auto",color:"#4a4d54",textTransform:"uppercase"}}>soon</span>}
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -3063,7 +2985,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 <div style={{fontSize:12,color:"#45484F",lineHeight:1.6,marginBottom:36}}>💡 Save a brand profile above to unlock BISHOP Memory for it.</div>
               )}
 
-              <button className="gbtn" disabled={!brand||!niche} onClick={()=>handleModeSwitch("copy")}
+              <button className="gbtn" disabled={!brand||!niche} onClick={()=>{handleModeSwitch("copy");setActiveWorkspace("create");}}
                 style={{background:brand&&niche?"linear-gradient(135deg,#00e5ff,#0044ff)":"#1a1d24",color:brand&&niche?"#000":"#45484F"}}>
                 {brand&&niche?"CONTINUE TO CREATE →":"COMPLETE BRAND + NICHE FIRST"}
               </button>
@@ -3162,7 +3084,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           <div>
             <div className="sl" style={{color:mc}}>Brand</div>
             {brand&&niche?(
-              <div onClick={()=>handleModeSwitch("brand-brief")}
+              <div onClick={()=>{handleModeSwitch("brand-brief");setActiveWorkspace("brand");}}
                 style={{background:"rgba(255,255,255,.025)",border:`1px solid ${mc}33`,borderRadius:12,padding:"14px 16px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
                   <div style={{fontSize:15,fontWeight:700,color:"#F5F6F8"}}>{brand}</div>
@@ -3171,7 +3093,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 <span style={{fontSize:11,color:mc,letterSpacing:1}}>EDIT →</span>
               </div>
             ):(
-              <div onClick={()=>handleModeSwitch("brand-brief")}
+              <div onClick={()=>{handleModeSwitch("brand-brief");setActiveWorkspace("brand");}}
                 style={{background:"rgba(255,255,255,.025)",border:`1px dashed ${mc}55`,borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"center"}}>
                 <div style={{fontSize:13,color:mc,fontWeight:700}}>◆ SET UP BRAND BRIEF</div>
                 <div style={{fontSize:11,color:"#82858C",marginTop:4}}>Required before BISHOP can generate</div>
@@ -3936,7 +3858,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   {!configured?(
                     <>
                       <div style={{fontSize:13,color:"#82858C",textAlign:"center",lineHeight:1.6,maxWidth:280}}>Brand not configured yet — BISHOP needs a name and niche before it can work.</div>
-                      <button className="sm" onClick={()=>{handleModeSwitch("brand-brief");setTimeout(()=>brandInputRef.current?.focus(),100);}} style={{borderColor:`${mc}55`,color:mc,padding:"9px 18px"}}>COMPLETE BRAND BRIEF →</button>
+                      <button className="sm" onClick={()=>{handleModeSwitch("brand-brief");setActiveWorkspace("brand");setTimeout(()=>brandInputRef.current?.focus(),100);}} style={{borderColor:`${mc}55`,color:mc,padding:"9px 18px"}}>COMPLETE BRAND BRIEF →</button>
                     </>
                   ):(
                     <>
