@@ -165,9 +165,9 @@ const WORKSPACES = [
   {id:"brand",icon:"◆",label:"Brand",pages:[
     {id:"brand-hq",label:"Brand HQ",mode:"brand-hq",built:true},
     {id:"brand-brief",label:"Brand Brief",mode:"brand-brief",built:true},
-    {id:"brand-memory",label:"Brand Memory",mode:"brand-brief",built:true},
-    {id:"brand-vault",label:"Brand Vault",built:false,note:"Dedicated page — coming next"},
-    {id:"learn-brand",label:"Learn My Brand",mode:"brand-brief",built:true},
+    {id:"brand-memory",label:"BISHOP Memory",mode:"brand-memory",built:true},
+    {id:"brand-vault",label:"Brand Vault",mode:"brand-vault",built:true},
+    {id:"learn-brand",label:"Learn My Brand",mode:"learn-brand",built:true},
   ]},
   {id:"products",icon:"▣",label:"Products",pages:[
     {id:"product-library",label:"Product Library",mode:"copy",built:true,note:"Dedicated page — coming soon"},
@@ -2944,9 +2944,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:14}}>
                 {[
                   {id:"brand-brief",label:"Brand Brief",sub:"Identity · Audience · Voice",grad:"linear-gradient(115deg,#F0C468,#C9A961,#F0C468)",icon:"◆",action:()=>{handleModeSwitch("brand-brief");}},
-                  {id:"brand-memory",label:"BISHOP Memory",sub:activeProfileId?`${brandMemories.filter(m=>m.active).length} active rules`:"Save a brand to enable",grad:"linear-gradient(115deg,#4DE8FF,#7C5AFF,#4DE8FF)",icon:"◈",action:()=>{handleModeSwitch("brand-brief");}},
-                  {id:"brand-vault",label:"Brand Vault",sub:"Coming soon",grad:"linear-gradient(115deg,#9D7CFF,#4D5FFF,#9D7CFF)",icon:"▣",action:null},
-                  {id:"learn-brand",label:"Learn My Brand",sub:"Website · Instagram · Images",grad:"linear-gradient(115deg,#4DFFB8,#00D4FF,#4DFFB8)",icon:"✦",action:()=>{handleModeSwitch("brand-brief");setLearnOpen(true);}},
+                  {id:"brand-memory",label:"BISHOP Memory",sub:activeProfileId?`${brandMemories.filter(m=>m.active).length} active rules`:"Save a brand to enable",grad:"linear-gradient(115deg,#4DE8FF,#7C5AFF,#4DE8FF)",icon:"◈",action:()=>{handleModeSwitch("brand-memory");}},
+                  {id:"brand-vault",label:"Brand Vault",sub:activeProfileId?`${vaultAssets.length} assets`:"Save a brand to enable",grad:"linear-gradient(115deg,#9D7CFF,#4D5FFF,#9D7CFF)",icon:"▣",action:()=>{handleModeSwitch("brand-vault");}},
+                  {id:"learn-brand",label:"Learn My Brand",sub:"Website · Instagram · Images",grad:"linear-gradient(115deg,#4DFFB8,#00D4FF,#4DFFB8)",icon:"✦",action:()=>{handleModeSwitch("learn-brand");}},
                 ].map(c=>(
                   <div key={c.id} onClick={()=>c.action&&c.action()} className={c.action?"grad-shimmer":""}
                     style={{padding:1.4,borderRadius:22,backgroundImage:c.action?c.grad:"linear-gradient(115deg,#2A2D38,#2A2D38)",cursor:c.action?"pointer":"not-allowed",transition:"opacity .25s ease, transform .25s ease, filter .25s ease",opacity:c.action?.75:.4}}
@@ -2962,6 +2962,190 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        ):mode==="brand-memory"?(
+          <div style={{flex:1,overflowY:"auto",display:"flex",justifyContent:"center",padding:isMobile?"24px 16px 100px":"48px 40px",minHeight:0}}>
+            <div style={{width:"100%",maxWidth:760}}>
+              <div style={{marginBottom:28}}>
+                <div style={{fontSize:11,letterSpacing:2,color:"#4DE8FF",textTransform:"uppercase",marginBottom:8}}>Brand · Retained Intelligence</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?26:34,color:"#F8F7FF",textShadow:"0 0 30px rgba(77,232,255,.25)"}}>BISHOP Memory</div>
+                <div style={{fontSize:13.5,color:"#9591AC",marginTop:8}}>Standing rules BISHOP carries into every generation for {brand||"this brand"}.</div>
+              </div>
+
+              {!activeProfileId?(
+                <div style={{padding:1.4,borderRadius:22,backgroundImage:"linear-gradient(115deg,#4DE8FF,#7C5AFF,#4DE8FF)"}} className="grad-shimmer">
+                  <div style={{background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:21,padding:"28px 24px",textAlign:"center"}}>
+                    <div style={{fontSize:14,color:"#F0F1F4",marginBottom:14}}>Save a Brand Brief first to unlock BISHOP Memory for it.</div>
+                    <button className="gbtn" onClick={()=>handleModeSwitch("brand-brief")} style={{width:"auto",padding:"11px 26px",background:"linear-gradient(115deg,#4DE8FF,#7C5AFF)",color:"#0A0620"}}>Go to Brand Brief →</button>
+                  </div>
+                </div>
+              ):(<>
+                <div style={{display:"flex",gap:14,marginBottom:24,flexWrap:"wrap"}}>
+                  <div style={{padding:1.4,borderRadius:18,backgroundImage:"linear-gradient(115deg,#4DE8FF,#7C5AFF,#4DE8FF)"}} className="grad-shimmer">
+                    <div style={{background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:17,padding:"14px 20px"}}>
+                      <div style={{fontSize:26,fontWeight:700,color:"#4DE8FF",fontFamily:"'Fraunces',serif"}}>{brandMemories.filter(m=>m.active).length}</div>
+                      <div style={{fontSize:11,color:"#9591AC",marginTop:2}}>Active Rules</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{display:"flex",gap:8,marginBottom:8}}>
+                  <input value={newMemoryText} onChange={e=>setNewMemoryText(e.target.value)}
+                    onKeyDown={e=>e.key==="Enter"&&addBrandMemory()}
+                    placeholder="e.g. never say 'cheap' — LEWCOR is premium"
+                    className="inp" style={{flex:1}}/>
+                  <button onClick={addBrandMemory} disabled={!newMemoryText.trim()||savingMemory}
+                    className="gbtn" style={{width:"auto",padding:"0 26px",background:"linear-gradient(115deg,#4DE8FF,#7C5AFF)",color:"#0A0620"}}>
+                    {savingMemory?"Saving...":"+ Add"}
+                  </button>
+                </div>
+                {memoryError&&<div style={{fontSize:12,color:"#ff6a6a",marginBottom:16}}>{memoryError}</div>}
+
+                <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:20}}>
+                  {brandMemories.length===0&&<div style={{fontSize:13,color:"#565A64",padding:"20px 0"}}>Nothing remembered yet — add BISHOP's first standing rule above.</div>}
+                  {brandMemories.map(mem=>(
+                    <div key={mem.id} style={{background:"rgba(255,255,255,.04)",backdropFilter:"blur(16px)",border:`1px solid ${mem.active?"rgba(77,232,255,.25)":"rgba(255,255,255,.08)"}`,borderRadius:16,padding:"16px 18px",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:14}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:9.5,letterSpacing:1,color:mem.active?"#4DE8FF":"#565A64",textTransform:"uppercase",marginBottom:6,fontWeight:700}}>{mem.active?"ACTIVE":"INACTIVE"}</div>
+                        <div style={{fontSize:14,color:mem.active?"#F0F1F4":"#6B7280",lineHeight:1.5,textDecoration:mem.active?"none":"line-through"}}>{mem.content}</div>
+                      </div>
+                      <div style={{display:"flex",gap:6,flexShrink:0}}>
+                        <button className="sm" onClick={()=>toggleBrandMemory(mem)} style={{borderColor:mem.active?"#4DE8FF55":"rgba(255,255,255,.1)",color:mem.active?"#4DE8FF":"#9BA0AC"}}>{mem.active?"Deactivate":"Activate"}</button>
+                        <button className="sm" onClick={()=>deleteBrandMemory(mem.id)} style={{borderColor:"#ff6a6a33",color:"#ff6a6a"}}>Delete</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>)}
+            </div>
+          </div>
+        ):mode==="brand-vault"?(
+          <div style={{flex:1,overflowY:"auto",display:"flex",justifyContent:"center",padding:isMobile?"24px 16px 100px":"48px 40px",minHeight:0}}>
+            <div style={{width:"100%",maxWidth:920}}>
+              <div style={{marginBottom:28}}>
+                <div style={{fontSize:11,letterSpacing:2,color:"#9D7CFF",textTransform:"uppercase",marginBottom:8}}>Brand · Asset Library</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?26:34,color:"#F8F7FF",textShadow:"0 0 30px rgba(157,124,255,.25)"}}>Brand Vault</div>
+                <div style={{fontSize:13.5,color:"#9591AC",marginTop:8}}>{vaultAssets.length} assets saved for {brand||"this brand"}.</div>
+              </div>
+
+              {!activeProfileId?(
+                <div style={{padding:1.4,borderRadius:22,backgroundImage:"linear-gradient(115deg,#9D7CFF,#4D5FFF,#9D7CFF)"}} className="grad-shimmer">
+                  <div style={{background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:21,padding:"28px 24px",textAlign:"center"}}>
+                    <div style={{fontSize:14,color:"#F0F1F4",marginBottom:14}}>Save a Brand Brief first to unlock the Vault for it.</div>
+                    <button className="gbtn" onClick={()=>handleModeSwitch("brand-brief")} style={{width:"auto",padding:"11px 26px",background:"linear-gradient(115deg,#9D7CFF,#4D5FFF)",color:"#0A0620"}}>Go to Brand Brief →</button>
+                  </div>
+                </div>
+              ):(<>
+                <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:22}}>
+                  {VAULT_CATEGORIES.map(c=>(
+                    <button key={c.id} onClick={()=>setVaultCategory(c.id)}
+                      style={{padding:"8px 16px",borderRadius:999,border:`1px solid ${vaultCategory===c.id?"#9D7CFF77":"rgba(255,255,255,.1)"}`,background:vaultCategory===c.id?"rgba(157,124,255,.12)":"transparent",color:vaultCategory===c.id?"#9D7CFF":"#9BA0AC",cursor:"pointer",fontSize:13,fontFamily:"'Inter',sans-serif"}}>
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:14,marginBottom:22}}>
+                  {vaultAssets.filter(a=>a.category===vaultCategory).map(a=>(
+                    <div key={a.id} style={{position:"relative",aspectRatio:"1",borderRadius:16,overflow:"hidden",border:"1px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.03)"}}>
+                      {(a.file_type||"").startsWith("image/")?(
+                        <img src={a.url} alt={a.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                      ):(
+                        <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>🎬</div>
+                      )}
+                      <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,.75),transparent 50%)",display:"flex",alignItems:"flex-end",padding:10}}>
+                        <div style={{fontSize:11,color:"#F0F1F4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",width:"100%"}}>{a.name}</div>
+                      </div>
+                      <span onClick={()=>deleteVaultAsset(a.id)} style={{position:"absolute",top:6,right:6,width:22,height:22,borderRadius:"50%",background:"rgba(0,0,0,.6)",color:"#fff",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>✕</span>
+                    </div>
+                  ))}
+                  {vaultAssets.filter(a=>a.category===vaultCategory).length===0&&(
+                    <div style={{gridColumn:isMobile?"1/3":"1/5",fontSize:13,color:"#565A64",padding:"24px 0",textAlign:"center"}}>No {VAULT_CATEGORIES.find(c=>c.id===vaultCategory)?.label.toLowerCase()} yet.</div>
+                  )}
+                </div>
+
+                <label style={{display:"block",padding:1.4,borderRadius:18,backgroundImage:"linear-gradient(115deg,#9D7CFF,#4D5FFF,#9D7CFF)",cursor:vaultUploading?"default":"pointer"}} className={vaultUploading?"":"grad-shimmer"}>
+                  <div style={{background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:17,padding:"16px",textAlign:"center",fontSize:13.5,fontWeight:600,color:vaultUploading?"#6B7280":"#F0F1F4"}}>
+                    {vaultUploading?"⟳ Uploading...":`+ Add to ${VAULT_CATEGORIES.find(c=>c.id===vaultCategory)?.label}`}
+                  </div>
+                  <input type="file" accept="image/*,video/*" style={{display:"none"}} disabled={vaultUploading}
+                    onChange={e=>{if(e.target.files?.[0])uploadToVault(e.target.files[0],vaultCategory);}}/>
+                </label>
+              </>)}
+            </div>
+          </div>
+        ):mode==="learn-brand"?(
+          <div style={{flex:1,overflowY:"auto",display:"flex",justifyContent:"center",padding:isMobile?"24px 16px 100px":"48px 40px",minHeight:0}}>
+            <div style={{width:"100%",maxWidth:760}}>
+              <div style={{marginBottom:28}}>
+                <div style={{fontSize:11,letterSpacing:2,color:"#4DFFB8",textTransform:"uppercase",marginBottom:8}}>Brand · BISHOP Learning Chamber</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?26:34,color:"#F8F7FF",textShadow:"0 0 30px rgba(77,255,184,.25)"}}>Teach BISHOP</div>
+                <div style={{fontSize:13.5,color:"#9591AC",marginTop:8}}>Paste a description, upload a photo, or connect Instagram — BISHOP reads your real voice, never guesses.</div>
+              </div>
+
+              <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:12,marginBottom:24}}>
+                {[{id:"text",label:"Paste Description"},{id:"photo",label:"Upload Photo"},{id:"instagram",label:"Connect Instagram"}].map(t=>(
+                  <div key={t.id} onClick={()=>{setLearnMode(t.id);setLearnSuggestion(null);setLearnError("");}} className={learnMode===t.id?"grad-shimmer":""}
+                    style={{padding:1.4,borderRadius:18,backgroundImage:learnMode===t.id?"linear-gradient(115deg,#4DFFB8,#00D4FF,#4DFFB8)":"rgba(255,255,255,.08)",cursor:"pointer"}}>
+                    <div style={{background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:17,padding:"18px 14px",textAlign:"center"}}>
+                      <div style={{fontSize:13.5,fontWeight:600,color:learnMode===t.id?"#4DFFB8":"#9BA0AC"}}>{t.label}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{background:"rgba(255,255,255,.04)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,.09)",borderRadius:20,padding:22}}>
+                {learnMode==="text"&&(<>
+                  <textarea className="inp" rows={5} placeholder="Tell BISHOP about your brand — what you sell, who it's for, how you talk about it..." value={learnText} onChange={e=>setLearnText(e.target.value)} style={{marginBottom:14,resize:"vertical"}}/>
+                  <button className="gbtn" disabled={!learnText.trim()||learnAnalyzing} onClick={analyzeBrandFromText} style={{background:"linear-gradient(115deg,#4DFFB8,#00D4FF)",color:"#0A0620"}}>
+                    {learnAnalyzing?"⟳ BISHOP is reading...":"Learn My Brand"}
+                  </button>
+                </>)}
+
+                {learnMode==="photo"&&(<>
+                  {!learnImage?(
+                    <label style={{display:"block",border:"1.5px dashed rgba(255,255,255,.15)",borderRadius:16,padding:"28px 16px",textAlign:"center",cursor:"pointer",marginBottom:14}}>
+                      <div style={{fontSize:13,color:"#9BA0AC"}}>Tap to upload a product photo, flyer, or storefront shot</div>
+                      <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])handleLearnImageFile(e.target.files[0]);}}/>
+                    </label>
+                  ):(
+                    <div style={{marginBottom:14,borderRadius:16,overflow:"hidden",position:"relative"}}>
+                      <img src={learnImage.url} alt="" style={{width:"100%",maxHeight:220,objectFit:"cover",display:"block"}}/>
+                      <button onClick={()=>setLearnImage(null)} style={{position:"absolute",top:8,right:8,background:"#ff2d2d",border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:"pointer"}}>✕</button>
+                    </div>
+                  )}
+                  <button className="gbtn" disabled={!learnImage||learnAnalyzing} onClick={analyzeBrandFromPhoto} style={{background:"linear-gradient(115deg,#4DFFB8,#00D4FF)",color:"#0A0620"}}>
+                    {learnAnalyzing?"⟳ BISHOP is reading...":"Learn My Brand"}
+                  </button>
+                </>)}
+
+                {learnMode==="instagram"&&(<>
+                  <div style={{fontSize:13,color:"#9BA0AC",lineHeight:1.6,marginBottom:14}}>
+                    {postizStatus.connected?"BISHOP will read your real recent captions to learn your voice.":"Connect Instagram via Postiz in Account first, then come back here."}
+                  </div>
+                  <button className="gbtn" disabled={!postizStatus.connected||learnAnalyzing} onClick={analyzeBrandFromInstagram} style={{background:"linear-gradient(115deg,#4DFFB8,#00D4FF)",color:"#0A0620",opacity:postizStatus.connected?1:.5}}>
+                    {learnAnalyzing?"⟳ Reading your posts...":"Learn From My Instagram"}
+                  </button>
+                </>)}
+
+                {learnError&&<div style={{fontSize:12,color:"#ff6a6a",marginTop:14}}>{learnError}</div>}
+
+                {learnSuggestion&&(
+                  <div style={{marginTop:20,paddingTop:20,borderTop:"1px solid rgba(255,255,255,.08)"}}>
+                    <div style={{fontSize:14,color:"#F0F1F4",lineHeight:1.7,marginBottom:14,fontStyle:"italic",fontFamily:"'Fraunces',serif"}}>"{learnSuggestion.voiceSummary}"</div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+                      {[["Brand",learnSuggestion.brandName],["Niche",learnSuggestion.niche],["Audience",learnSuggestion.audience],["Tone",(learnSuggestion.tones||[]).map(t=>TONES.find(x=>x.id===t)?.label).filter(Boolean).join(" + ")]].map(([label,val])=>(
+                        <div key={label} style={{background:"rgba(255,255,255,.03)",borderRadius:10,padding:"9px 11px"}}>
+                          <div style={{fontSize:9,color:"#565A64",textTransform:"uppercase"}}>{label}</div>
+                          <div style={{fontSize:12.5,color:"#F0F1F4",marginTop:2}}>{val||"—"}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <button className="gbtn" onClick={applyLearnSuggestion} style={{background:"linear-gradient(115deg,#4ADE80,#22C55E)",color:"#0A0620"}}>Apply to Brand Brief</button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
