@@ -170,7 +170,7 @@ const WORKSPACES = [
     {id:"learn-brand",label:"Learn My Brand",mode:"learn-brand",built:true},
   ]},
   {id:"products",icon:"▣",label:"Products",pages:[
-    {id:"product-library",label:"Product Library",mode:"copy",built:true,note:"Dedicated page — coming soon"},
+    {id:"product-library",label:"Product Showroom",mode:"products",built:true},
   ]},
   {id:"create",icon:"▶",label:"Create",pages:[
     {id:"copy",label:"Copy",mode:"copy",built:true},
@@ -210,7 +210,7 @@ const WORKSPACES = [
 const TOP_NAV = [
   {id:"home",label:"Home",mode:"home"},
   {id:"brand",label:"Brand",mode:"brand-hq"},
-  {id:"products",label:"Products",mode:"copy"},
+  {id:"products",label:"Products",mode:"products"},
   {id:"create",label:"Create",mode:"copy",subpages:[
     {id:"copy",label:"Copy",mode:"copy"},
     {id:"image",label:"Images",mode:"image"},
@@ -1529,6 +1529,67 @@ export default function Gentagai(){
       alert("Couldn't load that asset — try uploading fresh instead.");
     }
     setVaultPickerLoading(false);
+  }
+
+  // ── PRODUCT SHOWROOM — real Supabase-backed product library, one per
+  // brand profile. Requires the `products` table (SQL provided separately). ──
+  const [products,setProducts]=useState([]);
+  const [activeProductId,setActiveProductId]=useState(null);
+  const [productChamberTab,setProductChamberTab]=useState("story");
+  const [showNewProduct,setShowNewProduct]=useState(false);
+  const [npName,setNpName]=useState("");
+  const [npType,setNpType]=useState("");
+  const [npPrice,setNpPrice]=useState("");
+  const [npDesc,setNpDesc]=useState("");
+  const [savingProduct,setSavingProduct]=useState(false);
+  const [productError,setProductError]=useState("");
+  const [chamberDraft,setChamberDraft]=useState({description:"",story:"",customer:"",positioning:""});
+  const [savingChamber,setSavingChamber]=useState(false);
+  const activeProduct=products.find(p=>p.id===activeProductId)||null;
+
+  useEffect(()=>{
+    if(!activeProfileId||!session?.user){setProducts([]);return;}
+    supabase.from("products").select("*").eq("brand_profile_id",activeProfileId)
+      .order("created_at",{ascending:false})
+      .then(({data,error})=>{if(!error&&data)setProducts(data);});
+  },[activeProfileId,session]);
+
+  async function createProduct(){
+    if(!npName.trim()||!activeProfileId||!session?.user){setProductError("Add a product name first.");return;}
+    setSavingProduct(true);setProductError("");
+    const{data,error}=await supabase.from("products").insert({
+      user_id:session.user.id,brand_profile_id:activeProfileId,
+      name:npName.trim(),product_type:npType,price:npPrice,description:npDesc,
+    }).select().single();
+    if(error){setProductError("Couldn't save — try again.");}
+    else{
+      setProducts(p=>[data,...p]);
+      setNpName("");setNpType("");setNpPrice("");setNpDesc("");
+      setShowNewProduct(false);
+    }
+    setSavingProduct(false);
+  }
+
+  async function deleteProduct(id,e){
+    e.stopPropagation();
+    if(!window.confirm("Delete this product? This can't be undone."))return;
+    await supabase.from("products").delete().eq("id",id);
+    setProducts(p=>p.filter(x=>x.id!==id));
+    if(activeProductId===id)setActiveProductId(null);
+  }
+
+  function openProduct(p){
+    setActiveProductId(p.id);
+    setProductChamberTab("story");
+    setChamberDraft({description:p.description||"",story:p.story||"",customer:p.customer||"",positioning:p.positioning||""});
+  }
+
+  async function saveChamberField(field){
+    if(!activeProduct)return;
+    setSavingChamber(true);
+    const{data,error}=await supabase.from("products").update({[field]:chamberDraft[field],updated_at:new Date().toISOString()}).eq("id",activeProduct.id).select().single();
+    if(!error&&data)setProducts(ps=>ps.map(x=>x.id===data.id?data:x));
+    setSavingChamber(false);
   }
 
   // ── CAMPAIGN BUILDER ──
@@ -3155,6 +3216,121 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </div>
             </div>
           </div>
+        ):mode==="products"?(
+          <div style={{flex:1,overflowY:"auto",display:"flex",justifyContent:"center",padding:isMobile?"24px 16px 100px":"48px 40px",minHeight:0}}>
+            <div style={{width:"100%",maxWidth:1000}}>
+
+              {!activeProduct?(<>
+                {/* ── SHOWROOM ── */}
+                <div style={{marginBottom:28}}>
+                  <div style={{fontSize:11,letterSpacing:2,color:"#FF9D4D",textTransform:"uppercase",marginBottom:8}}>Products · Showroom</div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?26:34,color:"#F8F7FF",textShadow:"0 0 30px rgba(255,157,77,.25)"}}>Product Showroom</div>
+                  <div style={{fontSize:13.5,color:"#9591AC",marginTop:8}}>Everything {brand||"your brand"} sells, organized for BISHOP. {products.length} product{products.length===1?"":"s"}.</div>
+                </div>
+
+                {!activeProfileId?(
+                  <div style={{padding:1.4,borderRadius:22,backgroundImage:"linear-gradient(115deg,#FF9D4D,#FF5F6D,#FF9D4D)"}} className="grad-shimmer">
+                    <div style={{background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:21,padding:"28px 24px",textAlign:"center"}}>
+                      <div style={{fontSize:14,color:"#F0F1F4",marginBottom:14}}>Save a Brand Brief first to start your Showroom.</div>
+                      <button className="gbtn" onClick={()=>handleModeSwitch("brand-brief")} style={{width:"auto",padding:"11px 26px",background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620"}}>Go to Brand Brief →</button>
+                    </div>
+                  </div>
+                ):(
+                  <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:16}}>
+                    {products.map(p=>(
+                      <div key={p.id} onClick={()=>openProduct(p)} className="grad-shimmer"
+                        style={{padding:1.4,borderRadius:22,backgroundImage:"linear-gradient(115deg,#FF9D4D,#FF5F6D,#FF9D4D)",cursor:"pointer",transition:"opacity .25s ease, transform .25s ease, filter .25s ease",opacity:.75}}
+                        onMouseEnter={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.transform="translateY(-4px) scale(1.015)";e.currentTarget.style.filter="drop-shadow(0 16px 36px rgba(255,157,77,.3))";}}
+                        onMouseLeave={e=>{e.currentTarget.style.opacity=".75";e.currentTarget.style.transform="translateY(0) scale(1)";e.currentTarget.style.filter="none";}}>
+                        <div style={{position:"relative",background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:21,padding:"20px 18px",minHeight:170,display:"flex",flexDirection:"column",justifyContent:"space-between",overflow:"hidden"}}>
+                          <div style={{position:"absolute",inset:0,background:"linear-gradient(160deg,rgba(255,255,255,.06),transparent 45%)",pointerEvents:"none"}}/>
+                          <span onClick={e=>deleteProduct(p.id,e)} style={{position:"absolute",top:10,right:10,fontSize:12,color:"#565A64",cursor:"pointer",zIndex:2}}>✕</span>
+                          <div>
+                            <div style={{width:44,height:44,borderRadius:13,background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,color:"#0A0620",fontWeight:700,boxShadow:"0 4px 14px rgba(0,0,0,.35), inset 0 1px 2px rgba(255,255,255,.4)"}}>▣</div>
+                          </div>
+                          <div style={{position:"relative"}}>
+                            <div style={{fontSize:16,fontWeight:600,color:"#F5F4FF"}}>{p.name}</div>
+                            <div style={{fontSize:12,color:"#9591AC",marginTop:4}}>{[p.product_type,p.price].filter(Boolean).join(" · ")||"No details yet"}</div>
+                            <div style={{fontSize:11,color:"#FF9D4D",marginTop:10,fontWeight:600}}>OPEN PRODUCT →</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Introduce a Product tile */}
+                    {!showNewProduct?(
+                      <div onClick={()=>setShowNewProduct(true)}
+                        style={{border:"1.5px dashed rgba(255,157,77,.4)",borderRadius:22,padding:"20px 18px",minHeight:170,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:"pointer",gap:8}}>
+                        <div style={{fontSize:26,color:"#FF9D4D"}}>+</div>
+                        <div style={{fontSize:13.5,fontWeight:600,color:"#FF9D4D",textAlign:"center"}}>Introduce a Product to BISHOP</div>
+                      </div>
+                    ):(
+                      <div style={{gridColumn:isMobile?"1/3":"1/4",background:"rgba(255,255,255,.04)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,157,77,.3)",borderRadius:22,padding:22}}>
+                        <div style={{fontSize:15,fontWeight:600,color:"#F5F4FF",marginBottom:16}}>Introduce a New Product</div>
+                        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:12,marginBottom:12}}>
+                          <input className="inp" placeholder="Product name *" value={npName} onChange={e=>setNpName(e.target.value)}/>
+                          <input className="inp" placeholder="Type (e.g. Hoodie)" value={npType} onChange={e=>setNpType(e.target.value)}/>
+                          <input className="inp" placeholder="Price (e.g. $85)" value={npPrice} onChange={e=>setNpPrice(e.target.value)}/>
+                        </div>
+                        <textarea className="inp" rows={3} placeholder="What makes it worth wanting?" value={npDesc} onChange={e=>setNpDesc(e.target.value)} style={{marginBottom:14,resize:"vertical"}}/>
+                        {productError&&<div style={{fontSize:12,color:"#ff6a6a",marginBottom:10}}>{productError}</div>}
+                        <div style={{display:"flex",gap:10}}>
+                          <button className="gbtn" disabled={!npName.trim()||savingProduct} onClick={createProduct} style={{width:"auto",padding:"11px 26px",background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620"}}>
+                            {savingProduct?"Saving...":"Save Product"}
+                          </button>
+                          <button className="sm" onClick={()=>setShowNewProduct(false)}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>):(<>
+                {/* ── PRODUCT CHAMBER ── */}
+                <button className="sm" onClick={()=>setActiveProductId(null)} style={{marginBottom:20}}>← All Products</button>
+                <div style={{marginBottom:24}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?24:30,color:"#F8F7FF"}}>{activeProduct.name}</div>
+                  <div style={{fontSize:13,color:"#9591AC",marginTop:4}}>{[activeProduct.product_type,activeProduct.price].filter(Boolean).join(" · ")}</div>
+                </div>
+
+                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:22,borderBottom:"1px solid rgba(255,255,255,.08)",paddingBottom:14}}>
+                  {[
+                    {id:"story",label:"Story",built:true},
+                    {id:"customer",label:"Customer",built:true},
+                    {id:"positioning",label:"Positioning",built:true},
+                    {id:"assets",label:"Assets",built:false},
+                    {id:"memory",label:"Memory",built:false},
+                    {id:"campaigns",label:"Campaigns",built:false},
+                    {id:"performance",label:"Performance",built:false},
+                  ].map(t=>(
+                    <button key={t.id} disabled={!t.built} onClick={()=>t.built&&setProductChamberTab(t.id)}
+                      style={{padding:"7px 15px",borderRadius:999,border:`1px solid ${productChamberTab===t.id?"#FF9D4D77":"rgba(255,255,255,.1)"}`,background:productChamberTab===t.id?"rgba(255,157,77,.12)":"transparent",color:!t.built?"#4a4d54":productChamberTab===t.id?"#FF9D4D":"#9BA0AC",cursor:t.built?"pointer":"not-allowed",fontSize:12.5,opacity:t.built?1:.5}}>
+                      {t.label}{!t.built&&<span style={{fontSize:9,marginLeft:5}}>soon</span>}
+                    </button>
+                  ))}
+                </div>
+
+                {(productChamberTab==="story"||productChamberTab==="customer"||productChamberTab==="positioning")&&(()=>{
+                  const cfg={
+                    story:{label:"Story Behind It",placeholder:"What's the story? Why does this product exist?"},
+                    customer:{label:"Who Wants This",placeholder:"Who is this for? What problem does it solve for them?"},
+                    positioning:{label:"Positioning",placeholder:"What makes this different from everything else out there?"},
+                  }[productChamberTab];
+                  return(
+                    <div style={{background:"rgba(255,255,255,.04)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,.09)",borderRadius:22,padding:22}}>
+                      <div style={{fontSize:13,letterSpacing:1,color:"#FF9D4D",marginBottom:10,fontWeight:600}}>{cfg.label.toUpperCase()}</div>
+                      <textarea className="inp" rows={6} placeholder={cfg.placeholder}
+                        value={chamberDraft[productChamberTab]}
+                        onChange={e=>setChamberDraft(d=>({...d,[productChamberTab]:e.target.value}))}
+                        style={{resize:"vertical",marginBottom:14}}/>
+                      <button className="gbtn" disabled={savingChamber} onClick={()=>saveChamberField(productChamberTab)} style={{width:"auto",padding:"11px 26px",background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620"}}>
+                        {savingChamber?"Saving...":"Save"}
+                      </button>
+                    </div>
+                  );
+                })()}
+              </>)}
+            </div>
+          </div>
         ):mode==="brand-brief"?(
           <div style={{flex:1,overflowY:"auto",display:"flex",justifyContent:"center",padding:isMobile?"24px 16px 100px":"48px 40px",minHeight:0}}>
             <div style={{width:"100%",maxWidth:720}}>
@@ -3326,7 +3502,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       ))}
                     </div>
                     <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-                      <button className="gbtn" onClick={()=>{handleModeSwitch("copy");setActiveWorkspace("products");}}
+                      <button className="gbtn" onClick={()=>{handleModeSwitch("products");setActiveWorkspace("products");}}
                         style={{width:"auto",padding:"13px 28px",background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620"}}>
                         Add Your First Product →
                       </button>
@@ -3373,7 +3549,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(5,1fr)",gap:14,marginBottom:32}}>
                 {[
                   {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-hq",grad:"linear-gradient(115deg,#F0C468,#C9A961,#F0C468)",icon:"◆"},
-                  {id:"products",label:"Products",sub:"Manage what you sell",mode:"copy",grad:"linear-gradient(115deg,#FF9D4D,#FF5F6D,#FF9D4D)",icon:"▣"},
+                  {id:"products",label:"Products",sub:"Manage what you sell",mode:"products",grad:"linear-gradient(115deg,#FF9D4D,#FF5F6D,#FF9D4D)",icon:"▣"},
                   {id:"create",label:"Create",sub:"Copy · Images · Video · A/B",mode:"copy",grad:"linear-gradient(115deg,#4DE8FF,#7C5AFF,#4DE8FF)",icon:"▶"},
                   {id:"campaigns",label:"Campaigns",sub:"Plan · Schedule · Publish",mode:"campaign",grad:"linear-gradient(115deg,#9D7CFF,#4D5FFF,#9D7CFF)",icon:"⬡"},
                   {id:"intelligence",label:"Intelligence",sub:"Performance · AI Viz",mode:"visibility",grad:"linear-gradient(115deg,#4DFFB8,#00D4FF,#4DFFB8)",icon:"◉"},
