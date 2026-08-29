@@ -163,6 +163,7 @@ const WORKSPACES = [
     {id:"next-moves",label:"Next Moves",built:false},
   ]},
   {id:"brand",icon:"◆",label:"Brand",pages:[
+    {id:"brand-hq",label:"Brand HQ",mode:"brand-hq",built:true},
     {id:"brand-brief",label:"Brand Brief",mode:"brand-brief",built:true},
     {id:"brand-memory",label:"Brand Memory",mode:"brand-brief",built:true},
     {id:"brand-vault",label:"Brand Vault",built:false,note:"Dedicated page — coming next"},
@@ -208,7 +209,7 @@ const WORKSPACES = [
 // ─────────────────────────────────────────────
 const TOP_NAV = [
   {id:"home",label:"Home",mode:"home"},
-  {id:"brand",label:"Brand",mode:"brand-brief"},
+  {id:"brand",label:"Brand",mode:"brand-hq"},
   {id:"products",label:"Products",mode:"copy"},
   {id:"create",label:"Create",mode:"copy",subpages:[
     {id:"copy",label:"Copy",mode:"copy"},
@@ -2898,8 +2899,73 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           </div>
         )}
 
-        {/* ── BRAND BRIEF — Phase 2 dedicated page ── */}
-        {mode==="brand-brief"?(
+        {/* ── BRAND HQ — 3D Immersive hub, entry point before the actual Brand Brief form ── */}
+        {mode==="brand-hq"?(
+          <div style={{flex:1,overflowY:"auto",display:"flex",justifyContent:"center",padding:isMobile?"28px 16px 100px":"52px 40px",minHeight:0}}>
+            <div style={{width:"100%",maxWidth:1000}}>
+
+              {/* Immersive intro — orb + mascot + knowledge meter, same world as Home */}
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:20,marginBottom:40,position:"relative"}}>
+                <div style={{position:"absolute",top:-50,left:-30,width:240,height:240,borderRadius:"50%",background:"radial-gradient(circle,rgba(124,90,255,.20),transparent 70%)",filter:"blur(10px)",pointerEvents:"none"}}/>
+                <div style={{position:"relative",flex:1,minWidth:0}}>
+                  <div style={{fontSize:11,letterSpacing:2,color:gold,textTransform:"uppercase",marginBottom:8}}>Brand</div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?28:38,color:"#F8F7FF",lineHeight:1.15,textShadow:"0 0 40px rgba(124,90,255,.3)"}}>Brand HQ</div>
+                  <div style={{fontSize:13.5,color:"#9591AC",marginTop:8,maxWidth:420,lineHeight:1.6}}>
+                    Everything BISHOP knows about {brand||"your business"}.
+                  </div>
+                  {(()=>{
+                    const hqChecks=[!!brand.trim(),!!niche.trim(),!!audience.trim(),tone&&tone.length>0,!!goal.trim(),!!keywords.trim()];
+                    const hqPct=Math.round((hqChecks.filter(Boolean).length/hqChecks.length)*100);
+                    return(
+                      <div style={{marginTop:18,maxWidth:280}}>
+                        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                          <span style={{fontSize:11,color:"#9BA0AC"}}>BISHOP Knowledge</span>
+                          <span style={{fontSize:13,fontWeight:700,color:hqPct===100?"#4ADE80":gold}}>{hqPct}%</span>
+                        </div>
+                        <div style={{width:"100%",height:5,background:"rgba(255,255,255,.06)",borderRadius:4,overflow:"hidden"}}>
+                          <div style={{height:"100%",width:`${hqPct}%`,background:hqPct===100?"linear-gradient(90deg,#4ADE80,#22C55E)":`linear-gradient(90deg,${gold},#B8935A)`,borderRadius:4,transition:"width .5s ease"}}/>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+                {!isMobile&&(
+                  <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+                    <div style={{position:"relative",width:64,height:64,animation:"bishopFloat 4s ease-in-out infinite"}}>
+                      <div style={{position:"absolute",inset:-10,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,229,255,.2),transparent 70%)",filter:"blur(5px)"}}/>
+                      <img src="/bishop-mascot.png" alt="BISHOP" style={{position:"relative",width:64,height:64,objectFit:"contain",filter:"drop-shadow(0 6px 14px rgba(0,0,0,.4))"}}/>
+                    </div>
+                    <BishopCoreOrb size={110}/>
+                  </div>
+                )}
+              </div>
+
+              {/* 4 premium glass gradient-edge cards — command hub, not a form yet */}
+              <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:14}}>
+                {[
+                  {id:"brand-brief",label:"Brand Brief",sub:"Identity · Audience · Voice",grad:"linear-gradient(115deg,#F0C468,#C9A961,#F0C468)",icon:"◆",action:()=>{handleModeSwitch("brand-brief");}},
+                  {id:"brand-memory",label:"BISHOP Memory",sub:activeProfileId?`${brandMemories.filter(m=>m.active).length} active rules`:"Save a brand to enable",grad:"linear-gradient(115deg,#4DE8FF,#7C5AFF,#4DE8FF)",icon:"◈",action:()=>{handleModeSwitch("brand-brief");}},
+                  {id:"brand-vault",label:"Brand Vault",sub:"Coming soon",grad:"linear-gradient(115deg,#9D7CFF,#4D5FFF,#9D7CFF)",icon:"▣",action:null},
+                  {id:"learn-brand",label:"Learn My Brand",sub:"Website · Instagram · Images",grad:"linear-gradient(115deg,#4DFFB8,#00D4FF,#4DFFB8)",icon:"✦",action:()=>{handleModeSwitch("brand-brief");setLearnOpen(true);}},
+                ].map(c=>(
+                  <div key={c.id} onClick={()=>c.action&&c.action()} className={c.action?"grad-shimmer":""}
+                    style={{padding:1.4,borderRadius:22,backgroundImage:c.action?c.grad:"linear-gradient(115deg,#2A2D38,#2A2D38)",cursor:c.action?"pointer":"not-allowed",transition:"opacity .25s ease, transform .25s ease, filter .25s ease",opacity:c.action?.75:.4}}
+                    onMouseEnter={e=>{if(c.action){e.currentTarget.style.opacity="1";e.currentTarget.style.transform="translateY(-4px) scale(1.015)";e.currentTarget.style.filter="drop-shadow(0 16px 36px rgba(124,90,255,.35))";}}}
+                    onMouseLeave={e=>{if(c.action){e.currentTarget.style.opacity=".75";e.currentTarget.style.transform="translateY(0) scale(1)";e.currentTarget.style.filter="none";}}}>
+                    <div style={{position:"relative",background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:21,padding:"20px 16px",minHeight:130,display:"flex",flexDirection:"column",justifyContent:"space-between",overflow:"hidden",height:"100%"}}>
+                      <div style={{position:"absolute",inset:0,background:"linear-gradient(160deg,rgba(255,255,255,.08),transparent 45%)",pointerEvents:"none"}}/>
+                      <div style={{width:36,height:36,borderRadius:11,background:c.action?c.grad:"#3A3D48",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:"#0A0620",fontWeight:700,boxShadow:"0 4px 14px rgba(0,0,0,.35), inset 0 1px 2px rgba(255,255,255,.4)",position:"relative"}}>{c.icon}</div>
+                      <div style={{position:"relative"}}>
+                        <div style={{fontSize:14.5,fontWeight:600,color:"#F5F4FF"}}>{c.label}</div>
+                        <div style={{fontSize:11.5,color:"#9591AC",marginTop:5,lineHeight:1.5}}>{c.sub}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ):mode==="brand-brief"?(
           <div style={{flex:1,overflowY:"auto",display:"flex",justifyContent:"center",padding:isMobile?"24px 16px 100px":"48px 40px",minHeight:0}}>
             <div style={{width:"100%",maxWidth:820}}>
 
@@ -3146,7 +3212,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               {/* 5 large portal cards — glassmorphic gradient-edge tiles, LEWCOR digital-futures treatment */}
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(5,1fr)",gap:14,marginBottom:32}}>
                 {[
-                  {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-brief",grad:"linear-gradient(115deg,#F0C468,#C9A961,#F0C468)",icon:"◆"},
+                  {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-hq",grad:"linear-gradient(115deg,#F0C468,#C9A961,#F0C468)",icon:"◆"},
                   {id:"products",label:"Products",sub:"Manage what you sell",mode:"copy",grad:"linear-gradient(115deg,#FF9D4D,#FF5F6D,#FF9D4D)",icon:"▣"},
                   {id:"create",label:"Create",sub:"Copy · Images · Video · A/B",mode:"copy",grad:"linear-gradient(115deg,#4DE8FF,#7C5AFF,#4DE8FF)",icon:"▶"},
                   {id:"campaigns",label:"Campaigns",sub:"Plan · Schedule · Publish",mode:"campaign",grad:"linear-gradient(115deg,#9D7CFF,#4D5FFF,#9D7CFF)",icon:"⬡"},
