@@ -1721,6 +1721,23 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
   // panel is showing. Independent of `mode`, which drives content. ──
   const [activeWorkspace,setActiveWorkspace]=useState("home");
 
+  // ── BISHOP MASCOT — cursor-tracking "looking around" tilt. Writes
+  // directly to the DOM via ref instead of React state so the whole app
+  // doesn't re-render on every mouse-move pixel; harmless no-op when
+  // the mascot isn't mounted (any page other than Home). ──
+  const bishopMascotRef=useRef(null);
+  useEffect(()=>{
+    function onMove(e){
+      const el=bishopMascotRef.current;
+      if(!el)return;
+      const nx=(e.clientX/window.innerWidth-0.5)*2;   // -1..1
+      const ny=(e.clientY/window.innerHeight-0.5)*2;   // -1..1
+      el.style.transform=`rotate(${nx*8}deg) translate(${nx*5}px, ${ny*4}px)`;
+    }
+    window.addEventListener("mousemove",onMove);
+    return()=>window.removeEventListener("mousemove",onMove);
+  },[]);
+
   // ── ASK BISHOP (⌘K) — a real quick-jump palette over the actual nav tree,
   // not a simulated AI command executor. Searches WORKSPACES pages only. ──
   const [commandOpen,setCommandOpen]=useState(false);
@@ -2682,6 +2699,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         .bishop-navitem:hover{background:rgba(255,255,255,.05);filter:brightness(1.3);box-shadow:0 0 14px rgba(255,255,255,.06);}
         .ambient-glow{animation:ambientBreathe 8s ease-in-out infinite;}
         @keyframes ambientBreathe{0%,100%{filter:brightness(1);}50%{filter:brightness(1.18);}}
+        @keyframes bishopFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
         .circuit-grid{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
           background-image:linear-gradient(rgba(124,90,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,255,.04) 1px,transparent 1px);
           background-size:48px 48px;mask-image:radial-gradient(ellipse 1000px 700px at 20% 0%,#000 40%,transparent 100%);}
@@ -3118,7 +3136,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   <div style={{display:"flex",alignItems:"center",gap:12,flexShrink:0}}>
                     <div style={{position:"relative",width:100,height:100,animation:"bishopFloat 4s ease-in-out infinite"}}>
                       <div style={{position:"absolute",inset:-16,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,229,255,.22),transparent 70%)",filter:"blur(6px)"}}/>
-                      <img src="/bishop-mascot.png" alt="BISHOP" style={{position:"relative",width:100,height:100,objectFit:"contain",filter:"drop-shadow(0 10px 22px rgba(0,0,0,.4))"}}/>
+                      <img ref={bishopMascotRef} src="/bishop-mascot.png" alt="BISHOP" style={{position:"relative",width:100,height:100,objectFit:"contain",filter:"drop-shadow(0 10px 22px rgba(0,0,0,.4))",transition:"transform .35s cubic-bezier(.2,.8,.2,1)",willChange:"transform"}}/>
                     </div>
                     <BishopCoreOrb size={170}/>
                   </div>
