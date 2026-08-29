@@ -201,6 +201,28 @@ const WORKSPACES = [
 ];
 
 // ─────────────────────────────────────────────
+// TOP_NAV — the 6 primary dock tabs (Brand Universe redesign). Each maps
+// to a real mode; "subpages" render as a slim strip under the dock only
+// when that space is active, so sub-navigation never crowds the main bar.
+// ─────────────────────────────────────────────
+const TOP_NAV = [
+  {id:"home",label:"Home",mode:"home"},
+  {id:"brand",label:"Brand",mode:"brand-brief"},
+  {id:"products",label:"Products",mode:"copy"},
+  {id:"create",label:"Create",mode:"copy",subpages:[
+    {id:"copy",label:"Copy",mode:"copy"},
+    {id:"image",label:"Images",mode:"image"},
+    {id:"video",label:"Video",mode:"video"},
+    {id:"ab",label:"A/B Lab",mode:"ab"},
+  ]},
+  {id:"campaigns",label:"Campaigns",mode:"campaign"},
+  {id:"intelligence",label:"Intelligence",mode:"visibility",subpages:[
+    {id:"ai-viz",label:"AI Viz",mode:"visibility"},
+    {id:"performance",label:"Performance",mode:"campaign"},
+  ]},
+];
+
+// ─────────────────────────────────────────────
 // AI BRAIN OPTIONS — for analysis & prompts
 // ─────────────────────────────────────────────
 const AI_BRAINS = [
@@ -1080,7 +1102,7 @@ export default function Gentagai(){
   const [lastSaved,setLastSaved]=useState(null);
 
   // ── Engine state ────────────────────────────
-  const [mode,setMode]=useState("copy");
+  const [mode,setMode]=useState("home");
   const [abTab,setAbTab]=useState("variants");
   const [platform,setPlatform]=useState("instagram");
   const [contentType,setContentType]=useState("viral_hook");
@@ -1623,7 +1645,7 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
 
   // ── WORKSPACE NAV (2.0 shell) — which icon-rail workspace's secondary
   // panel is showing. Independent of `mode`, which drives content. ──
-  const [activeWorkspace,setActiveWorkspace]=useState("bishop");
+  const [activeWorkspace,setActiveWorkspace]=useState("home");
 
   // ── ASK BISHOP (⌘K) — a real quick-jump palette over the actual nav tree,
   // not a simulated AI command executor. Searches WORKSPACES pages only. ──
@@ -2626,31 +2648,40 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         onLogout={()=>{setShowAccount(false);setScreen("pricing");signOutAccount();}}
         onClose={()=>setShowAccount(false)}/>}
 
-      {/* TOPBAR — minimal per redesign brief: logo/area, active brand, BISHOP status + account */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMobile?"10px 14px":"12px 18px",borderBottom:"1px solid #1a1d24",background:"rgba(8,9,11,.75)",backdropFilter:"blur(24px)",flexShrink:0,zIndex:50,gap:8,flexWrap:isMobile?"wrap":"nowrap"}}>
+      {/* TOP DOCK — single-row nav per Brand Universe brief: logo, 6 primary tabs, active brand, Ask BISHOP, account */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMobile?"10px 14px":"10px 20px",borderBottom:"1px solid rgba(255,255,255,.07)",background:"rgba(9,13,18,.75)",backdropFilter:"blur(24px)",flexShrink:0,zIndex:50,gap:16,flexWrap:isMobile?"wrap":"nowrap"}}>
 
-        {/* Logo / current area */}
-        <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-          <div style={{display:"flex",gap:3}}>{["#ff2d2d","#f0b429","#7c83fd"].map((c,i)=><div key={i} style={{width:5,height:5,borderRadius:1,background:c}}/>)}</div>
-          <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?18:20,letterSpacing:.3,color:"#F5F0E8"}}>GENTAGAI<span style={{color:gold}}>.</span></div>
-          {!isMobile&&<div style={{fontSize:11,color:"#45484F",letterSpacing:1,paddingLeft:10,borderLeft:"1px solid #24272E"}}>{WORKSPACES.flatMap(w=>w.pages).find(it=>it.mode===mode)?.label||"Command Center"}</div>}
+        {/* Logo + primary tabs */}
+        <div style={{display:"flex",alignItems:"center",gap:isMobile?10:28,flexShrink:0,order:isMobile?1:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:9}}>
+            <div style={{display:"flex",gap:3}}>{["#ff2d2d","#f0b429","#7c83fd"].map((c,i)=><div key={i} style={{width:5,height:5,borderRadius:1,background:c}}/>)}</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?18:19,letterSpacing:.3,color:"#F5F0E8"}}>GENTAGAI<span style={{color:gold}}>.</span></div>
+          </div>
+          {!isMobile&&(
+            <div style={{display:"flex",alignItems:"center",gap:2}}>
+              {TOP_NAV.map(t=>{
+                const isActive=activeWorkspace===t.id;
+                return(
+                  <div key={t.id} onClick={()=>{handleModeSwitch(t.mode);setActiveWorkspace(t.id);}}
+                    style={{padding:"8px 14px",borderRadius:10,fontSize:13.5,fontWeight:500,cursor:"pointer",transition:"all .18s",color:isActive?"#F5F6F8":"#7B7F87",background:isActive?"rgba(255,255,255,.06)":"transparent"}}>
+                    {t.label}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Active Brand Selector — center; same profile-switching logic, relocated per brief */}
-        <div style={{position:"relative",order:isMobile?3:0,width:isMobile?"100%":"auto"}}>
+        {/* Active Brand Selector */}
+        <div style={{position:"relative",order:isMobile?3:0,width:isMobile?"100%":"auto",flexShrink:0}}>
           <div onClick={()=>setProfileSwitcherOpen(o=>!o)}
-            style={{display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,.03)",border:`1px solid ${profileSwitcherOpen?mc+"55":"#1a1d24"}`,borderRadius:10,padding:isMobile?"8px 12px":"7px 14px",cursor:"pointer",justifyContent:isMobile?"space-between":"flex-start"}}>
-            <div>
-              <div style={{fontSize:8.5,letterSpacing:"1.2px",color:"#82858C",textTransform:"uppercase",lineHeight:1}}>Active Brand</div>
-              <div style={{fontSize:12.5,fontWeight:700,color:"#F5F6F8",display:"flex",alignItems:"center",gap:6,marginTop:3}}>
-                <span style={{width:6,height:6,borderRadius:"50%",background:gold,boxShadow:`0 0 8px ${gold}`,flexShrink:0}}/>
-                <span style={{maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{brand||niche||"Not set yet"}</span>
-              </div>
-            </div>
-            <span style={{fontSize:9,color:gold,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+            style={{display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,.03)",border:`1px solid ${profileSwitcherOpen?gold+"55":"rgba(255,255,255,.08)"}`,borderRadius:999,padding:isMobile?"8px 12px":"6px 14px",cursor:"pointer",justifyContent:isMobile?"space-between":"flex-start"}}>
+            <span style={{width:6,height:6,borderRadius:"50%",background:gold,boxShadow:`0 0 8px ${gold}`,flexShrink:0,marginRight:8}}/>
+            <span style={{fontSize:13,fontWeight:600,color:"#F5F6F8",maxWidth:150,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{brand||niche||"Not set yet"}</span>
+            <span style={{fontSize:9,color:gold,marginLeft:8,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
           </div>
           {profileSwitcherOpen&&(
-            <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,minWidth:220,zIndex:60,background:"rgba(14,16,19,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.7)"}}>
+            <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,minWidth:220,zIndex:60,background:"rgba(14,16,19,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:12,padding:7,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.7)"}}>
               {brandProfiles.length===0&&(
                 <div style={{fontSize:11,color:"#565A64",padding:"10px 8px",lineHeight:1.5}}>No saved brands yet — set up a Brand Brief, then save it.</div>
               )}
@@ -2675,7 +2706,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         </div>
 
         {/* Right side — BISHOP status + Ask BISHOP + account */}
-        <div style={{display:"flex",alignItems:"center",gap:isMobile?8:12,flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:isMobile?8:12,flexShrink:0,order:isMobile?2:0}}>
           {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}>
             <div style={{width:6,height:6,borderRadius:"50%",background:running?gold:"#00ff88",animation:running?"bl .9s steps(1) infinite":"none"}}/>
             <span style={{fontSize:10,letterSpacing:1.5,color:running?gold:"#82858C",textTransform:"uppercase"}}>{running?"BISHOP GENERATING":"BISHOP ONLINE"}</span>
@@ -2721,6 +2752,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     </div>
                     {!it.built&&<span style={{fontSize:9,color:"#4a4d54"}}>soon</span>}
                   </div>
+
                 ))}
               </div>
             </div>
@@ -2728,97 +2760,20 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         )}
       </div>
 
+      {/* ── SUB-NAV STRIP — only shown for spaces with sub-pages (Create, Intelligence) ── */}
+      {!isMobile&&TOP_NAV.find(t=>t.id===activeWorkspace)?.subpages&&(
+        <div style={{display:"flex",alignItems:"center",gap:4,padding:"9px 20px",borderBottom:"1px solid rgba(255,255,255,.06)",background:"rgba(9,13,18,.5)",backdropFilter:"blur(20px)",flexShrink:0}}>
+          {TOP_NAV.find(t=>t.id===activeWorkspace).subpages.map(sp=>(
+            <div key={sp.id} onClick={()=>handleModeSwitch(sp.mode)}
+              style={{padding:"6px 14px",borderRadius:999,fontSize:12.5,fontWeight:500,cursor:"pointer",transition:"all .15s",color:mode===sp.mode?mc:"#7B7F87",background:mode===sp.mode?`${mc}14`:"transparent"}}>
+              {sp.label}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* BODY */}
       <div style={{display:"flex",flex:1,overflow:"hidden",minHeight:0}}>
-
-        {/* ── ICON RAIL — 8 workspaces, always visible, desktop only ── */}
-        {!isMobile&&(
-          <div style={{width:76,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.08)",background:"linear-gradient(180deg,rgba(15,23,32,.8),rgba(10,16,23,.65))",backdropFilter:"blur(28px)",display:"flex",flexDirection:"column",alignItems:"center",padding:"20px 0",gap:6,overflowY:"auto"}}>
-            <div style={{width:34,height:34,marginBottom:22,flexShrink:0}}>
-              <img src="/bishop-mascot.png" alt="BISHOP" style={{width:"100%",height:"100%",objectFit:"contain"}}/>
-            </div>
-            {WORKSPACES.map(w=>{
-              const isActive=activeWorkspace===w.id;
-              return(
-                <div key={w.id} onClick={()=>setActiveWorkspace(w.id)} title={w.label}
-                  style={{width:42,height:42,borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:17,transition:"all .2s",background:isActive?`${gold}16`:"transparent",color:isActive?gold:"#6B7280",boxShadow:isActive?`0 0 20px ${gold}22`:"none"}}>
-                  {w.icon}
-                </div>
-              );
-            })}
-            <div style={{marginTop:"auto"}}>
-              <div onClick={()=>setShowAccount(true)} title="Account"
-                style={{width:38,height:38,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:11,fontWeight:600,color:"#8B8D93",border:"1px solid rgba(255,255,255,.08)"}}>
-                {currentPlan.badge[0]}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── SECONDARY PANEL — pages for the active workspace only ── */}
-        {!isMobile&&(
-          <div style={{width:240,flexShrink:0,borderRight:"1px solid rgba(255,255,255,.06)",background:"rgba(13,17,23,.45)",backdropFilter:"blur(28px)",padding:"24px 18px",display:"flex",flexDirection:"column",overflowY:"auto"}}>
-            <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:19,color:"#EDEEF0",marginBottom:20,paddingLeft:2}}>
-              {WORKSPACES.find(w=>w.id===activeWorkspace)?.label}
-            </div>
-
-            {activeWorkspace==="brand"&&(
-              <div style={{position:"relative",marginBottom:20}}>
-                <div onClick={()=>setProfileSwitcherOpen(o=>!o)}
-                  style={{background:"rgba(255,255,255,.03)",border:`1px solid ${profileSwitcherOpen?gold+"55":"rgba(255,255,255,.08)"}`,borderRadius:14,padding:"14px 16px",cursor:"pointer"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
-                    <span style={{fontSize:11,letterSpacing:.3,color:"#82858C"}}>Active Brand</span>
-                    <span style={{fontSize:10,color:gold,transform:profileSwitcherOpen?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
-                  </div>
-                  <div style={{fontSize:14,fontWeight:600,color:"#F5F6F8",display:"flex",alignItems:"center",gap:8}}>
-                    <span style={{width:6,height:6,borderRadius:"50%",background:gold,boxShadow:`0 0 8px ${gold}`,flexShrink:0}}/>
-                    <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{brand||niche||"Not set yet"}</span>
-                  </div>
-                </div>
-                {profileSwitcherOpen&&(
-                  <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:60,background:"rgba(14,16,19,.98)",backdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:8,maxHeight:280,overflowY:"auto",boxShadow:"0 24px 60px rgba(0,0,0,.7)"}}>
-                    {brandProfiles.length===0&&(
-                      <div style={{fontSize:12,color:"#565A64",padding:"10px 8px",lineHeight:1.6}}>No saved brands yet — set up a Brand Brief, then save it below.</div>
-                    )}
-                    {brandProfiles.map(p=>(
-                      <div key={p.id} onClick={()=>switchToBrandProfile(p)}
-                        style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 11px",borderRadius:9,cursor:"pointer",background:activeProfileId===p.id?`${gold}14`:"transparent"}}
-                        onMouseEnter={e=>{if(activeProfileId!==p.id)e.currentTarget.style.background="rgba(255,255,255,.05)";}}
-                        onMouseLeave={e=>{e.currentTarget.style.background=activeProfileId===p.id?`${gold}14`:"transparent";}}>
-                        <div style={{overflow:"hidden"}}>
-                          <div style={{fontSize:13,fontWeight:600,color:activeProfileId===p.id?gold:"#F0F1F4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.brand_name}</div>
-                          <div style={{fontSize:10.5,color:"#565A64",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.niche||"No niche set"}</div>
-                        </div>
-                        <span onClick={e=>deleteBrandProfile(p.id,e)} style={{fontSize:11,color:"#45484F",padding:"2px 6px",flexShrink:0}}>✕</span>
-                      </div>
-                    ))}
-                    <div onClick={startNewBrandProfile}
-                      style={{marginTop:6,padding:"10px 11px",borderRadius:9,cursor:"pointer",fontSize:12.5,fontWeight:600,color:gold,border:`1px dashed ${gold}44`,textAlign:"center"}}>
-                      + New Brand Profile
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {WORKSPACES.find(w=>w.id===activeWorkspace)?.pages.map(it=>{
-              const active=it.mode&&mode===it.mode;
-              return(
-                <div key={it.id} onClick={()=>handleSidebarNav(it,activeWorkspace)}
-                  title={it.note||(it.built?"":"Coming soon")}
-                  style={{
-                    display:"flex",alignItems:"center",gap:9,padding:"12px 14px",borderRadius:12,fontSize:14,fontWeight:500,marginBottom:2,transition:"all .18s",
-                    ...(active?{background:`${gold}12`,color:"#F5F6F8"}:{color:it.built?"#9BA0AC":"#4a4d54"}),
-                    cursor:it.built?"pointer":"not-allowed",
-                    opacity:it.built?1:.5,
-                  }}>
-                  <span>{it.label}</span>
-                  {!it.built&&<span style={{fontSize:9,letterSpacing:.3,marginLeft:"auto",color:"#4a4d54"}}>soon</span>}
-                </div>
-              );
-            })}
-          </div>
-        )}
 
         {/* ── MOBILE BOTTOM TAB BAR ── */}
         {isMobile&&(
@@ -3051,6 +3006,62 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 style={{background:brand&&niche?"linear-gradient(135deg,#00e5ff,#0044ff)":"#1a1d24",color:brand&&niche?"#000":"#45484F"}}>
                 {brand&&niche?"CONTINUE TO CREATE →":"COMPLETE BRAND + NICHE FIRST"}
               </button>
+            </div>
+          </div>
+        ):mode==="home"?(
+          <div style={{flex:1,overflowY:"auto",display:"flex",justifyContent:"center",padding:isMobile?"28px 16px 100px":"56px 40px",minHeight:0}}>
+            <div style={{width:"100%",maxWidth:1100}}>
+
+              {/* Greeting */}
+              <div style={{marginBottom:36}}>
+                <div style={{fontSize:13,color:"#7B7F87",marginBottom:8}}>{(()=>{const h=new Date().getHours();return h<12?"Good morning":h<18?"Good afternoon":"Good evening";})()}</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?30:42,color:"#F5F6F8",lineHeight:1.15}}>
+                  {brand?`${brand} is loaded.`:"What are we building today?"}
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginTop:14}}>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:"#4ADE80"}}/>
+                  <span style={{fontSize:12.5,color:"#9BA0AC"}}>BISHOP CORE ONLINE</span>
+                </div>
+              </div>
+
+              {/* 5 large portal cards */}
+              <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(5,1fr)",gap:14,marginBottom:32}}>
+                {[
+                  {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-brief"},
+                  {id:"products",label:"Products",sub:"Manage what you sell",mode:"copy"},
+                  {id:"create",label:"Create",sub:"Copy · Images · Video · A/B",mode:"copy"},
+                  {id:"campaigns",label:"Campaigns",sub:"Plan · Schedule · Publish",mode:"campaign"},
+                  {id:"intelligence",label:"Intelligence",sub:"Performance · AI Viz",mode:"visibility"},
+                ].map(p=>(
+                  <div key={p.id} onClick={()=>{handleModeSwitch(p.mode);setActiveWorkspace(p.id);}}
+                    style={{background:"rgba(255,255,255,.045)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 18px",cursor:"pointer",transition:"all .2s",minHeight:120,display:"flex",flexDirection:"column",justifyContent:"space-between"}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,.14)";e.currentTarget.style.transform="translateY(-3px)";}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.transform="translateY(0)";}}>
+                    <div style={{fontSize:16,fontWeight:600,color:"#F0F1F4"}}>{p.label}</div>
+                    <div style={{fontSize:12,color:"#7B7F87",marginTop:6,lineHeight:1.5}}>{p.sub}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Quick status — only real, known data, per the brief's own "never fake" rule */}
+              <div style={{fontSize:11,letterSpacing:1,color:"#565A64",textTransform:"uppercase",marginBottom:12}}>Quick Status</div>
+              <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:12}}>
+                {[
+                  {label:"BISHOP Status",value:running?"Generating":"Online"},
+                  {label:"Active Brand",value:brand||"Not set"},
+                  {label:"Saved Brands",value:String(brandProfiles.length)},
+                  {label:"Generations",value:`${gensUsed}/${genLimit===Infinity?"∞":genLimit}`},
+                  {label:"Active Campaigns",value:String(campaignsList.length)},
+                  {label:"AI Visibility",value:vizResult?`${vizResult.score}/100`:"Not scanned yet"},
+                  {label:"Social Connected",value:postizStatus.connected?`${postizStatus.integrations?.length||0} account(s)`:"Not connected"},
+                  {label:"Next Move",value:!brand||!niche?"Complete Brand Brief":!productDesc.trim()?"Add Product Info":!postizStatus.connected?"Connect Social Accounts":"Create Content"},
+                ].map(s=>(
+                  <div key={s.label} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)",borderRadius:16,padding:"14px 16px"}}>
+                    <div style={{fontSize:10.5,color:"#565A64",marginBottom:5}}>{s.label}</div>
+                    <div style={{fontSize:15,fontWeight:600,color:"#E8E9EB"}}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ):(<>
