@@ -3024,21 +3024,25 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 </div>
               </div>
 
-              {/* 5 large portal cards */}
+              {/* 5 large portal cards — each carries its real intelligence color as an accent */}
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(5,1fr)",gap:14,marginBottom:32}}>
                 {[
-                  {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-brief"},
-                  {id:"products",label:"Products",sub:"Manage what you sell",mode:"copy"},
-                  {id:"create",label:"Create",sub:"Copy · Images · Video · A/B",mode:"copy"},
-                  {id:"campaigns",label:"Campaigns",sub:"Plan · Schedule · Publish",mode:"campaign"},
-                  {id:"intelligence",label:"Intelligence",sub:"Performance · AI Viz",mode:"visibility"},
+                  {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-brief",color:gold,icon:"◆"},
+                  {id:"products",label:"Products",sub:"Manage what you sell",mode:"copy",color:"#ff7c00",icon:"▣"},
+                  {id:"create",label:"Create",sub:"Copy · Images · Video · A/B",mode:"copy",color:"#00e5ff",icon:"▶"},
+                  {id:"campaigns",label:"Campaigns",sub:"Plan · Schedule · Publish",mode:"campaign",color:"#7c83fd",icon:"⬡"},
+                  {id:"intelligence",label:"Intelligence",sub:"Performance · AI Viz",mode:"visibility",color:"#00ff88",icon:"◉"},
                 ].map(p=>(
                   <div key={p.id} onClick={()=>{handleModeSwitch(p.mode);setActiveWorkspace(p.id);}}
-                    style={{background:"rgba(255,255,255,.045)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 18px",cursor:"pointer",transition:"all .2s",minHeight:120,display:"flex",flexDirection:"column",justifyContent:"space-between"}}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,.14)";e.currentTarget.style.transform="translateY(-3px)";}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.transform="translateY(0)";}}>
-                    <div style={{fontSize:16,fontWeight:600,color:"#F0F1F4"}}>{p.label}</div>
-                    <div style={{fontSize:12,color:"#7B7F87",marginTop:6,lineHeight:1.5}}>{p.sub}</div>
+                    style={{position:"relative",background:"rgba(255,255,255,.045)",backdropFilter:"blur(20px)",border:`1px solid ${p.color}22`,borderRadius:20,padding:"22px 18px",cursor:"pointer",transition:"all .2s",minHeight:130,display:"flex",flexDirection:"column",justifyContent:"space-between",overflow:"hidden"}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor=`${p.color}66`;e.currentTarget.style.boxShadow=`0 12px 32px ${p.color}22`;e.currentTarget.style.transform="translateY(-3px)";}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor=`${p.color}22`;e.currentTarget.style.boxShadow="none";e.currentTarget.style.transform="translateY(0)";}}>
+                    <div style={{position:"absolute",top:-30,right:-30,width:90,height:90,borderRadius:"50%",background:`radial-gradient(circle,${p.color}22,transparent 70%)`}}/>
+                    <div style={{fontSize:20,color:p.color,position:"relative"}}>{p.icon}</div>
+                    <div style={{position:"relative"}}>
+                      <div style={{fontSize:16,fontWeight:600,color:"#F0F1F4"}}>{p.label}</div>
+                      <div style={{fontSize:12,color:"#7B7F87",marginTop:6,lineHeight:1.5}}>{p.sub}</div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -3047,18 +3051,21 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               <div style={{fontSize:11,letterSpacing:1,color:"#565A64",textTransform:"uppercase",marginBottom:12}}>Quick Status</div>
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:12}}>
                 {[
-                  {label:"BISHOP Status",value:running?"Generating":"Online"},
-                  {label:"Active Brand",value:brand||"Not set"},
-                  {label:"Saved Brands",value:String(brandProfiles.length)},
-                  {label:"Generations",value:`${gensUsed}/${genLimit===Infinity?"∞":genLimit}`},
-                  {label:"Active Campaigns",value:String(campaignsList.length)},
-                  {label:"AI Visibility",value:vizResult?`${vizResult.score}/100`:"Not scanned yet"},
-                  {label:"Social Connected",value:postizStatus.connected?`${postizStatus.integrations?.length||0} account(s)`:"Not connected"},
-                  {label:"Next Move",value:!brand||!niche?"Complete Brand Brief":!productDesc.trim()?"Add Product Info":!postizStatus.connected?"Connect Social Accounts":"Create Content"},
+                  {label:"BISHOP Status",value:running?"Generating":"Online",color:running?gold:"#00ff88",dot:true},
+                  {label:"Active Brand",value:brand||"Not set",color:brand?gold:"#565A64"},
+                  {label:"Saved Brands",value:String(brandProfiles.length),color:brandProfiles.length?gold:"#565A64"},
+                  {label:"Generations",value:`${gensUsed}/${genLimit===Infinity?"∞":genLimit}`,color:"#00e5ff"},
+                  {label:"Active Campaigns",value:String(campaignsList.length),color:campaignsList.length?"#7c83fd":"#565A64"},
+                  {label:"AI Visibility",value:vizResult?`${vizResult.score}/100`:"Not scanned yet",color:vizResult?(vizResult.score>=70?"#00ff88":vizResult.score>=40?"#f0b429":"#ff6a6a"):"#565A64"},
+                  {label:"Social Connected",value:postizStatus.connected?`${postizStatus.integrations?.length||0} account(s)`:"Not connected",color:postizStatus.connected?"#00ff88":"#565A64"},
+                  {label:"Next Move",value:!brand||!niche?"Complete Brand Brief":!productDesc.trim()?"Add Product Info":!postizStatus.connected?"Connect Social Accounts":"Create Content",color:gold},
                 ].map(s=>(
-                  <div key={s.label} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)",borderRadius:16,padding:"14px 16px"}}>
+                  <div key={s.label} style={{background:"rgba(255,255,255,.03)",border:`1px solid ${s.color}22`,borderRadius:16,padding:"14px 16px"}}>
                     <div style={{fontSize:10.5,color:"#565A64",marginBottom:5}}>{s.label}</div>
-                    <div style={{fontSize:15,fontWeight:600,color:"#E8E9EB"}}>{s.value}</div>
+                    <div style={{fontSize:15,fontWeight:600,color:s.color,display:"flex",alignItems:"center",gap:7}}>
+                      {s.dot&&<span style={{width:6,height:6,borderRadius:"50%",background:s.color,boxShadow:`0 0 8px ${s.color}`,flexShrink:0}}/>}
+                      {s.value}
+                    </div>
                   </div>
                 ))}
               </div>
