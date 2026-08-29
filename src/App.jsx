@@ -1,6 +1,7 @@
 /* eslint-disable */
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { Canvas, useFrame } from "@react-three/fiber";
 
 // ─────────────────────────────────────────────
 // Supabase — real accounts, replaces localStorage-only plan state
@@ -852,6 +853,51 @@ async function callChatGPTVision(prompt,base64,mimeType,apiKey,onChunk){
 // SCORE BAR
 // ─────────────────────────────────────────────
 function ScoreBar({label,value,color}){return(<div style={{marginBottom:9}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:11,letterSpacing:2,color:"#82858C",textTransform:"uppercase"}}>{label}</span><span style={{fontSize:12,color:color||"#f0b429",fontWeight:500}}>{value}</span></div><div style={{height:2,background:"#243650",borderRadius:1,overflow:"hidden"}}><div style={{height:"100%",background:color||"#f0b429",width:`${value}%`,transition:"width 1.2s ease"}}/></div></div>);}
+
+// ─────────────────────────────────────────────
+// BISHOP CORE — real WebGL 3D orb, Layer-1 "wow" element per the 3D
+// Immersive brief. Used only on the Home hero (desktop) — kept out of
+// every workflow page so it never costs performance where people are
+// actually working. Genuinely rotating/lit geometry, not a CSS fake.
+// ─────────────────────────────────────────────
+function BishopCoreMesh(){
+  const coreRef=useRef();
+  const ringRef=useRef();
+  const ring2Ref=useRef();
+  useFrame((state,delta)=>{
+    if(coreRef.current){coreRef.current.rotation.y+=delta*0.35;coreRef.current.rotation.x+=delta*0.12;}
+    if(ringRef.current)ringRef.current.rotation.z+=delta*0.18;
+    if(ring2Ref.current)ring2Ref.current.rotation.z-=delta*0.12;
+  });
+  return(
+    <>
+      <mesh ref={coreRef}>
+        <icosahedronGeometry args={[1,1]}/>
+        <meshStandardMaterial color="#7C5CFF" emissive="#7C5CFF" emissiveIntensity={0.55} roughness={0.25} metalness={0.65}/>
+      </mesh>
+      <mesh ref={ringRef} rotation={[Math.PI/2.3,0,0]}>
+        <torusGeometry args={[1.55,0.015,16,100]}/>
+        <meshBasicMaterial color="#00E5FF" transparent opacity={0.55}/>
+      </mesh>
+      <mesh ref={ring2Ref} rotation={[Math.PI/1.6,0.3,0]}>
+        <torusGeometry args={[1.85,0.01,16,100]}/>
+        <meshBasicMaterial color="#C13CFF" transparent opacity={0.35}/>
+      </mesh>
+    </>
+  );
+}
+function BishopCoreOrb({size=220}){
+  return(
+    <div style={{width:size,height:size,flexShrink:0}}>
+      <Canvas camera={{position:[0,0,4],fov:45}} dpr={[1,2]} gl={{alpha:true,antialias:true}}>
+        <ambientLight intensity={0.4}/>
+        <pointLight position={[3,3,3]} intensity={1.3} color="#00E5FF"/>
+        <pointLight position={[-3,-2,2]} intensity={0.9} color="#7C5CFF"/>
+        <BishopCoreMesh/>
+      </Canvas>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────
 // PRICING PAGE
@@ -2553,7 +2599,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
   // ── APP SCREEN ──────────────────────────────
   return(
-    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1300px 800px at 10% -10%, rgba(124,90,255,0.20), transparent 55%),radial-gradient(ellipse 1100px 750px at 100% 0%, rgba(0,180,255,0.16), transparent 55%),radial-gradient(ellipse 900px 650px at 30% 115%, rgba(255,90,190,0.10), transparent 55%),radial-gradient(ellipse 700px 500px at 80% 100%, ${mc}14, transparent 60%),#08051A`,color:"#F5F6F8",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
+    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1300px 800px at 10% -10%, rgba(124,90,255,0.20), transparent 55%),radial-gradient(ellipse 1100px 750px at 100% 0%, rgba(0,180,255,0.16), transparent 55%),radial-gradient(ellipse 900px 650px at 30% 115%, rgba(255,90,190,0.10), transparent 55%),radial-gradient(ellipse 700px 500px at 80% 100%, ${mc}14, transparent 60%),#08051A`,color:"#F5F6F8",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease",position:"relative"}}>
+      <div className="circuit-grid"/>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
         @media(max-width:768px){
@@ -2607,6 +2654,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         .bishop-navitem:hover{background:rgba(255,255,255,.05);filter:brightness(1.3);box-shadow:0 0 14px rgba(255,255,255,.06);}
         .ambient-glow{animation:ambientBreathe 8s ease-in-out infinite;}
         @keyframes ambientBreathe{0%,100%{filter:brightness(1);}50%{filter:brightness(1.18);}}
+        .circuit-grid{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+          background-image:linear-gradient(rgba(124,90,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,255,.04) 1px,transparent 1px);
+          background-size:48px 48px;mask-image:radial-gradient(ellipse 1000px 700px at 20% 0%,#000 40%,transparent 100%);}
+        .grad-shimmer{background-size:220% 220%;animation:gradShimmer 5s ease infinite;}
+        @keyframes gradShimmer{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+        .pulse-ring{position:absolute;border-radius:50%;border:1px solid currentColor;animation:pulseRing 2.4s ease-out infinite;}
+        @keyframes pulseRing{0%{transform:scale(.8);opacity:.7;}100%{transform:scale(2.4);opacity:0;}}
       `}</style>
 
       {/* UPGRADE MODAL */}
@@ -2708,7 +2762,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         {/* Right side — BISHOP status + Ask BISHOP + account */}
         <div style={{display:"flex",alignItems:"center",gap:isMobile?8:12,flexShrink:0,order:isMobile?2:0}}>
           {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}>
-            <div style={{width:6,height:6,borderRadius:"50%",background:running?gold:"#00ff88",animation:running?"bl .9s steps(1) infinite":"none"}}/>
+            <div style={{position:"relative",width:6,height:6}}>
+              <div className="pulse-ring" style={{inset:0,width:6,height:6,color:running?gold:"#00ff88"}}/>
+              <div style={{position:"relative",width:6,height:6,borderRadius:"50%",background:running?gold:"#00ff88",animation:running?"bl .9s steps(1) infinite":"none",boxShadow:`0 0 6px ${running?gold:"#00ff88"}`}}/>
+            </div>
             <span style={{fontSize:10,letterSpacing:1.5,color:running?gold:"#82858C",textTransform:"uppercase"}}>{running?"BISHOP GENERATING":"BISHOP ONLINE"}</span>
           </div>}
           {!isMobile&&(
@@ -3013,32 +3070,38 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div style={{width:"100%",maxWidth:1100}}>
 
               {/* Greeting */}
-              <div style={{marginBottom:36,position:"relative"}}>
+              <div style={{marginBottom:36,position:"relative",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20}}>
                 <div style={{position:"absolute",top:-60,left:-40,width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(124,90,255,.22),transparent 70%)",filter:"blur(10px)",pointerEvents:"none"}}/>
                 <div style={{position:"absolute",top:-30,left:180,width:180,height:180,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,200,255,.18),transparent 70%)",filter:"blur(8px)",pointerEvents:"none"}}/>
-                <div style={{fontSize:13,color:"#9B9FB0",marginBottom:8,position:"relative"}}>{(()=>{const h=new Date().getHours();return h<12?"Good morning":h<18?"Good afternoon":"Good evening";})()}</div>
-                <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?30:44,color:"#F8F7FF",lineHeight:1.15,position:"relative",textShadow:"0 0 40px rgba(124,90,255,.3)"}}>
-                  {brand?`${brand} is loaded.`:"What are we building today?"}
+                <div style={{position:"relative",flex:1,minWidth:0}}>
+                  <div style={{fontSize:13,color:"#9B9FB0",marginBottom:8}}>{(()=>{const h=new Date().getHours();return h<12?"Good morning":h<18?"Good afternoon":"Good evening";})()}</div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?30:44,color:"#F8F7FF",lineHeight:1.15,textShadow:"0 0 40px rgba(124,90,255,.3)"}}>
+                    {brand?`${brand} is loaded.`:"What are we building today?"}
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginTop:14}}>
+                    <div style={{position:"relative",width:7,height:7}}>
+                      <div className="pulse-ring" style={{inset:0,width:7,height:7,color:"#4ADE80"}}/>
+                      <div style={{position:"relative",width:7,height:7,borderRadius:"50%",background:"#4ADE80",boxShadow:"0 0 10px #4ADE80"}}/>
+                    </div>
+                    <span style={{fontSize:12.5,color:"#9BA0AC"}}>BISHOP CORE ONLINE</span>
+                  </div>
                 </div>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginTop:14,position:"relative"}}>
-                  <div style={{width:7,height:7,borderRadius:"50%",background:"#4ADE80",boxShadow:"0 0 10px #4ADE80"}}/>
-                  <span style={{fontSize:12.5,color:"#9BA0AC"}}>BISHOP CORE ONLINE</span>
-                </div>
+                {!isMobile&&<BishopCoreOrb size={190}/>}
               </div>
 
               {/* 5 large portal cards — glassmorphic gradient-edge tiles, LEWCOR digital-futures treatment */}
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(5,1fr)",gap:14,marginBottom:32}}>
                 {[
-                  {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-brief",grad:"linear-gradient(135deg,#F0C468,#C9A961)",icon:"◆"},
-                  {id:"products",label:"Products",sub:"Manage what you sell",mode:"copy",grad:"linear-gradient(135deg,#FF9D4D,#FF5F6D)",icon:"▣"},
-                  {id:"create",label:"Create",sub:"Copy · Images · Video · A/B",mode:"copy",grad:"linear-gradient(135deg,#4DE8FF,#7C5AFF)",icon:"▶"},
-                  {id:"campaigns",label:"Campaigns",sub:"Plan · Schedule · Publish",mode:"campaign",grad:"linear-gradient(135deg,#9D7CFF,#4D5FFF)",icon:"⬡"},
-                  {id:"intelligence",label:"Intelligence",sub:"Performance · AI Viz",mode:"visibility",grad:"linear-gradient(135deg,#4DFFB8,#00D4FF)",icon:"◉"},
+                  {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-brief",grad:"linear-gradient(115deg,#F0C468,#C9A961,#F0C468)",icon:"◆"},
+                  {id:"products",label:"Products",sub:"Manage what you sell",mode:"copy",grad:"linear-gradient(115deg,#FF9D4D,#FF5F6D,#FF9D4D)",icon:"▣"},
+                  {id:"create",label:"Create",sub:"Copy · Images · Video · A/B",mode:"copy",grad:"linear-gradient(115deg,#4DE8FF,#7C5AFF,#4DE8FF)",icon:"▶"},
+                  {id:"campaigns",label:"Campaigns",sub:"Plan · Schedule · Publish",mode:"campaign",grad:"linear-gradient(115deg,#9D7CFF,#4D5FFF,#9D7CFF)",icon:"⬡"},
+                  {id:"intelligence",label:"Intelligence",sub:"Performance · AI Viz",mode:"visibility",grad:"linear-gradient(115deg,#4DFFB8,#00D4FF,#4DFFB8)",icon:"◉"},
                 ].map(p=>(
-                  <div key={p.id} onClick={()=>{handleModeSwitch(p.mode);setActiveWorkspace(p.id);}}
-                    style={{padding:1.4,borderRadius:22,background:p.grad,cursor:"pointer",transition:"all .25s ease",opacity:.7}}
+                  <div key={p.id} onClick={()=>{handleModeSwitch(p.mode);setActiveWorkspace(p.id);}} className="grad-shimmer"
+                    style={{padding:1.4,borderRadius:22,backgroundImage:p.grad,cursor:"pointer",transition:"opacity .25s ease, transform .25s ease, filter .25s ease",opacity:.75}}
                     onMouseEnter={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.transform="translateY(-4px) scale(1.015)";e.currentTarget.style.filter="drop-shadow(0 16px 36px rgba(124,90,255,.35))";}}
-                    onMouseLeave={e=>{e.currentTarget.style.opacity=".7";e.currentTarget.style.transform="translateY(0) scale(1)";e.currentTarget.style.filter="none";}}>
+                    onMouseLeave={e=>{e.currentTarget.style.opacity=".75";e.currentTarget.style.transform="translateY(0) scale(1)";e.currentTarget.style.filter="none";}}>
                     <div style={{position:"relative",background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:21,padding:"22px 18px",minHeight:138,display:"flex",flexDirection:"column",justifyContent:"space-between",overflow:"hidden",height:"100%"}}>
                       <div style={{position:"absolute",inset:0,background:"linear-gradient(160deg,rgba(255,255,255,.08),transparent 45%)",pointerEvents:"none"}}/>
                       <div style={{position:"absolute",top:-26,right:-26,width:80,height:80,borderRadius:"50%",background:p.grad,opacity:.16,filter:"blur(8px)"}}/>
