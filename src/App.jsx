@@ -2553,7 +2553,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
   // ── APP SCREEN ──────────────────────────────
   return(
-    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1200px 700px at 15% -15%, ${gold}12, transparent 60%),radial-gradient(ellipse 900px 600px at 100% 10%, ${mc}0f, transparent 60%),radial-gradient(ellipse 800px 550px at 25% 115%, rgba(139,124,255,0.06), transparent 60%),#060A0F`,color:"#F5F6F8",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
+    <div className="ambient-glow" style={{minHeight:"100vh",height:"100vh",background:`radial-gradient(ellipse 1300px 800px at 10% -10%, rgba(124,90,255,0.20), transparent 55%),radial-gradient(ellipse 1100px 750px at 100% 0%, rgba(0,180,255,0.16), transparent 55%),radial-gradient(ellipse 900px 650px at 30% 115%, rgba(255,90,190,0.10), transparent 55%),radial-gradient(ellipse 700px 500px at 80% 100%, ${mc}14, transparent 60%),#08051A`,color:"#F5F6F8",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden",transition:"background 1.2s ease"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');html,body,#root{height:100%;margin:0;padding:0;}
         @media(max-width:768px){
@@ -3013,35 +3013,40 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             <div style={{width:"100%",maxWidth:1100}}>
 
               {/* Greeting */}
-              <div style={{marginBottom:36}}>
-                <div style={{fontSize:13,color:"#7B7F87",marginBottom:8}}>{(()=>{const h=new Date().getHours();return h<12?"Good morning":h<18?"Good afternoon":"Good evening";})()}</div>
-                <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?30:42,color:"#F5F6F8",lineHeight:1.15}}>
+              <div style={{marginBottom:36,position:"relative"}}>
+                <div style={{position:"absolute",top:-60,left:-40,width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(124,90,255,.22),transparent 70%)",filter:"blur(10px)",pointerEvents:"none"}}/>
+                <div style={{position:"absolute",top:-30,left:180,width:180,height:180,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,200,255,.18),transparent 70%)",filter:"blur(8px)",pointerEvents:"none"}}/>
+                <div style={{fontSize:13,color:"#9B9FB0",marginBottom:8,position:"relative"}}>{(()=>{const h=new Date().getHours();return h<12?"Good morning":h<18?"Good afternoon":"Good evening";})()}</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?30:44,color:"#F8F7FF",lineHeight:1.15,position:"relative",textShadow:"0 0 40px rgba(124,90,255,.3)"}}>
                   {brand?`${brand} is loaded.`:"What are we building today?"}
                 </div>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginTop:14}}>
-                  <div style={{width:7,height:7,borderRadius:"50%",background:"#4ADE80"}}/>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginTop:14,position:"relative"}}>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:"#4ADE80",boxShadow:"0 0 10px #4ADE80"}}/>
                   <span style={{fontSize:12.5,color:"#9BA0AC"}}>BISHOP CORE ONLINE</span>
                 </div>
               </div>
 
-              {/* 5 large portal cards — each carries its real intelligence color as an accent */}
+              {/* 5 large portal cards — glassmorphic gradient-edge tiles, LEWCOR digital-futures treatment */}
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(5,1fr)",gap:14,marginBottom:32}}>
                 {[
-                  {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-brief",color:gold,icon:"◆"},
-                  {id:"products",label:"Products",sub:"Manage what you sell",mode:"copy",color:"#ff7c00",icon:"▣"},
-                  {id:"create",label:"Create",sub:"Copy · Images · Video · A/B",mode:"copy",color:"#00e5ff",icon:"▶"},
-                  {id:"campaigns",label:"Campaigns",sub:"Plan · Schedule · Publish",mode:"campaign",color:"#7c83fd",icon:"⬡"},
-                  {id:"intelligence",label:"Intelligence",sub:"Performance · AI Viz",mode:"visibility",color:"#00ff88",icon:"◉"},
+                  {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-brief",grad:"linear-gradient(135deg,#F0C468,#C9A961)",icon:"◆"},
+                  {id:"products",label:"Products",sub:"Manage what you sell",mode:"copy",grad:"linear-gradient(135deg,#FF9D4D,#FF5F6D)",icon:"▣"},
+                  {id:"create",label:"Create",sub:"Copy · Images · Video · A/B",mode:"copy",grad:"linear-gradient(135deg,#4DE8FF,#7C5AFF)",icon:"▶"},
+                  {id:"campaigns",label:"Campaigns",sub:"Plan · Schedule · Publish",mode:"campaign",grad:"linear-gradient(135deg,#9D7CFF,#4D5FFF)",icon:"⬡"},
+                  {id:"intelligence",label:"Intelligence",sub:"Performance · AI Viz",mode:"visibility",grad:"linear-gradient(135deg,#4DFFB8,#00D4FF)",icon:"◉"},
                 ].map(p=>(
                   <div key={p.id} onClick={()=>{handleModeSwitch(p.mode);setActiveWorkspace(p.id);}}
-                    style={{position:"relative",background:"rgba(255,255,255,.045)",backdropFilter:"blur(20px)",border:`1px solid ${p.color}22`,borderRadius:20,padding:"22px 18px",cursor:"pointer",transition:"all .2s",minHeight:130,display:"flex",flexDirection:"column",justifyContent:"space-between",overflow:"hidden"}}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor=`${p.color}66`;e.currentTarget.style.boxShadow=`0 12px 32px ${p.color}22`;e.currentTarget.style.transform="translateY(-3px)";}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor=`${p.color}22`;e.currentTarget.style.boxShadow="none";e.currentTarget.style.transform="translateY(0)";}}>
-                    <div style={{position:"absolute",top:-30,right:-30,width:90,height:90,borderRadius:"50%",background:`radial-gradient(circle,${p.color}22,transparent 70%)`}}/>
-                    <div style={{fontSize:20,color:p.color,position:"relative"}}>{p.icon}</div>
-                    <div style={{position:"relative"}}>
-                      <div style={{fontSize:16,fontWeight:600,color:"#F0F1F4"}}>{p.label}</div>
-                      <div style={{fontSize:12,color:"#7B7F87",marginTop:6,lineHeight:1.5}}>{p.sub}</div>
+                    style={{padding:1.4,borderRadius:22,background:p.grad,cursor:"pointer",transition:"all .25s ease",opacity:.7}}
+                    onMouseEnter={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.transform="translateY(-4px) scale(1.015)";e.currentTarget.style.filter="drop-shadow(0 16px 36px rgba(124,90,255,.35))";}}
+                    onMouseLeave={e=>{e.currentTarget.style.opacity=".7";e.currentTarget.style.transform="translateY(0) scale(1)";e.currentTarget.style.filter="none";}}>
+                    <div style={{position:"relative",background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:21,padding:"22px 18px",minHeight:138,display:"flex",flexDirection:"column",justifyContent:"space-between",overflow:"hidden",height:"100%"}}>
+                      <div style={{position:"absolute",inset:0,background:"linear-gradient(160deg,rgba(255,255,255,.08),transparent 45%)",pointerEvents:"none"}}/>
+                      <div style={{position:"absolute",top:-26,right:-26,width:80,height:80,borderRadius:"50%",background:p.grad,opacity:.16,filter:"blur(8px)"}}/>
+                      <div style={{width:38,height:38,borderRadius:12,background:p.grad,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,color:"#0A0620",fontWeight:700,boxShadow:"0 4px 14px rgba(0,0,0,.35), inset 0 1px 2px rgba(255,255,255,.4)",position:"relative"}}>{p.icon}</div>
+                      <div style={{position:"relative"}}>
+                        <div style={{fontSize:16,fontWeight:600,color:"#F5F4FF"}}>{p.label}</div>
+                        <div style={{fontSize:12,color:"#9591AC",marginTop:6,lineHeight:1.5}}>{p.sub}</div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -3060,8 +3065,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   {label:"Social Connected",value:postizStatus.connected?`${postizStatus.integrations?.length||0} account(s)`:"Not connected",color:postizStatus.connected?"#00ff88":"#565A64"},
                   {label:"Next Move",value:!brand||!niche?"Complete Brand Brief":!productDesc.trim()?"Add Product Info":!postizStatus.connected?"Connect Social Accounts":"Create Content",color:gold},
                 ].map(s=>(
-                  <div key={s.label} style={{background:"rgba(255,255,255,.03)",border:`1px solid ${s.color}22`,borderRadius:16,padding:"14px 16px"}}>
-                    <div style={{fontSize:10.5,color:"#565A64",marginBottom:5}}>{s.label}</div>
+                  <div key={s.label} style={{background:"linear-gradient(165deg,rgba(124,90,255,.06),rgba(0,180,255,.04))",backdropFilter:"blur(16px)",border:`1px solid ${s.color}2e`,borderRadius:16,padding:"14px 16px",boxShadow:`0 0 24px ${s.color}0a`}}>
+                    <div style={{fontSize:10.5,color:"#8B8FA3",marginBottom:5}}>{s.label}</div>
                     <div style={{fontSize:15,fontWeight:600,color:s.color,display:"flex",alignItems:"center",gap:7}}>
                       {s.dot&&<span style={{width:6,height:6,borderRadius:"50%",background:s.color,boxShadow:`0 0 8px ${s.color}`,flexShrink:0}}/>}
                       {s.value}
