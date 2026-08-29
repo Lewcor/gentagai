@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Component } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Canvas, useFrame } from "@react-three/fiber";
 
@@ -859,7 +859,22 @@ function ScoreBar({label,value,color}){return(<div style={{marginBottom:9}}><div
 // Immersive brief. Used only on the Home hero (desktop) — kept out of
 // every workflow page so it never costs performance where people are
 // actually working. Genuinely rotating/lit geometry, not a CSS fake.
+// Falls back to a CSS glow if WebGL is unavailable/blocked in the
+// browser (common on locked-down corporate/managed browsers) instead
+// of silently rendering nothing.
 // ─────────────────────────────────────────────
+function hasWebGL(){
+  try{
+    const c=document.createElement("canvas");
+    return !!(window.WebGLRenderingContext&&(c.getContext("webgl")||c.getContext("experimental-webgl")));
+  }catch(e){return false;}
+}
+class BishopOrbBoundary extends Component{
+  constructor(p){super(p);this.state={failed:false};}
+  static getDerivedStateFromError(){return{failed:true};}
+  componentDidCatch(err){console.error("BISHOP orb render error:",err);}
+  render(){return this.state.failed?this.props.fallback:this.props.children;}
+}
 function BishopCoreMesh(){
   const coreRef=useRef();
   const ringRef=useRef();
@@ -886,16 +901,29 @@ function BishopCoreMesh(){
     </>
   );
 }
-function BishopCoreOrb({size=220}){
+function BishopCoreOrbFallback({size}){
+  // Pure-CSS glow, guaranteed to render regardless of WebGL support.
   return(
-    <div style={{width:size,height:size,flexShrink:0}}>
-      <Canvas camera={{position:[0,0,4],fov:45}} dpr={[1,2]} gl={{alpha:true,antialias:true}}>
-        <ambientLight intensity={0.4}/>
-        <pointLight position={[3,3,3]} intensity={1.3} color="#00E5FF"/>
-        <pointLight position={[-3,-2,2]} intensity={0.9} color="#7C5CFF"/>
-        <BishopCoreMesh/>
-      </Canvas>
+    <div style={{width:size,height:size,flexShrink:0,position:"relative",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{position:"absolute",inset:0,borderRadius:"50%",background:"radial-gradient(circle,rgba(124,92,255,.35),transparent 70%)",filter:"blur(6px)",animation:"ambientBreathe 4s ease-in-out infinite"}}/>
+      <div style={{width:size*0.5,height:size*0.5,borderRadius:"50%",background:"linear-gradient(145deg,#7C5CFF,#00E5FF)",boxShadow:"0 0 50px rgba(124,92,255,.6), inset 0 4px 12px rgba(255,255,255,.3)",animation:"bishopFloat 4s ease-in-out infinite"}}/>
     </div>
+  );
+}
+function BishopCoreOrb({size=220}){
+  const [webglOK]=useState(()=>hasWebGL());
+  if(!webglOK)return<BishopCoreOrbFallback size={size}/>;
+  return(
+    <BishopOrbBoundary fallback={<BishopCoreOrbFallback size={size}/>}>
+      <div style={{width:size,height:size,flexShrink:0}}>
+        <Canvas camera={{position:[0,0,4],fov:45}} dpr={[1,2]} gl={{alpha:true,antialias:true}} style={{width:"100%",height:"100%",display:"block"}}>
+          <ambientLight intensity={0.4}/>
+          <pointLight position={[3,3,3]} intensity={1.3} color="#00E5FF"/>
+          <pointLight position={[-3,-2,2]} intensity={0.9} color="#7C5CFF"/>
+          <BishopCoreMesh/>
+        </Canvas>
+      </div>
+    </BishopOrbBoundary>
   );
 }
 
@@ -3086,7 +3114,15 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     <span style={{fontSize:12.5,color:"#9BA0AC"}}>BISHOP CORE ONLINE</span>
                   </div>
                 </div>
-                {!isMobile&&<BishopCoreOrb size={190}/>}
+                {!isMobile&&(
+                  <div style={{display:"flex",alignItems:"center",gap:12,flexShrink:0}}>
+                    <div style={{position:"relative",width:100,height:100,animation:"bishopFloat 4s ease-in-out infinite"}}>
+                      <div style={{position:"absolute",inset:-16,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,229,255,.22),transparent 70%)",filter:"blur(6px)"}}/>
+                      <img src="/bishop-mascot.png" alt="BISHOP" style={{position:"relative",width:100,height:100,objectFit:"contain",filter:"drop-shadow(0 10px 22px rgba(0,0,0,.4))"}}/>
+                    </div>
+                    <BishopCoreOrb size={170}/>
+                  </div>
+                )}
               </div>
 
               {/* 5 large portal cards — glassmorphic gradient-edge tiles, LEWCOR digital-futures treatment */}
