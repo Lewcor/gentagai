@@ -1867,7 +1867,7 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
 
   function handleModeSwitch(m){
     const gatedModes={image:"Image Prompts",video:"Video Ads Engine",ab:"A/B Testing"};
-    if(m!=="copy"&&plan==="free"){setUpgradeModal(gatedModes[m]);return;}
+    if(gatedModes[m]&&plan==="free"){setUpgradeModal(gatedModes[m]);return;}
     if(m==="video"){setVideoAdType("");setVideoTool("");}
     if(m==="image"){setImageTool("");}
     setMode(m);reset();
@@ -2840,6 +2840,21 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           )}
         </div>
 
+        {/* Primary nav — horizontally scrollable row on mobile, since the tabs are hidden from the logo row there */}
+        {isMobile&&(
+          <div style={{display:"flex",gap:6,overflowX:"auto",width:"100%",order:4,paddingBottom:2,msOverflowStyle:"none",scrollbarWidth:"none"}}>
+            {TOP_NAV.map(t=>{
+              const isActive=activeWorkspace===t.id;
+              return(
+                <div key={t.id} onClick={()=>{handleModeSwitch(t.mode);setActiveWorkspace(t.id);}}
+                  style={{padding:"7px 13px",borderRadius:999,fontSize:12.5,fontWeight:500,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,color:isActive?"#F5F6F8":"#7B7F87",background:isActive?"rgba(255,255,255,.08)":"rgba(255,255,255,.03)",border:`1px solid ${isActive?"rgba(255,255,255,.14)":"rgba(255,255,255,.06)"}`}}>
+                  {t.label}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* Active Brand Selector */}
         <div style={{position:"relative",order:isMobile?3:0,width:isMobile?"100%":"auto",flexShrink:0}}>
           <div onClick={()=>setProfileSwitcherOpen(o=>!o)}
@@ -2946,8 +2961,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       {/* BODY */}
       <div style={{display:"flex",flex:1,overflow:"hidden",minHeight:0}}>
 
-        {/* ── MOBILE BOTTOM TAB BAR ── */}
-        {isMobile&&(
+        {/* ── MOBILE BOTTOM TAB BAR — only relevant for the legacy config/output split pages; the new full-page rooms scroll as one view ── */}
+        {isMobile&&!["home","brand-hq","brand-brief","brand-memory","brand-vault","learn-brand","products"].includes(mode)&&(
           <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:200,background:"#08090B",borderTop:"1px solid #24272E",display:"flex",padding:"0"}}>
             <button onClick={()=>setMobileTab("config")}
               style={{flex:1,padding:"12px 0",border:"none",background:mobileTab==="config"?"#0E1013":"transparent",color:mobileTab==="config"?"#00e5ff":"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",borderTop:mobileTab==="config"?"2px solid #00e5ff":"2px solid transparent"}}>
