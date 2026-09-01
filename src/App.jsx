@@ -1552,6 +1552,8 @@ export default function Gentagai(){
   const [npType,setNpType]=useState("");
   const [npPrice,setNpPrice]=useState("");
   const [npDesc,setNpDesc]=useState("");
+  const [npImage,setNpImage]=useState(null); // {name,url(preview),file}
+  const [npImageUploading,setNpImageUploading]=useState(false);
   const [savingProduct,setSavingProduct]=useState(false);
   const [productError,setProductError]=useState("");
   const [chamberDraft,setChamberDraft]=useState({description:"",story:"",customer:"",positioning:""});
@@ -1565,17 +1567,31 @@ export default function Gentagai(){
       .then(({data,error})=>{if(!error&&data)setProducts(data);});
   },[activeProfileId,session]);
 
+  function handleNpImageFile(file){
+    if(!file||!file.type.startsWith("image/"))return;
+    const reader=new FileReader();
+    reader.onload=e=>setNpImage({name:file.name,url:e.target.result,file});
+    reader.readAsDataURL(file);
+  }
+
   async function createProduct(){
     if(!npName.trim()||!activeProfileId||!session?.user){setProductError("Add a product name first.");return;}
     setSavingProduct(true);setProductError("");
+    let imageUrl=null;
+    if(npImage?.file){
+      setNpImageUploading(true);
+      imageUrl=await uploadFileToStorage(npImage.file,"products");
+      setNpImageUploading(false);
+      if(!imageUrl){setProductError("Image upload failed — try again, or save without it.");setSavingProduct(false);return;}
+    }
     const{data,error}=await supabase.from("products").insert({
       user_id:session.user.id,brand_profile_id:activeProfileId,
-      name:npName.trim(),product_type:npType,price:npPrice,description:npDesc,
+      name:npName.trim(),product_type:npType,price:npPrice,description:npDesc,image_url:imageUrl,
     }).select().single();
     if(error){setProductError("Couldn't save — try again.");}
     else{
       setProducts(p=>[data,...p]);
-      setNpName("");setNpType("");setNpPrice("");setNpDesc("");
+      setNpName("");setNpType("");setNpPrice("");setNpDesc("");setNpImage(null);
       setShowNewProduct(false);
     }
     setSavingProduct(false);
@@ -3268,16 +3284,24 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         style={{padding:1.4,borderRadius:22,backgroundImage:"linear-gradient(115deg,#FF9D4D,#FF5F6D,#FF9D4D)",cursor:"pointer",transition:"opacity .25s ease, transform .25s ease, filter .25s ease",opacity:.75}}
                         onMouseEnter={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.transform="translateY(-4px) scale(1.015)";e.currentTarget.style.filter="drop-shadow(0 16px 36px rgba(255,157,77,.3))";}}
                         onMouseLeave={e=>{e.currentTarget.style.opacity=".75";e.currentTarget.style.transform="translateY(0) scale(1)";e.currentTarget.style.filter="none";}}>
-                        <div style={{position:"relative",background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:21,padding:"20px 18px",minHeight:170,display:"flex",flexDirection:"column",justifyContent:"space-between",overflow:"hidden"}}>
-                          <div style={{position:"absolute",inset:0,background:"linear-gradient(160deg,rgba(255,255,255,.06),transparent 45%)",pointerEvents:"none"}}/>
-                          <span onClick={e=>deleteProduct(p.id,e)} style={{position:"absolute",top:10,right:10,fontSize:12,color:"#565A64",cursor:"pointer",zIndex:2}}>✕</span>
-                          <div>
-                            <div style={{width:44,height:44,borderRadius:13,background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,color:"#0A0620",fontWeight:700,boxShadow:"0 4px 14px rgba(0,0,0,.35), inset 0 1px 2px rgba(255,255,255,.4)"}}>▣</div>
-                          </div>
-                          <div style={{position:"relative"}}>
-                            <div style={{fontSize:16,fontWeight:600,color:"#F5F4FF"}}>{p.name}</div>
-                            <div style={{fontSize:12,color:"#9591AC",marginTop:4}}>{[p.product_type,p.price].filter(Boolean).join(" · ")||"No details yet"}</div>
-                            <div style={{fontSize:11,color:"#FF9D4D",marginTop:10,fontWeight:600}}>OPEN PRODUCT →</div>
+                        <div style={{position:"relative",background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:21,minHeight:170,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+                          <span onClick={e=>deleteProduct(p.id,e)} style={{position:"absolute",top:10,right:10,fontSize:12,color:"#fff",background:"rgba(0,0,0,.5)",width:20,height:20,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",zIndex:2}}>✕</span>
+                          {p.image_url?(
+                            <div style={{width:"100%",height:110,overflow:"hidden",flexShrink:0}}>
+                              <img src={p.image_url} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                            </div>
+                          ):(
+                            <div style={{position:"absolute",inset:0,background:"linear-gradient(160deg,rgba(255,255,255,.06),transparent 45%)",pointerEvents:"none"}}/>
+                          )}
+                          <div style={{padding:"16px 18px",flex:1,display:"flex",flexDirection:"column",justifyContent:"space-between"}}>
+                            {!p.image_url&&(
+                              <div style={{width:44,height:44,borderRadius:13,background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,color:"#0A0620",fontWeight:700,boxShadow:"0 4px 14px rgba(0,0,0,.35), inset 0 1px 2px rgba(255,255,255,.4)",marginBottom:12}}>▣</div>
+                            )}
+                            <div style={{position:"relative"}}>
+                              <div style={{fontSize:16,fontWeight:600,color:"#F5F4FF"}}>{p.name}</div>
+                              <div style={{fontSize:12,color:"#9591AC",marginTop:4}}>{[p.product_type,p.price].filter(Boolean).join(" · ")||"No details yet"}</div>
+                              <div style={{fontSize:11,color:"#FF9D4D",marginTop:10,fontWeight:600}}>OPEN PRODUCT →</div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -3293,6 +3317,20 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     ):(
                       <div style={{gridColumn:isMobile?"1/3":"1/4",background:"rgba(255,255,255,.04)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,157,77,.3)",borderRadius:22,padding:22}}>
                         <div style={{fontSize:15,fontWeight:600,color:"#F5F4FF",marginBottom:16}}>Introduce a New Product</div>
+
+                        <div style={{fontSize:11.5,letterSpacing:1,color:"#FF9D4D",marginBottom:8,fontWeight:600}}>PRODUCT PHOTO — so BISHOP can actually see it</div>
+                        {!npImage?(
+                          <label style={{display:"block",border:"1.5px dashed rgba(255,157,77,.4)",borderRadius:16,padding:"22px 16px",textAlign:"center",cursor:"pointer",marginBottom:16}}>
+                            <div style={{fontSize:13,color:"#9BA0AC"}}>Tap to upload a real photo of the product</div>
+                            <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])handleNpImageFile(e.target.files[0]);}}/>
+                          </label>
+                        ):(
+                          <div style={{marginBottom:16,borderRadius:16,overflow:"hidden",position:"relative",maxWidth:220}}>
+                            <img src={npImage.url} alt="" style={{width:"100%",maxHeight:180,objectFit:"cover",display:"block"}}/>
+                            <button onClick={()=>setNpImage(null)} style={{position:"absolute",top:8,right:8,background:"#ff2d2d",border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:"pointer"}}>✕</button>
+                          </div>
+                        )}
+
                         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:12,marginBottom:12}}>
                           <input className="inp" placeholder="Product name *" value={npName} onChange={e=>setNpName(e.target.value)}/>
                           <input className="inp" placeholder="Type (e.g. Hoodie)" value={npType} onChange={e=>setNpType(e.target.value)}/>
@@ -3302,9 +3340,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         {productError&&<div style={{fontSize:12,color:"#ff6a6a",marginBottom:10}}>{productError}</div>}
                         <div style={{display:"flex",gap:10}}>
                           <button className="gbtn" disabled={!npName.trim()||savingProduct} onClick={createProduct} style={{width:"auto",padding:"11px 26px",background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620"}}>
-                            {savingProduct?"Saving...":"Save Product"}
+                            {savingProduct?(npImageUploading?"Uploading photo...":"Saving..."):"Save Product"}
                           </button>
-                          <button className="sm" onClick={()=>setShowNewProduct(false)}>Cancel</button>
+                          <button className="sm" onClick={()=>{setShowNewProduct(false);setNpImage(null);}}>Cancel</button>
                         </div>
                       </div>
                     )}
@@ -3313,9 +3351,14 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </>):(<>
                 {/* ── PRODUCT CHAMBER ── */}
                 <button className="sm" onClick={()=>setActiveProductId(null)} style={{marginBottom:20}}>← All Products</button>
-                <div style={{marginBottom:24}}>
-                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?24:30,color:"#F8F7FF"}}>{activeProduct.name}</div>
-                  <div style={{fontSize:13,color:"#9591AC",marginTop:4}}>{[activeProduct.product_type,activeProduct.price].filter(Boolean).join(" · ")}</div>
+                <div style={{display:"flex",gap:16,alignItems:"center",marginBottom:24}}>
+                  {activeProduct.image_url&&(
+                    <img src={activeProduct.image_url} alt={activeProduct.name} style={{width:72,height:72,borderRadius:16,objectFit:"cover",border:"1px solid rgba(255,157,77,.3)",flexShrink:0}}/>
+                  )}
+                  <div>
+                    <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?24:30,color:"#F8F7FF"}}>{activeProduct.name}</div>
+                    <div style={{fontSize:13,color:"#9591AC",marginTop:4}}>{[activeProduct.product_type,activeProduct.price].filter(Boolean).join(" · ")}</div>
+                  </div>
                 </div>
 
                 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:22,borderBottom:"1px solid rgba(255,255,255,.08)",paddingBottom:14}}>
