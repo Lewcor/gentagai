@@ -1552,8 +1552,9 @@ export default function Gentagai(){
   const [npType,setNpType]=useState("");
   const [npPrice,setNpPrice]=useState("");
   const [npDesc,setNpDesc]=useState("");
-  const [npImage,setNpImage]=useState(null); // {name,url(preview),file}
+  const [npImage,setNpImage]=useState(null); // {name,url(preview),file} or {name,url(real),fromVault:true}
   const [npImageUploading,setNpImageUploading]=useState(false);
+  const [showVaultImagePicker,setShowVaultImagePicker]=useState(false);
   const [savingProduct,setSavingProduct]=useState(false);
   const [productError,setProductError]=useState("");
   const [chamberDraft,setChamberDraft]=useState({description:"",story:"",customer:"",positioning:""});
@@ -1578,7 +1579,9 @@ export default function Gentagai(){
     if(!npName.trim()||!activeProfileId||!session?.user){setProductError("Add a product name first.");return;}
     setSavingProduct(true);setProductError("");
     let imageUrl=null;
-    if(npImage?.file){
+    if(npImage?.fromVault){
+      imageUrl=npImage.url;
+    }else if(npImage?.file){
       setNpImageUploading(true);
       imageUrl=await uploadFileToStorage(npImage.file,"products");
       setNpImageUploading(false);
@@ -1617,6 +1620,65 @@ export default function Gentagai(){
     const{data,error}=await supabase.from("products").update({[field]:chamberDraft[field],updated_at:new Date().toISOString()}).eq("id",activeProduct.id).select().single();
     if(!error&&data)setProducts(ps=>ps.map(x=>x.id===data.id?data:x));
     setSavingChamber(false);
+  }
+
+  // ── ANALYZE WITH BISHOP — real AI analysis of a product, grounded in the
+  // brand's actual context (Brand Brief + active Brand Memory) plus the
+  // product's own name/type/price/description and, if present, its real
+  // uploaded photo (studied via vision, not guessed). ──
+  const [analyzingProduct,setAnalyzingProduct]=useState(false);
+  const [productAnalysisError,setProductAnalysisError]=useState("");
+
+  async function urlToBase64(url){
+    try{
+      const res=await fetch(url);
+      const blob=await res.blob();
+      return await new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=()=>resolve(reader.result.split(",")[1]);
+        reader.onerror=reject;
+        reader.readAsDataURL(blob);
+      });
+    }catch{return null;}
+  }
+
+  async function analyzeProductWithBishop(){
+    if(!activeProduct)return;
+    setAnalyzingProduct(true);setProductAnalysisError("");
+    try{
+      const prompt=`You are BISHOP, ${brand||"this brand"}'s AI marketing strategist, analyzing one specific product to build real intelligence around it.
+BRAND: ${brand||"The Brand"} | NICHE: ${niche||"unspecified"} | AUDIENCE: ${audience||"18-35"} | TONE: ${toneLabel(tone)}${memoryBlock(activeMemoryText)}
+
+PRODUCT: ${activeProduct.name}${activeProduct.product_type?` (${activeProduct.product_type})`:""}${activeProduct.price?` — ${activeProduct.price}`:""}
+DESCRIPTION: ${activeProduct.description||"Not provided — infer as much as you responsibly can from the name, type, and image, and keep anything uncertain general rather than invented."}
+${activeProduct.image_url?"\nStudy the attached product photo carefully — visual design, color, style, materials, quality cues, and how it fits the brand's world — before writing.":""}
+
+Respond with ONLY valid JSON, no markdown fences, in exactly this shape:
+{"story":"2-3 plain-English sentences on what this product is, why it exists, and what makes it worth buying","customer":"2-3 sentences on who this is genuinely for, grounded in the brand's real audience — not a generic demographic","positioning":"2-3 sentences on how this product should be seen next to everything else the customer could buy instead"}`;
+      let raw="";
+      if(activeProduct.image_url){
+        const b64=await urlToBase64(activeProduct.image_url);
+        raw=b64
+          ?await callAPIContent([{type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},{type:"text",text:prompt}],1200)
+          :await callAPI(prompt);
+      }else{
+        raw=await callAPI(prompt);
+      }
+      const parsed=JSON.parse(raw.replace(/```json|```/g,"").trim());
+      const{data,error}=await supabase.from("products").update({
+        story:parsed.story||"",customer:parsed.customer||"",positioning:parsed.positioning||"",
+        updated_at:new Date().toISOString(),
+      }).eq("id",activeProduct.id).select().single();
+      if(!error&&data){
+        setProducts(ps=>ps.map(x=>x.id===data.id?data:x));
+        setChamberDraft(d=>({...d,story:data.story||"",customer:data.customer||"",positioning:data.positioning||""}));
+      }else{
+        setProductAnalysisError("BISHOP wrote it, but saving failed — try again.");
+      }
+    }catch(e){
+      setProductAnalysisError("BISHOP couldn't analyze this product — try again.");
+    }
+    setAnalyzingProduct(false);
   }
 
   // ── CAMPAIGN BUILDER ──
@@ -3318,13 +3380,29 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       <div style={{gridColumn:isMobile?"1/3":"1/4",background:"rgba(255,255,255,.04)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,157,77,.3)",borderRadius:22,padding:22}}>
                         <div style={{fontSize:15,fontWeight:600,color:"#F5F4FF",marginBottom:16}}>Introduce a New Product</div>
 
-                        <div style={{fontSize:11.5,letterSpacing:1,color:"#FF9D4D",marginBottom:8,fontWeight:600}}>PRODUCT PHOTO — so BISHOP can actually see it</div>
-                        {!npImage?(
-                          <label style={{display:"block",border:"1.5px dashed rgba(255,157,77,.4)",borderRadius:16,padding:"22px 16px",textAlign:"center",cursor:"pointer",marginBottom:16}}>
+                        <div style={{fontSize:11.5,letterSpacing:1,color:"#FF9D4D",marginBottom:4,fontWeight:600}}>UPLOAD PRODUCT IMAGE</div>
+                        <div style={{fontSize:12,color:"#7B7F87",marginBottom:12}}>Add a product image so BISHOP can better understand what it is analyzing.</div>
+                        {!npImage?(<>
+                          <label style={{display:"block",border:"1.5px dashed rgba(255,157,77,.4)",borderRadius:16,padding:"22px 16px",textAlign:"center",cursor:"pointer",marginBottom:10}}>
                             <div style={{fontSize:13,color:"#9BA0AC"}}>Tap to upload a real photo of the product</div>
                             <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])handleNpImageFile(e.target.files[0]);}}/>
                           </label>
-                        ):(
+                          {vaultAssets.filter(a=>(a.file_type||"").startsWith("image/")).length>0&&(
+                            <button type="button" className="sm" onClick={()=>setShowVaultImagePicker(o=>!o)} style={{borderColor:"#FF9D4D55",color:"#FF9D4D",marginBottom:16}}>
+                              {showVaultImagePicker?"Hide Brand Vault":"Select From Brand Vault"}
+                            </button>
+                          )}
+                          {showVaultImagePicker&&(
+                            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:16}}>
+                              {vaultAssets.filter(a=>(a.file_type||"").startsWith("image/")).map(a=>(
+                                <div key={a.id} onClick={()=>{setNpImage({name:a.name,url:a.url,fromVault:true});setShowVaultImagePicker(false);}}
+                                  style={{aspectRatio:"1",borderRadius:10,overflow:"hidden",cursor:"pointer",border:"1px solid rgba(255,255,255,.1)"}}>
+                                  <img src={a.url} alt={a.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>):(
                           <div style={{marginBottom:16,borderRadius:16,overflow:"hidden",position:"relative",maxWidth:220}}>
                             <img src={npImage.url} alt="" style={{width:"100%",maxHeight:180,objectFit:"cover",display:"block"}}/>
                             <button onClick={()=>setNpImage(null)} style={{position:"absolute",top:8,right:8,background:"#ff2d2d",border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:"pointer"}}>✕</button>
@@ -3336,7 +3414,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                           <input className="inp" placeholder="Type (e.g. Hoodie)" value={npType} onChange={e=>setNpType(e.target.value)}/>
                           <input className="inp" placeholder="Price (e.g. $85)" value={npPrice} onChange={e=>setNpPrice(e.target.value)}/>
                         </div>
-                        <textarea className="inp" rows={3} placeholder="What makes it worth wanting?" value={npDesc} onChange={e=>setNpDesc(e.target.value)} style={{marginBottom:14,resize:"vertical"}}/>
+                        <div style={{fontSize:11.5,letterSpacing:1,color:"#FF9D4D",marginBottom:4,fontWeight:600}}>PRODUCT DESCRIPTION</div>
+                        <div style={{fontSize:12,color:"#7B7F87",marginBottom:8}}>Tell BISHOP what this product is, what it's about, or anything important it should know.</div>
+                        <textarea className="inp" rows={3} placeholder="Example: Premium heavyweight streetwear inspired by Chicago identity." value={npDesc} onChange={e=>setNpDesc(e.target.value)} style={{marginBottom:14,resize:"vertical"}}/>
                         {productError&&<div style={{fontSize:12,color:"#ff6a6a",marginBottom:10}}>{productError}</div>}
                         <div style={{display:"flex",gap:10}}>
                           <button className="gbtn" disabled={!npName.trim()||savingProduct} onClick={createProduct} style={{width:"auto",padding:"11px 26px",background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620"}}>
@@ -3351,7 +3431,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </>):(<>
                 {/* ── PRODUCT CHAMBER ── */}
                 <button className="sm" onClick={()=>setActiveProductId(null)} style={{marginBottom:20}}>← All Products</button>
-                <div style={{display:"flex",gap:16,alignItems:"center",marginBottom:24}}>
+                <div style={{display:"flex",gap:16,alignItems:"center",marginBottom:12}}>
                   {activeProduct.image_url&&(
                     <img src={activeProduct.image_url} alt={activeProduct.name} style={{width:72,height:72,borderRadius:16,objectFit:"cover",border:"1px solid rgba(255,157,77,.3)",flexShrink:0}}/>
                   )}
@@ -3361,14 +3441,43 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   </div>
                 </div>
 
+                {/* BISHOP Product Knowledge — real, computed from what's actually filled */}
+                {(()=>{
+                  const pChecks=[!!activeProduct.description,!!activeProduct.image_url,!!activeProduct.story,!!activeProduct.customer,!!activeProduct.positioning];
+                  const pPct=Math.round((pChecks.filter(Boolean).length/pChecks.length)*100);
+                  return(
+                    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:22}}>
+                      <span style={{fontSize:11.5,color:"#9BA0AC"}}>BISHOP Product Knowledge</span>
+                      <span style={{fontSize:15,fontWeight:700,color:pPct===100?"#4ADE80":"#FF9D4D",fontFamily:"'Fraunces',serif"}}>{pPct}%</span>
+                      <div style={{flex:1,maxWidth:160,height:4,background:"rgba(255,255,255,.08)",borderRadius:4,overflow:"hidden"}}>
+                        <div style={{height:"100%",width:`${pPct}%`,background:pPct===100?"linear-gradient(90deg,#4ADE80,#22C55E)":"linear-gradient(90deg,#FF9D4D,#FF5F6D)",borderRadius:4,transition:"width .5s"}}/>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {!activeProduct.story&&!activeProduct.customer&&!activeProduct.positioning&&(
+                  <div style={{padding:1.4,borderRadius:20,backgroundImage:"linear-gradient(115deg,#FF9D4D,#FF5F6D,#FF9D4D)",marginBottom:24}} className="grad-shimmer">
+                    <div style={{background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:19,padding:"20px 22px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap"}}>
+                      <div>
+                        <div style={{fontSize:14.5,fontWeight:600,color:"#F5F4FF"}}>BISHOP hasn't studied this product yet</div>
+                        <div style={{fontSize:12.5,color:"#9591AC",marginTop:4}}>One click — BISHOP reads your brand, the description, and the photo to write Story, Customer, and Positioning.</div>
+                        {productAnalysisError&&<div style={{fontSize:12,color:"#ff6a6a",marginTop:8}}>{productAnalysisError}</div>}
+                      </div>
+                      <button className="gbtn" disabled={analyzingProduct} onClick={analyzeProductWithBishop}
+                        style={{width:"auto",padding:"12px 26px",background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620",flexShrink:0}}>
+                        {analyzingProduct?"⟳ Analyzing...":"Analyze with BISHOP"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:22,borderBottom:"1px solid rgba(255,255,255,.08)",paddingBottom:14}}>
                   {[
                     {id:"story",label:"Story",built:true},
                     {id:"customer",label:"Customer",built:true},
                     {id:"positioning",label:"Positioning",built:true},
                     {id:"assets",label:"Assets",built:false},
-                    {id:"memory",label:"Memory",built:false},
-                    {id:"campaigns",label:"Campaigns",built:false},
                     {id:"performance",label:"Performance",built:false},
                   ].map(t=>(
                     <button key={t.id} disabled={!t.built} onClick={()=>t.built&&setProductChamberTab(t.id)}
@@ -3380,20 +3489,30 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
                 {(productChamberTab==="story"||productChamberTab==="customer"||productChamberTab==="positioning")&&(()=>{
                   const cfg={
-                    story:{label:"Story Behind It",placeholder:"What's the story? Why does this product exist?"},
-                    customer:{label:"Who Wants This",placeholder:"Who is this for? What problem does it solve for them?"},
-                    positioning:{label:"Positioning",placeholder:"What makes this different from everything else out there?"},
+                    story:{label:"Product Story",helper:"What this product is, why it exists, and what makes it worth buying.",placeholder:"Example: Premium heavyweight streetwear inspired by Chicago identity and designed around confidence, culture, and self-expression."},
+                    customer:{label:"Ideal Customer",helper:"Who this product is genuinely for.",placeholder:"Example: Style-conscious consumers who value premium streetwear, culture, individuality, and limited releases."},
+                    positioning:{label:"Positioning",helper:"How you want people to see and understand your product compared with everything else they could buy.",placeholder:"Example: Premium streetwear with better quality, stronger identity, and a unique Chicago story."},
                   }[productChamberTab];
+                  const hasValue=!!activeProduct[productChamberTab];
                   return(
                     <div style={{background:"rgba(255,255,255,.04)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,.09)",borderRadius:22,padding:22}}>
-                      <div style={{fontSize:13,letterSpacing:1,color:"#FF9D4D",marginBottom:10,fontWeight:600}}>{cfg.label.toUpperCase()}</div>
+                      <div style={{fontSize:13,letterSpacing:1,color:"#FF9D4D",marginBottom:6,fontWeight:600}}>{cfg.label.toUpperCase()}</div>
+                      <div style={{fontSize:12,color:"#7B7F87",marginBottom:14,lineHeight:1.5}}>{cfg.helper}</div>
                       <textarea className="inp" rows={6} placeholder={cfg.placeholder}
                         value={chamberDraft[productChamberTab]}
                         onChange={e=>setChamberDraft(d=>({...d,[productChamberTab]:e.target.value}))}
                         style={{resize:"vertical",marginBottom:14}}/>
-                      <button className="gbtn" disabled={savingChamber} onClick={()=>saveChamberField(productChamberTab)} style={{width:"auto",padding:"11px 26px",background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620"}}>
-                        {savingChamber?"Saving...":"Save"}
-                      </button>
+                      <div style={{display:"flex",gap:10}}>
+                        <button className="gbtn" disabled={savingChamber} onClick={()=>saveChamberField(productChamberTab)} style={{width:"auto",padding:"11px 26px",background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620"}}>
+                          {savingChamber?"Saving...":"Save"}
+                        </button>
+                        {hasValue&&(
+                          <button className="sm" disabled={analyzingProduct} onClick={analyzeProductWithBishop} style={{borderColor:"#FF9D4D55",color:"#FF9D4D"}}>
+                            {analyzingProduct?"⟳ BISHOP is rethinking...":"Ask BISHOP to Improve"}
+                          </button>
+                        )}
+                      </div>
+                      {productAnalysisError&&<div style={{fontSize:12,color:"#ff6a6a",marginTop:10}}>{productAnalysisError}</div>}
                     </div>
                   );
                 })()}
