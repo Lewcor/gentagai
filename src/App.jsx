@@ -1935,8 +1935,12 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     if(enteredCode&&AGENCY_CODES.includes(enteredCode.trim().toUpperCase())){
       setPlan("agency");setBilling("yearly");setScreen("app");
       if(session?.user){
-        const{error}=await supabase.from("users").update({plan:"agency",billing_interval:"yearly"}).eq("id",session.user.id);
-        if(error)console.error("Failed to persist agency staff code:",error.message);
+        const{data,error}=await supabase.from("users").update({plan:"agency",billing_interval:"yearly"}).eq("id",session.user.id).select();
+        if(error){
+          console.error("Failed to persist agency staff code:",error.message);
+        }else if(!data||data.length===0){
+          console.error("Agency staff code update affected 0 rows — likely missing an UPDATE row-level-security policy on the users table for this user's own row.");
+        }
       }
       return;
     }
