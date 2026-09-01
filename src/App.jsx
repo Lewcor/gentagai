@@ -1664,7 +1664,14 @@ Respond with ONLY valid JSON, no markdown fences, in exactly this shape:
       }else{
         raw=await callAPI(prompt);
       }
-      const parsed=JSON.parse(raw.replace(/```json|```/g,"").trim());
+      if(raw.startsWith("⚠")){throw new Error("API error: "+raw);}
+      // Extract just the {...} block — the model sometimes adds a stray
+      // sentence around the JSON despite instructions, which broke a plain
+      // JSON.parse before even though the actual content was fine.
+      const start=raw.indexOf("{");
+      const end=raw.lastIndexOf("}");
+      if(start===-1||end===-1||end<start){throw new Error("No JSON object found in response: "+raw.slice(0,200));}
+      const parsed=JSON.parse(raw.slice(start,end+1));
       const{data,error}=await supabase.from("products").update({
         story:parsed.story||"",customer:parsed.customer||"",positioning:parsed.positioning||"",
         updated_at:new Date().toISOString(),
@@ -1673,9 +1680,11 @@ Respond with ONLY valid JSON, no markdown fences, in exactly this shape:
         setProducts(ps=>ps.map(x=>x.id===data.id?data:x));
         setChamberDraft(d=>({...d,story:data.story||"",customer:data.customer||"",positioning:data.positioning||""}));
       }else{
+        console.error("Product analysis save failed:",error);
         setProductAnalysisError("BISHOP wrote it, but saving failed — try again.");
       }
     }catch(e){
+      console.error("BISHOP product analysis error:",e);
       setProductAnalysisError("BISHOP couldn't analyze this product — try again.");
     }
     setAnalyzingProduct(false);
