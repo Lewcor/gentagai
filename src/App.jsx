@@ -1076,6 +1076,7 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
   session,authEmail,setAuthEmail,sendMagicLink,magicLinkSent,authLoading,postizStatus}){
   const p=PLANS[plan]||PLANS.free;
   const pct=gensLimit===Infinity?0:Math.min(100,Math.round((gensUsed/gensLimit)*100));
+  const [agreedToTerms,setAgreedToTerms]=useState(false);
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"flex-end"}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:"#15181D",border:"1px solid #2A2D33",borderLeft:"1px solid #2A2D33",width:300,height:"100vh",padding:"24px 20px",display:"flex",flexDirection:"column",fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",overflowY:"auto"}}>
@@ -1095,9 +1096,19 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
                 <div style={{fontSize:12,color:"#82858C",lineHeight:1.5,marginBottom:10}}>Sign in with the email you used at checkout to sync your real plan and connect social accounts.</div>
                 <input className="inp" placeholder="you@email.com" value={authEmail}
                   onChange={e=>setAuthEmail(e.target.value)}
-                  style={{fontSize:13,padding:"10px 12px",marginBottom:8}}/>
-                <button onClick={sendMagicLink} disabled={!authEmail||authLoading}
-                  style={{width:"100%",padding:"9px",border:"1px solid #00e5ff55",background:"transparent",color:"#00e5ff",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:authEmail?"pointer":"not-allowed",fontFamily:"inherit",opacity:authLoading?.5:1}}>
+                  style={{fontSize:13,padding:"10px 12px",marginBottom:10}}/>
+                <label style={{display:"flex",alignItems:"flex-start",gap:8,marginBottom:12,cursor:"pointer"}}>
+                  <input type="checkbox" checked={agreedToTerms} onChange={e=>setAgreedToTerms(e.target.checked)}
+                    style={{marginTop:2,flexShrink:0,accentColor:"#00e5ff"}}/>
+                  <span style={{fontSize:11.5,color:"#82858C",lineHeight:1.5}}>
+                    I agree to GENTAGAI's{" "}
+                    <a href="/terms.html" target="_blank" rel="noopener" style={{color:"#00e5ff"}}>Terms of Service</a>
+                    {" "}and{" "}
+                    <a href="/privacy.html" target="_blank" rel="noopener" style={{color:"#00e5ff"}}>Privacy Policy</a>.
+                  </span>
+                </label>
+                <button onClick={sendMagicLink} disabled={!authEmail||!agreedToTerms||authLoading}
+                  style={{width:"100%",padding:"9px",border:"1px solid #00e5ff55",background:"transparent",color:"#00e5ff",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:authEmail&&agreedToTerms?"pointer":"not-allowed",fontFamily:"inherit",opacity:authLoading||!agreedToTerms?.5:1}}>
                   {authLoading?"Sending…":"Send Sign-In Link"}
                 </button>
               </>
