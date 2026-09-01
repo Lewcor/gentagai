@@ -1559,6 +1559,8 @@ export default function Gentagai(){
   const [productError,setProductError]=useState("");
   const [chamberDraft,setChamberDraft]=useState({description:"",story:"",customer:"",positioning:""});
   const [savingChamber,setSavingChamber]=useState(false);
+  const [chamberSaveError,setChamberSaveError]=useState("");
+  const [chamberSaved,setChamberSaved]=useState(false);
   const activeProduct=products.find(p=>p.id===activeProductId)||null;
 
   useEffect(()=>{
@@ -1612,13 +1614,27 @@ export default function Gentagai(){
     setActiveProductId(p.id);
     setProductChamberTab("story");
     setChamberDraft({description:p.description||"",story:p.story||"",customer:p.customer||"",positioning:p.positioning||""});
+    setChamberSaveError("");
   }
 
   async function saveChamberField(field){
     if(!activeProduct)return;
     setSavingChamber(true);
-    const{data,error}=await supabase.from("products").update({[field]:chamberDraft[field],updated_at:new Date().toISOString()}).eq("id",activeProduct.id).select().single();
-    if(!error&&data)setProducts(ps=>ps.map(x=>x.id===data.id?data:x));
+    setChamberSaveError("");
+    try{
+      const{data,error}=await supabase.from("products").update({[field]:chamberDraft[field],updated_at:new Date().toISOString()}).eq("id",activeProduct.id).select().single();
+      if(error){
+        console.error("saveChamberField failed:",error);
+        setChamberSaveError(error.message||"Save failed — please try again.");
+      }else if(data){
+        setProducts(ps=>ps.map(x=>x.id===data.id?data:x));
+        setChamberSaved(true);
+        setTimeout(()=>setChamberSaved(false),2000);
+      }
+    }catch(err){
+      console.error("saveChamberField threw:",err);
+      setChamberSaveError(err.message||"Save failed — please try again.");
+    }
     setSavingChamber(false);
   }
 
@@ -3493,7 +3509,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {id:"assets",label:"Assets",built:false},
                     {id:"performance",label:"Performance",built:false},
                   ].map(t=>(
-                    <button key={t.id} disabled={!t.built} onClick={()=>t.built&&setProductChamberTab(t.id)}
+                    <button key={t.id} disabled={!t.built} onClick={()=>{if(t.built){setProductChamberTab(t.id);setChamberSaveError("");setChamberSaved(false);}}}
                       style={{padding:"7px 15px",borderRadius:999,border:`1px solid ${productChamberTab===t.id?"#FF9D4D77":"rgba(255,255,255,.1)"}`,background:productChamberTab===t.id?"rgba(255,157,77,.12)":"transparent",color:!t.built?"#4a4d54":productChamberTab===t.id?"#FF9D4D":"#9BA0AC",cursor:t.built?"pointer":"not-allowed",fontSize:12.5,opacity:t.built?1:.5}}>
                       {t.label}{!t.built&&<span style={{fontSize:9,marginLeft:5}}>soon</span>}
                     </button>
@@ -3516,8 +3532,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         onChange={e=>setChamberDraft(d=>({...d,[productChamberTab]:e.target.value}))}
                         style={{resize:"vertical",marginBottom:14}}/>
                       <div style={{display:"flex",gap:10}}>
-                        <button className="gbtn" disabled={savingChamber} onClick={()=>saveChamberField(productChamberTab)} style={{width:"auto",padding:"11px 26px",background:"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620"}}>
-                          {savingChamber?"Saving...":"Save"}
+                        <button className="gbtn" disabled={savingChamber} onClick={()=>saveChamberField(productChamberTab)} style={{width:"auto",padding:"11px 26px",background:chamberSaved?"linear-gradient(115deg,#4DFFB8,#00D4FF)":"linear-gradient(115deg,#FF9D4D,#FF5F6D)",color:"#0A0620"}}>
+                          {savingChamber?"Saving...":chamberSaved?"✓ Saved":"Save"}
                         </button>
                         {hasValue&&(
                           <button className="sm" disabled={analyzingProduct} onClick={analyzeProductWithBishop} style={{borderColor:"#FF9D4D55",color:"#FF9D4D"}}>
@@ -3526,6 +3542,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         )}
                       </div>
                       {productAnalysisError&&<div style={{fontSize:12,color:"#ff6a6a",marginTop:10}}>{productAnalysisError}</div>}
+                      {chamberSaveError&&<div style={{fontSize:12,color:"#ff6a6a",marginTop:10}}>⚠ {chamberSaveError}</div>}
                     </div>
                   );
                 })()}
