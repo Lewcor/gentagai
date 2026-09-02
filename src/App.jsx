@@ -1373,10 +1373,14 @@ export default function Gentagai(){
   migratePendingPurchase();
 }, [session]);
 
-  useEffect(()=>{
+  function refetchPostizStatus(){
     if(!session?.user)return;
-    fetch(`/api/postiz-integrations?userId=${session.user.id}`)
+    fetch(`/api/postiz-integrations?userId=${session.user.id}`,{cache:"no-store"})
       .then(r=>r.json()).then(setPostizStatus).catch(()=>{});
+  }
+
+  useEffect(()=>{
+    refetchPostizStatus();
   },[session]);
 
   useEffect(()=>{
@@ -1851,6 +1855,7 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     if(params.get("postiz_connected")==="true"){
       alert("Postiz connected! You can now auto-publish to your accounts.");
       window.history.replaceState({},"",window.location.pathname);
+      refetchPostizStatus();
     }else if(params.get("postiz_error")){
       alert("Postiz connection failed: "+params.get("postiz_error"));
       window.history.replaceState({},"",window.location.pathname);
