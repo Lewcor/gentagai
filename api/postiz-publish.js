@@ -48,6 +48,7 @@ export default async function handler(req, res) {
     const data = await postizRes.json();
 
     if (!postizRes.ok) {
+      console.error("Postiz publish rejected:", postizRes.status, JSON.stringify(data));
       // Token may have expired — surface a clear signal to the frontend
       // so it can prompt a reconnect instead of a generic error.
       if (postizRes.status === 401) {
