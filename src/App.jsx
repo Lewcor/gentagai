@@ -1480,7 +1480,12 @@ export default function Gentagai(){
 
   async function toggleBrandMemory(mem){
     const{data,error}=await supabase.from("brand_memories").update({active:!mem.active}).eq("id",mem.id).select().single();
-    if(!error&&data)setBrandMemories(m=>m.map(x=>x.id===data.id?data:x));
+    if(!error&&data){
+      setBrandMemories(m=>m.map(x=>x.id===data.id?data:x));
+    }else{
+      console.error("toggleBrandMemory failed:",error);
+      setMemoryError("Couldn't update that — try again.");
+    }
   }
 
   async function deleteBrandMemory(id){
@@ -1495,6 +1500,7 @@ export default function Gentagai(){
   const [vaultOpen,setVaultOpen]=useState(false);
   const [vaultCategory,setVaultCategory]=useState("logo");
   const [vaultUploading,setVaultUploading]=useState(false);
+  const [vaultError,setVaultError]=useState("");
   const [vaultPickerOpen,setVaultPickerOpen]=useState(false);
   const [vaultPickerLoading,setVaultPickerLoading]=useState(false);
 
@@ -1512,14 +1518,21 @@ export default function Gentagai(){
 
   async function uploadToVault(file,category){
     if(!file||!activeProfileId||!session?.user)return;
-    setVaultUploading(true);
+    setVaultUploading(true);setVaultError("");
     const url=await uploadFileToStorage(file,"vault");
     if(url){
       const{data,error}=await supabase.from("brand_vault_assets").insert({
         user_id:session.user.id,brand_profile_id:activeProfileId,category,
         name:file.name,url,file_type:file.type,size_kb:Math.round(file.size/1024),
       }).select().single();
-      if(!error&&data)setVaultAssets(v=>[data,...v]);
+      if(!error&&data){
+        setVaultAssets(v=>[data,...v]);
+      }else{
+        console.error("uploadToVault save failed:",error);
+        setVaultError("Uploaded, but couldn't save it to your Vault — try again.");
+      }
+    }else{
+      setVaultError("Upload failed — try again.");
     }
     setVaultUploading(false);
   }
@@ -1775,16 +1788,25 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     setCampaignPieces([]);
 
     const days=Array.from({length:cLength},(_,i)=>i+1);
+    const failedDays=[];
     for(const day of days){
       const theme=CAMPAIGN_THEMES[(day-1)%CAMPAIGN_THEMES.length];
       setCampaignBuilding(`Writing Day ${day} — ${theme}...`);
       const content=await callAPI(buildCampaignDayPrompt(theme,day));
-      const{data:piece}=await supabase.from("campaign_pieces").insert({
+      const{data:piece,error:pieceErr}=await supabase.from("campaign_pieces").insert({
         user_id:session.user.id,campaign_id:camp.id,day_number:day,day_theme:theme,content,status:"draft",
       }).select().single();
-      if(piece)setCampaignPieces(p=>[...p,piece].sort((a,b)=>a.day_number-b.day_number));
+      if(piece){
+        setCampaignPieces(p=>[...p,piece].sort((a,b)=>a.day_number-b.day_number));
+      }else{
+        console.error(`Campaign day ${day} failed to save:`,pieceErr);
+        failedDays.push(day);
+      }
     }
     setCampaignBuilding("");
+    if(failedDays.length){
+      setCampaignError(`Day${failedDays.length>1?"s":""} ${failedDays.join(", ")} didn't save — you can re-open this campaign and add ${failedDays.length>1?"them":"it"} manually, or try rebuilding.`);
+    }
   }
 
   async function openCampaign(camp){
@@ -1842,7 +1864,12 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
       comments:Number(draft.comments)||0,shares:Number(draft.shares)||0,
       notes:draft.notes||"",
     }).eq("id",log.id).select().single();
-    if(!error&&data)setPieceMetrics(m=>({...m,[pieceId]:data}));
+    if(!error&&data){
+      setPieceMetrics(m=>({...m,[pieceId]:data}));
+    }else{
+      console.error("savePerformanceLog failed:",error);
+      setCampaignError("Couldn't save those numbers — try again.");
+    }
     setSavingMetrics(s=>({...s,[pieceId]:false}));
   }
 
@@ -1853,6 +1880,9 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     if(!error&&data){
       setCampaignPieces(p=>p.map(x=>x.id===data.id?data:x));
       if(next==="published")ensurePerformanceLog(data);
+    }else{
+      console.error("advancePieceStatus failed:",error);
+      setCampaignError("Couldn't update that piece's status — try again.");
     }
   }
 
@@ -3294,6 +3324,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   <input type="file" accept="image/*,video/*" style={{display:"none"}} disabled={vaultUploading}
                     onChange={e=>{if(e.target.files?.[0])uploadToVault(e.target.files[0],vaultCategory);}}/>
                 </label>
+                {vaultError&&<div style={{fontSize:12,color:"#ff6a6a",marginTop:10}}>{vaultError}</div>}
               </>)}
             </div>
           </div>
