@@ -1869,7 +1869,11 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
       window.history.replaceState({},"",window.location.pathname);
       refetchPostizStatus();
     }else if(params.get("postiz_error")){
-      alert("Postiz connection failed: "+params.get("postiz_error"));
+      const errCode=params.get("postiz_error");
+      const friendly=errCode==="postiz_unavailable"
+        ?"Postiz is temporarily unavailable — this is on their end, not yours. Please try connecting again in a minute."
+        :"Postiz connection failed: "+errCode;
+      alert(friendly);
       window.history.replaceState({},"",window.location.pathname);
     }
   },[]);
