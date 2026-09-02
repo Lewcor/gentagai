@@ -3759,14 +3759,14 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 <div style={{position:"relative",flex:1,minWidth:0}}>
                   <div style={{fontSize:13,color:"#9B9FB0",marginBottom:8}}>{(()=>{const h=new Date().getHours();return h<12?"Good morning":h<18?"Good afternoon":"Good evening";})()}</div>
                   <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?30:44,color:"#F8F7FF",lineHeight:1.15,textShadow:"0 0 40px rgba(124,90,255,.3)"}}>
-                    {brand?`${brand} is loaded.`:"What are we building today?"}
+                    {brand?`${brand}, let's make noise today.`:"Let's make your brand impossible to ignore."}
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginTop:14}}>
                     <div style={{position:"relative",width:7,height:7}}>
                       <div className="pulse-ring" style={{inset:0,width:7,height:7,color:"#4ADE80"}}/>
                       <div style={{position:"relative",width:7,height:7,borderRadius:"50%",background:"#4ADE80",boxShadow:"0 0 10px #4ADE80"}}/>
                     </div>
-                    <span style={{fontSize:12.5,color:"#9BA0AC"}}>BISHOP CORE ONLINE</span>
+                    <span style={{fontSize:12.5,color:"#9BA0AC"}}>BISHOP MARKETING INTELLIGENCE ONLINE</span>
                   </div>
                 </div>
                 {!isMobile&&(
