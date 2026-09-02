@@ -14,6 +14,12 @@ export default async function handler(req, res) {
   const { userId } = req.query;
   if (!userId) return res.status(400).json({ error: "Missing userId" });
 
+  // This response is per-user and changes any time they (dis)connect a
+  // platform — it must never be served from a cache (browser or Vercel's
+  // edge). Without this, the browser can return a 304 with a stale cached
+  // body indefinitely, so a fresh Postiz connection never shows up here.
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+
   const { data: connection } = await supabase
     .from("postiz_connections")
     .select("postiz_token, connected_accounts, updated_at")
