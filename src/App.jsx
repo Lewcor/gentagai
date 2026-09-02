@@ -3626,9 +3626,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         <button onClick={()=>{setBrandLogo(null);setLogoPalette(null);setLogoStyleTags(null);setLogoSaved(false);}} style={{position:"absolute",top:8,right:8,background:"#ff2d2d",border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:"pointer"}}>✕</button>
                       </div>
                     )}
-                    <button className="gbtn" disabled={!brandLogo||!brandLogo.file||logoAnalyzing} onClick={analyzeAndSaveBrandLogo} style={{background:"linear-gradient(115deg,#E8C468,#B8863A)",color:"#0A0620"}}>
-                      {logoAnalyzing?"⟳ BISHOP is reading the mark...":logoSaved?"Re-analyze & Save":"Save to Brand Profile"}
-                    </button>
+                    {brandLogo.file&&(
+                      <button className="gbtn" disabled={logoAnalyzing} onClick={analyzeAndSaveBrandLogo} style={{background:"linear-gradient(115deg,#E8C468,#B8863A)",color:"#0A0620"}}>
+                        {logoAnalyzing?"⟳ BISHOP is reading the mark...":logoSaved?"Re-analyze & Save":"Save to Brand Profile"}
+                      </button>
+                    )}
 
                     {logoError&&<div style={{fontSize:12,color:"#ff6a6a",marginTop:14}}>{logoError}</div>}
 
