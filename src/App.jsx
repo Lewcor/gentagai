@@ -1652,14 +1652,26 @@ export default function Gentagai(){
   async function urlToBase64(url){
     try{
       const res=await fetch(url);
+      if(!res.ok){
+        console.error("urlToBase64: image fetch failed",res.status,url);
+        return null;
+      }
       const blob=await res.blob();
-      return await new Promise((resolve,reject)=>{
+      if(!blob||blob.size===0||!blob.type.startsWith("image/")){
+        console.error("urlToBase64: response wasn't a valid image",blob?.type,blob?.size);
+        return null;
+      }
+      const base64=await new Promise((resolve,reject)=>{
         const reader=new FileReader();
         reader.onload=()=>resolve(reader.result.split(",")[1]);
         reader.onerror=reject;
         reader.readAsDataURL(blob);
       });
-    }catch{return null;}
+      return {data:base64,mediaType:blob.type};
+    }catch(e){
+      console.error("urlToBase64 threw:",e);
+      return null;
+    }
   }
 
   async function analyzeProductWithBishop(){
@@ -1677,9 +1689,9 @@ Respond with ONLY valid JSON, no markdown fences, in exactly this shape:
 {"story":"2-3 plain-English sentences on what this product is, why it exists, and what makes it worth buying","customer":"2-3 sentences on who this is genuinely for, grounded in the brand's real audience — not a generic demographic","positioning":"2-3 sentences on how this product should be seen next to everything else the customer could buy instead"}`;
       let raw="";
       if(activeProduct.image_url){
-        const b64=await urlToBase64(activeProduct.image_url);
-        raw=b64
-          ?await callAPIContent([{type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},{type:"text",text:prompt}],1200)
+        const img=await urlToBase64(activeProduct.image_url);
+        raw=img
+          ?await callAPIContent([{type:"image",source:{type:"base64",media_type:img.mediaType,data:img.data}},{type:"text",text:prompt}],1200)
           :await callAPI(prompt);
       }else{
         raw=await callAPI(prompt);
