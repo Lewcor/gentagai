@@ -248,6 +248,11 @@ const AI_BRAINS = [
     link:"https://platform.openai.com/api-keys",
     apiEndpoint:"https://api.openai.com/v1/chat/completions",
   },
+  {
+    id:"bishop",label:"BISHOP",sub:"All AI",color:"#00ff88",icon:"👑",
+    desc:"Claude + every connected AI — BISHOP picks the best answer",
+    model:"multi",free:true,
+  },
 ];
 const TONES = [
   {id:"hype",label:"🔥 Hype",color:"#ff4500",free:true},
@@ -828,6 +833,55 @@ async function callChatGPTVision(prompt,base64,mimeType,apiKey,onChunk){
     }
   }
   return full;
+}
+
+// BISHOP Multi-AI — fires the same prompt at every connected model in
+// parallel (never sequentially, to avoid stacking up latency), then has
+// Claude judge/synthesize the single best answer via /api/bishop-judge.
+// If only one model actually responds, skip the judge call entirely —
+// no reason to spend an extra call judging a single option. If every
+// model fails, or the judge call itself fails, falls back gracefully
+// instead of losing the person's work.
+async function runBishopMulti({prompt,geminiKey,chatgptKey,visionData,maxTokens=2048},onChunk){
+  const jobs=[];
+  if(visionData){
+    jobs.push(callClaudeVision([
+      {type:"image",source:{type:"base64",media_type:visionData.type,data:visionData.base64}},
+      {type:"text",text:prompt}
+    ],()=>{},maxTokens));
+    if(geminiKey)jobs.push(callGeminiVision(prompt,visionData.base64,visionData.type,geminiKey,()=>{}).catch(()=>""));
+    if(chatgptKey)jobs.push(callChatGPTVision(prompt,visionData.base64,visionData.type,chatgptKey,()=>{}).catch(()=>""));
+  }else{
+    jobs.push(callAPI(prompt));
+    if(geminiKey)jobs.push(callGemini(prompt,geminiKey,()=>{}).catch(()=>""));
+    if(chatgptKey)jobs.push(callChatGPT(prompt,chatgptKey,()=>{}).catch(()=>""));
+  }
+
+  const settled=await Promise.allSettled(jobs);
+  const candidates=settled
+    .filter(s=>s.status==="fulfilled"&&typeof s.value==="string"&&s.value.trim()&&!s.value.startsWith("⚠"))
+    .map(s=>s.value);
+
+  if(candidates.length===0){
+    const msg="⚠ All connected models failed to respond — try again.";
+    onChunk(msg);return msg;
+  }
+  if(candidates.length===1){
+    await typewriterReveal(candidates[0],onChunk);
+    return candidates[0];
+  }
+
+  try{
+    const res=await fetch("/api/bishop-judge",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt,candidates})});
+    const data=await res.json();
+    const final=res.ok&&data.result?data.result:candidates[0];
+    await typewriterReveal(final,onChunk);
+    return final;
+  }catch{
+    await typewriterReveal(candidates[0],onChunk);
+    return candidates[0];
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -2755,7 +2809,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
         let part="";
         if(uploadedImage){
-          if(aiBrain==="gemini"&&geminiKey){
+          if(aiBrain==="bishop"){
+            part=await runBishopMulti({prompt,geminiKey,chatgptKey,visionData:uploadedImage,maxTokens:ampTokens},onChunk);
+          }else if(aiBrain==="gemini"&&geminiKey){
             part=await callGeminiVision(prompt,uploadedImage.base64,uploadedImage.type,geminiKey,onChunk);
           }else if(aiBrain==="chatgpt"&&chatgptKey){
             part=await callChatGPTVision(prompt,uploadedImage.base64,uploadedImage.type,chatgptKey,onChunk);
@@ -2773,7 +2829,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           ];
           part=await callClaudeVision(content,onChunk,ampTokens);
         }else{
-          if(aiBrain==="gemini"&&geminiKey) part=await callGemini(prompt,geminiKey,onChunk);
+          if(aiBrain==="bishop") part=await runBishopMulti({prompt,geminiKey,chatgptKey,maxTokens:ampTokens},onChunk);
+          else if(aiBrain==="gemini"&&geminiKey) part=await callGemini(prompt,geminiKey,onChunk);
           else if(aiBrain==="chatgpt"&&chatgptKey) part=await callChatGPT(prompt,chatgptKey,onChunk);
           else part=await streamAPI(prompt,onChunk);
         }
