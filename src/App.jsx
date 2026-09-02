@@ -3758,8 +3758,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 <div style={{position:"absolute",top:-30,left:180,width:180,height:180,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,200,255,.18),transparent 70%)",filter:"blur(8px)",pointerEvents:"none"}}/>
                 <div style={{position:"relative",flex:1,minWidth:0}}>
                   <div style={{fontSize:13,color:"#9B9FB0",marginBottom:8}}>{(()=>{const h=new Date().getHours();return h<12?"Good morning":h<18?"Good afternoon":"Good evening";})()}</div>
-                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?30:44,color:"#F8F7FF",lineHeight:1.15,textShadow:"0 0 40px rgba(124,90,255,.3)"}}>
-                    {brand?`${brand}, let's make noise today.`:"Let's make your brand impossible to ignore."}
+                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?24:32,color:"#F8F7FF",lineHeight:1.15,textShadow:"0 0 40px rgba(124,90,255,.3)"}}>
+                    {brand?`${brand}, Let's Make Noise Today.`:"Let's Make Your Brand Impossible To Ignore."}
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginTop:14}}>
                     <div style={{position:"relative",width:7,height:7}}>
