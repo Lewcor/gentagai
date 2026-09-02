@@ -1132,25 +1132,30 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
         {/* POSTIZ CONNECTION — only relevant once signed in on a paid plan */}
         {session&&plan!=="free"&&(
           <div style={{background:"#1a1d24",border:"1px solid #24272E",borderRadius:8,padding:"14px",marginBottom:20}}>
-            <div style={{fontSize:11,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:8}}>Social Auto-Publish</div>
-            {postizStatus?.connected&&(
-              <div style={{fontSize:13,color:"#00ff88",marginBottom:postizStatus.integrations?.length?0:10}}>✓ Postiz connected — {postizStatus.integrations?.length||0} account(s) linked</div>
+            <div style={{fontSize:11,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:8}}>Connected Platforms</div>
+            {postizStatus?.integrations?.length>0?(
+              <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:10}}>
+                {postizStatus.integrations.map(intg=>(
+                  <div key={intg.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",background:"#0E1013",border:"1px solid #24272E",borderRadius:6}}>
+                    {intg.picture&&<img src={intg.picture} alt="" style={{width:24,height:24,borderRadius:"50%",flexShrink:0}}/>}
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:12.5,color:"#F0F1F4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{intg.name||intg.username||intg.identifier}</div>
+                      <div style={{fontSize:10,color:"#565A64",textTransform:"uppercase",letterSpacing:1}}>{intg.identifier||intg.platform||""}</div>
+                    </div>
+                    <button disabled={postizDisconnecting[intg.id]} onClick={()=>disconnectPostizAccount(intg.id)}
+                      style={{fontSize:10.5,padding:"5px 10px",border:"1px solid #ff6a6a44",background:"transparent",color:"#ff6a6a",borderRadius:4,cursor:postizDisconnecting[intg.id]?"default":"pointer",flexShrink:0,fontFamily:"inherit",opacity:postizDisconnecting[intg.id]?.5:1}}>
+                      {postizDisconnecting[intg.id]?"...":"Disconnect"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ):(
+              <div style={{fontSize:12,color:"#82858C",lineHeight:1.5,marginBottom:10}}>{postizStatus?.connected?"No social accounts linked yet — connect one to auto-publish.":"Connect a platform to auto-publish generated content instead of copy-pasting."}</div>
             )}
-            {(!postizStatus?.integrations||postizStatus.integrations.length===0)&&(
-              <>
-                <div style={{fontSize:12,color:"#82858C",lineHeight:1.5,marginBottom:10}}>{postizStatus?.connected?"No social accounts linked yet — connect one to auto-publish.":"Connect your Postiz account to auto-publish generated content instead of copy-pasting."}</div>
-                <a href={`/api/postiz-connect?userId=${session.user.id}`}
-                  style={{display:"block",textAlign:"center",padding:"9px",border:"1px solid #00ff8855",background:"transparent",color:"#00ff88",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",textDecoration:"none"}}>
-                  Connect via Postiz
-                </a>
-              </>
-            )}
-            {postizStatus?.connected&&postizStatus.integrations?.length>0&&(
-              <a href={`/api/postiz-connect?userId=${session.user.id}`}
-                style={{display:"block",textAlign:"center",padding:"7px",border:"1px solid #24272E",background:"transparent",color:"#6B6F7A",fontSize:11,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",textDecoration:"none",marginTop:8}}>
-                + Connect another account
-              </a>
-            )}
+            <a href={`/api/postiz-connect?userId=${session.user.id}`}
+              style={{display:"block",textAlign:"center",padding:postizStatus?.integrations?.length>0?"7px":"9px",border:postizStatus?.integrations?.length>0?"1px solid #24272E":"1px solid #00ff8855",background:"transparent",color:postizStatus?.integrations?.length>0?"#6B6F7A":"#00ff88",fontSize:postizStatus?.integrations?.length>0?11:12,letterSpacing:postizStatus?.integrations?.length>0?1:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",textDecoration:"none"}}>
+              {postizStatus?.integrations?.length>0?"+ Connect another account":"Connect via Postiz"}
+            </a>
           </div>
         )}
 
@@ -1377,6 +1382,29 @@ export default function Gentagai(){
     if(!session?.user)return;
     fetch(`/api/postiz-integrations?userId=${session.user.id}`,{cache:"no-store"})
       .then(r=>r.json()).then(setPostizStatus).catch(()=>{});
+  }
+
+  const [postizDisconnecting,setPostizDisconnecting]=useState({});
+  async function disconnectPostizAccount(integrationId){
+    if(!session?.user)return;
+    setPostizDisconnecting(d=>({...d,[integrationId]:true}));
+    try{
+      const res=await fetch("/api/postiz-disconnect",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({userId:session.user.id,integrationId}),
+      });
+      const data=await res.json();
+      if(res.ok){
+        setPostizStatus(data);
+      }else{
+        console.error("disconnectPostizAccount failed:",data.error);
+        alert(data.error||"Couldn't disconnect that account — try again.");
+      }
+    }catch(e){
+      console.error("disconnectPostizAccount threw:",e);
+      alert("Couldn't disconnect that account — try again.");
+    }
+    setPostizDisconnecting(d=>({...d,[integrationId]:false}));
   }
 
   useEffect(()=>{
@@ -2390,7 +2418,7 @@ Site text:
     if(!session?.user)return;
     setLearnAnalyzing(true);setLearnSuggestion(null);setLearnError("");
     try{
-      const igIntegration=postizStatus.integrations?.find(i=>(i.platform||"").toLowerCase().includes("instagram"));
+      const igIntegration=postizStatus.integrations?.find(i=>(i.identifier||i.platform||"").toLowerCase().includes("instagram"));
       const res=await fetch("/api/postiz-posts",{
         method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({userId:session.user.id,integrationId:igIntegration?.id}),
@@ -4979,8 +5007,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                               <div key={intg.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"#0E1013",border:"1px solid #24272E",borderRadius:6}}>
                                 {intg.picture&&<img src={intg.picture} alt="" style={{width:26,height:26,borderRadius:"50%",flexShrink:0}}/>}
                                 <div style={{flex:1,minWidth:0}}>
-                                  <div style={{fontSize:13,color:"#F0F1F4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{intg.name||intg.username||intg.platform}</div>
-                                  <div style={{fontSize:10,color:"#565A64",textTransform:"uppercase",letterSpacing:1}}>{intg.platform||""}</div>
+                                  <div style={{fontSize:13,color:"#F0F1F4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{intg.name||intg.username||intg.identifier}</div>
+                                  <div style={{fontSize:10,color:"#565A64",textTransform:"uppercase",letterSpacing:1}}>{intg.identifier||intg.platform||""}</div>
                                 </div>
                                 {isExpired?(
                                   <a href={`/api/postiz-connect?userId=${session.user.id}`}
