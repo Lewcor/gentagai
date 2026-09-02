@@ -20,20 +20,35 @@ export default async function handler(req, res) {
   }
   try {
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-    const tokenRes = await fetch("https://api.postiz.com/oauth/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        grant_type: "authorization_code",
-        code,
-        client_id: process.env.POSTIZ_CLIENT_ID,
-        client_secret: process.env.POSTIZ_CLIENT_SECRET,
-      }),
-    });
+
+    // Postiz's /oauth/token endpoint is known to occasionally return a
+    // transient 502 ("Application failed to respond") — see their own
+    // GitHub issues. A 502/503/504 is an infra-level failure, not a
+    // rejection of our request, so it's safe to retry once before giving
+    // up and sending the user back to a real error.
+    let tokenRes, tokenBodyText;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      tokenRes = await fetch("https://api.postiz.com/oauth/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          grant_type: "authorization_code",
+          code,
+          client_id: process.env.POSTIZ_CLIENT_ID,
+          client_secret: process.env.POSTIZ_CLIENT_SECRET,
+        }),
+      });
+      if (tokenRes.ok) break;
+      tokenBodyText = await tokenRes.text();
+      const isTransient = [502, 503, 504].includes(tokenRes.status);
+      if (!isTransient || attempt === 1) break;
+      console.warn(`Postiz token exchange got ${tokenRes.status}, retrying once:`, tokenBodyText);
+      await new Promise(r => setTimeout(r, 900));
+    }
     if (!tokenRes.ok) {
-      const errText = await tokenRes.text();
-      console.error("Postiz token exchange failed:", errText);
-      return res.redirect(302, `${process.env.PUBLIC_APP_URL}/?postiz_error=token_exchange_failed`);
+      console.error("Postiz token exchange failed:", tokenBodyText);
+      const reason = [502, 503, 504].includes(tokenRes.status) ? "postiz_unavailable" : "token_exchange_failed";
+      return res.redirect(302, `${process.env.PUBLIC_APP_URL}/?postiz_error=${reason}`);
     }
     const tokenData = await tokenRes.json();
     const integrationsRes = await fetch("https://api.postiz.com/public/v1/integrations", {
