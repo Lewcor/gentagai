@@ -525,39 +525,19 @@ Native-feel note: [how to make this not look like an ad]
 
     trending_strategy:
 visualDirective+
-`Create a complete, deep trending + viral content strategy for this ${mediaType}.
+`Give a short, sharp trending + viral content take on this ${mediaType} — like a sharp friend who actually knows social media texting you their read, not a slide deck. One confident answer per section below, 1-3 sentences each, natural spoken tone, no sub-bullets, no numbered option lists, no headers like "Step 1/Step 2." Total under 130 words.
 
 ── TREND ALIGNMENT
-Current trends on ${platform} this ${mediaType} genuinely fits (not generic — name real formats)
-Audio/sound style recommendations for max algorithmic reach
-Challenge or format to piggyback on
+The one real trend or format on ${platform} this genuinely fits right now — name it specifically, tied to something actually in the image.
 
-── ALGORITHM TRIGGERS
-First 60 minutes action plan after posting:
-- Step 1: [action]
-- Step 2: [action]
-- Step 3: [action]
-- Step 4: [action]
-Engagement triggers that boost reach (specific to what's in this visual)
+── FIRST MOVE
+The single best thing to do in the first hour after posting — one concrete action, not a checklist.
 
-── CONTENT SERIES
-7 follow-up pieces that build on this exact ${mediaType} — name each one specifically
-30-day content calendar structure (weeks 1-4 themes)
+── WHAT MAKES PEOPLE ENGAGE
+The one specific detail in this exact visual that'll get comments or saves, and why.
 
-── CROSS-PLATFORM REPURPOSE
-TikTok → [specific adaptation]
-Instagram Reels → [specific adaptation]
-YouTube Shorts → [specific adaptation]
-Pinterest → [specific adaptation]
-Twitter/X → [specific adaptation]
-LinkedIn (if relevant to niche) → [specific adaptation]
-
-── VIRAL ACCELERATION
-3 collab/duet/stitch ideas, specific to this visual's angle
-Influencer outreach template (short DM script)
-
-── RISK CHECK
-[One honest note on anything that might underperform or feel off-trend, and how to adjust]`,
+── NEXT POST
+The one best follow-up piece to post after this — specific, not generic.`,
 
     full_suite:
 visualDirective+
