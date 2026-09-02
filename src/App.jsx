@@ -1073,7 +1073,7 @@ function UpgradeModal({onClose,onUpgrade,featureName}){
 // ACCOUNT PANEL
 // ─────────────────────────────────────────────
 function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose,
-  session,authEmail,setAuthEmail,sendMagicLink,magicLinkSent,authLoading,postizStatus}){
+  session,authEmail,setAuthEmail,sendMagicLink,magicLinkSent,authLoading,postizStatus,postizDisconnecting,disconnectPostizAccount}){
   const p=PLANS[plan]||PLANS.free;
   const pct=gensLimit===Infinity?0:Math.min(100,Math.round((gensUsed/gensLimit)*100));
   const [agreedToTerms,setAgreedToTerms]=useState(false);
@@ -1133,8 +1133,8 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
         {session&&plan!=="free"&&(
           <div style={{background:"#1a1d24",border:"1px solid #24272E",borderRadius:8,padding:"14px",marginBottom:20}}>
             <div style={{fontSize:11,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:8}}>Connected Platforms</div>
-            {postizStatus?.integrations?.length>0?(
-              <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:10}}>
+            {postizStatus?.integrations?.length>0&&(
+              <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
                 {postizStatus.integrations.map(intg=>(
                   <div key={intg.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",background:"#0E1013",border:"1px solid #24272E",borderRadius:6}}>
                     {intg.picture&&<img src={intg.picture} alt="" style={{width:24,height:24,borderRadius:"50%",flexShrink:0}}/>}
@@ -1142,20 +1142,49 @@ function AccountPanel({plan,billing,gensUsed,gensLimit,onManage,onLogout,onClose
                       <div style={{fontSize:12.5,color:"#F0F1F4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{intg.name||intg.username||intg.identifier}</div>
                       <div style={{fontSize:10,color:"#565A64",textTransform:"uppercase",letterSpacing:1}}>{intg.identifier||intg.platform||""}</div>
                     </div>
-                    <button disabled={postizDisconnecting[intg.id]} onClick={()=>disconnectPostizAccount(intg.id)}
-                      style={{fontSize:10.5,padding:"5px 10px",border:"1px solid #ff6a6a44",background:"transparent",color:"#ff6a6a",borderRadius:4,cursor:postizDisconnecting[intg.id]?"default":"pointer",flexShrink:0,fontFamily:"inherit",opacity:postizDisconnecting[intg.id]?.5:1}}>
-                      {postizDisconnecting[intg.id]?"...":"Disconnect"}
+                    <button disabled={postizDisconnecting?.[intg.id]} onClick={()=>disconnectPostizAccount(intg.id)}
+                      style={{fontSize:10.5,padding:"5px 10px",border:"1px solid #ff6a6a44",background:"transparent",color:"#ff6a6a",borderRadius:4,cursor:postizDisconnecting?.[intg.id]?"default":"pointer",flexShrink:0,fontFamily:"inherit",opacity:postizDisconnecting?.[intg.id]?.5:1}}>
+                      {postizDisconnecting?.[intg.id]?"...":"Disconnect"}
                     </button>
                   </div>
                 ))}
               </div>
-            ):(
-              <div style={{fontSize:12,color:"#82858C",lineHeight:1.5,marginBottom:10}}>{postizStatus?.connected?"No social accounts linked yet — connect one to auto-publish.":"Connect a platform to auto-publish generated content instead of copy-pasting."}</div>
             )}
-            <a href={`/api/postiz-connect?userId=${session.user.id}`}
-              style={{display:"block",textAlign:"center",padding:postizStatus?.integrations?.length>0?"7px":"9px",border:postizStatus?.integrations?.length>0?"1px solid #24272E":"1px solid #00ff8855",background:"transparent",color:postizStatus?.integrations?.length>0?"#6B6F7A":"#00ff88",fontSize:postizStatus?.integrations?.length>0?11:12,letterSpacing:postizStatus?.integrations?.length>0?1:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",textDecoration:"none"}}>
-              {postizStatus?.integrations?.length>0?"+ Connect another account":"Connect via Postiz"}
-            </a>
+
+            {postizStatus?.connected?(
+              /* One-time handshake already done — show real per-platform buttons
+                 that jump straight to that platform's own login, no detour
+                 through Postiz's generic picker screen. */
+              <>
+                <div style={{fontSize:11,color:"#565A64",marginBottom:8}}>Add another platform:</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                  {[
+                    {id:"instagram",label:"Instagram",icon:"📷"},
+                    {id:"tiktok",label:"TikTok",icon:"🎵"},
+                    {id:"x",label:"X / Twitter",icon:"𝕏"},
+                    {id:"facebook",label:"Facebook",icon:"📘"},
+                    {id:"linkedin",label:"LinkedIn",icon:"💼"},
+                    {id:"youtube",label:"YouTube",icon:"▶️"},
+                    {id:"pinterest",label:"Pinterest",icon:"📌"},
+                    {id:"reddit",label:"Reddit",icon:"👽"},
+                  ].filter(pl=>!postizStatus.integrations?.some(intg=>(intg.identifier||intg.platform||"").toLowerCase()===pl.id))
+                  .map(pl=>(
+                    <a key={pl.id} href={`/api/postiz-social-connect?userId=${session.user.id}&platform=${pl.id}`}
+                      style={{display:"flex",alignItems:"center",gap:7,padding:"8px 10px",border:"1px solid #24272E",background:"#0E1013",color:"#D7D9DE",fontSize:12,borderRadius:6,textDecoration:"none",fontFamily:"inherit"}}>
+                      <span style={{fontSize:14}}>{pl.icon}</span>{pl.label}
+                    </a>
+                  ))}
+                </div>
+              </>
+            ):(
+              <>
+                <div style={{fontSize:12,color:"#82858C",lineHeight:1.5,marginBottom:10}}>One-time setup: link your Postiz account once, then connect Instagram, TikTok, and every other platform individually — no repeat setup.</div>
+                <a href={`/api/postiz-connect?userId=${session.user.id}`}
+                  style={{display:"block",textAlign:"center",padding:"9px",border:"1px solid #00ff8855",background:"transparent",color:"#00ff88",fontSize:12,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",fontFamily:"inherit",textDecoration:"none"}}>
+                  Set Up Social Connections
+                </a>
+              </>
+            )}
           </div>
         )}
 
@@ -3008,7 +3037,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       {showAccount&&<AccountPanel plan={plan} billing={billing} gensUsed={gensUsed} gensLimit={genLimit}
         session={session} authEmail={authEmail} setAuthEmail={setAuthEmail}
         sendMagicLink={sendMagicLink} magicLinkSent={magicLinkSent} authLoading={authLoading}
-        postizStatus={postizStatus}
+        postizStatus={postizStatus} postizDisconnecting={postizDisconnecting} disconnectPostizAccount={disconnectPostizAccount}
         onManage={()=>{setShowAccount(false);setScreen("pricing");}}
         onLogout={()=>{setShowAccount(false);setScreen("pricing");signOutAccount();}}
         onClose={()=>setShowAccount(false)}/>}
