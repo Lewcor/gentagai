@@ -1349,6 +1349,7 @@ export default function Gentagai(){
   const [authLoading,setAuthLoading]=useState(false);
   const [postizStatus,setPostizStatus]=useState({connected:false,integrations:[]});
   const [postizPublishing,setPostizPublishing]=useState({});
+  const [postizPublishError,setPostizPublishError]=useState("");
   const [nicheOpen,setNicheOpen]=useState(false);
   const [productTypeOpen,setProductTypeOpen]=useState(false);
   const [platformOpen,setPlatformOpen]=useState(false);
@@ -2521,6 +2522,7 @@ Site text:
     const mediaUrl=uploadedImage?.storageUrl||uploadedVideo?.storageUrl||null;
 
     setPostizPublishing(s=>({...s,[integration.id]:"publishing"}));
+    setPostizPublishError("");
     try{
       const res=await fetch("/api/postiz-publish",{
         method:"POST",
@@ -2538,6 +2540,8 @@ Site text:
           setPostizPublishing(s=>({...s,[integration.id]:"expired"}));
         }else{
           setPostizPublishing(s=>({...s,[integration.id]:"error"}));
+          const reason=typeof data.error==="string"?data.error:data.error?.message||data.error?.error||"Something didn't go through — try again in a moment.";
+          setPostizPublishError(reason);
           console.error("Postiz publish failed:",data);
         }
         return;
@@ -2545,6 +2549,7 @@ Site text:
       setPostizPublishing(s=>({...s,[integration.id]:"done"}));
     }catch(err){
       setPostizPublishing(s=>({...s,[integration.id]:"error"}));
+      setPostizPublishError("Connection error — try again in a moment.");
       console.error("Postiz publish error:",err);
     }
   }
@@ -5097,7 +5102,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                           })}
                         </div>
                         {Object.values(postizPublishing).some(s=>s==="error")&&
-                          <div style={{fontSize:11,color:"#ff6a6a",marginTop:10}}>Something didn't go through on one account — try again in a moment.</div>}
+                          <div style={{fontSize:11,color:"#ff6a6a",marginTop:10}}>{postizPublishError||"Something didn't go through on one account — try again in a moment."}</div>}
                       </div>
                     )}
 
