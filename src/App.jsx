@@ -38,6 +38,61 @@ async function uploadFileToStorage(file, folder) {
 }
 
 // ─────────────────────────────────────────────
+// Logo palette extraction — samples the uploaded mark's real pixels
+// client-side (no serverless round trip, no extra timeout risk) and
+// returns the dominant colors ignoring transparent/near-white padding.
+// ─────────────────────────────────────────────
+function extractLogoPalette(dataUrl, maxColors = 5) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const size = 120; // downsample — palette doesn't need full resolution
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
+        const { data } = ctx.getImageData(0, 0, size, size);
+
+        // Bucket into coarse RGB bins so near-identical shades group together.
+        const buckets = new Map();
+        const step = 24;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+          if (a < 40) continue; // skip transparent background
+          const isNearWhite = r > 245 && g > 245 && b > 245;
+          if (isNearWhite) continue; // skip white canvas padding
+          const key = [
+            Math.round(r / step) * step,
+            Math.round(g / step) * step,
+            Math.round(b / step) * step,
+          ].join(",");
+          buckets.set(key, (buckets.get(key) || 0) + 1);
+        }
+
+        const total = [...buckets.values()].reduce((s, v) => s + v, 0) || 1;
+        const sorted = [...buckets.entries()].sort((a, b) => b[1] - a[1]).slice(0, maxColors);
+        const toHex = (n) => n.toString(16).padStart(2, "0");
+        const palette = sorted.map(([key, count]) => {
+          const [r, g, b] = key.split(",").map(Number);
+          return {
+            hex: `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase(),
+            pct: Math.round((count / total) * 100),
+          };
+        });
+        resolve(palette);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    img.onerror = () => reject(new Error("Couldn't load image for palette read"));
+    img.src = dataUrl;
+  });
+}
+
+// ─────────────────────────────────────────────
 // CONFIG — paste your Stripe Payment Links here
 // ─────────────────────────────────────────────
 const STRIPE_LINKS = {
@@ -1366,12 +1421,21 @@ export default function Gentagai(){
   const [vizAnalyzingBrand,setVizAnalyzingBrand]=useState(false);
   const [vizBrandError,setVizBrandError]=useState("");
   const [learnOpen,setLearnOpen]=useState(false);
-  const [learnMode,setLearnMode]=useState("text"); // text | photo | instagram
+  const [learnMode,setLearnMode]=useState("text"); // text | photo | logo | instagram
   const [learnText,setLearnText]=useState("");
   const [learnImage,setLearnImage]=useState(null);
   const [learnAnalyzing,setLearnAnalyzing]=useState(false);
   const [learnError,setLearnError]=useState("");
   const [learnSuggestion,setLearnSuggestion]=useState(null);
+  // ── Brand logo — separate from the photo path: a logo is a fixed visual anchor
+  // (palette + mark geometry), not a mood photo BISHOP infers vibe from ──
+  const [brandLogo,setBrandLogo]=useState(null); // {name,url(dataURL),base64,type}
+  const [logoAnalyzing,setLogoAnalyzing]=useState(false);
+  const [logoError,setLogoError]=useState("");
+  const [logoPalette,setLogoPalette]=useState(null); // [{hex,pct}]
+  const [logoStyleTags,setLogoStyleTags]=useState(null); // string[]
+  const [logoNotes,setLogoNotes]=useState("");
+  const [logoSaved,setLogoSaved]=useState(false);
   const brandInputRef=useRef(null);
   const [brandProfiles,setBrandProfiles]=useState([]);
   const [activeProfileId,setActiveProfileId]=useState(null);
@@ -1528,12 +1592,23 @@ export default function Gentagai(){
     setKeywords(profile.keywords||"");
     setGoal(profile.goal||"");
     setActiveProfileId(profile.id);
+    // Rehydrate the saved logo (if any) so it's visible without re-uploading
+    if(profile.logo_url){
+      setBrandLogo({name:"saved-logo",url:profile.logo_url,base64:null,type:null,file:null});
+      setLogoPalette(profile.logo_palette||null);
+      setLogoStyleTags(profile.logo_style_tags||null);
+      setLogoNotes(profile.logo_notes||"");
+      setLogoSaved(true);
+    }else{
+      setBrandLogo(null);setLogoPalette(null);setLogoStyleTags(null);setLogoNotes("");setLogoSaved(false);
+    }
     setProfileSwitcherOpen(false);
     setBriefStep("done");
   }
 
   function startNewBrandProfile(){
     setBrand("");setNiche("");setAudience("");setTone(["hype"]);setKeywords("");setGoal("");
+    setBrandLogo(null);setLogoPalette(null);setLogoStyleTags(null);setLogoNotes("");setLogoSaved(false);setLogoError("");
     setActiveProfileId(null);
     setProfileSwitcherOpen(false);
     setMode("brand-brief");
@@ -2475,6 +2550,65 @@ Site text:
       setLearnError("Couldn't read a clear brand identity from that photo — try a clearer shot or a different one.");
     }
     setLearnAnalyzing(false);
+  }
+
+  // ── PATH: Upload the brand logo — a fixed visual anchor, not a mood photo.
+  // Extracts a real palette client-side, has BISHOP read the mark's style,
+  // then persists both permanently onto the brand profile. ──
+  function handleBrandLogoFile(file) {
+    if (!file || !file.type.startsWith("image/")) return;
+    setLogoSaved(false); setLogoError(""); setLogoPalette(null); setLogoStyleTags(null);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setBrandLogo({ name: file.name, url: e.target.result, base64: e.target.result.split(",")[1], type: file.type, file });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function analyzeAndSaveBrandLogo() {
+    if (!brandLogo || !activeProfileId || !session?.user) return;
+    setLogoAnalyzing(true); setLogoError("");
+    try {
+      const [palette, styleRaw, publicUrl] = await Promise.all([
+        extractLogoPalette(brandLogo.url, 5),
+        callAPIContent(
+          [
+            { type: "image", source: { type: "base64", media_type: brandLogo.type, data: brandLogo.base64 } },
+            {
+              type: "text",
+              text: `You are BISHOP. Look at this brand logo/mark and read its design language — this is the brand's fixed visual anchor, so be precise, not generic. Respond with ONLY valid JSON, nothing else, no markdown fences, in exactly this shape:
+{"styleTags":["3-4 short tags describing the mark's geometry and feel, e.g. angular, negative-space cut, hand-drawn, minimal, ornate, metallic"],"visualNotes":"1-2 sentences on what makes this specific mark distinctive, for BISHOP to reference when generating anything on-brand"}`,
+            },
+          ],
+          800
+        ),
+        uploadFileToStorage(brandLogo.file, "logos"),
+      ]);
+
+      const style = JSON.parse(styleRaw.replace(/```json|```/g, "").trim());
+      if (!publicUrl) throw new Error("upload_failed");
+
+      const { error } = await supabase
+        .from("brand_profiles")
+        .update({
+          logo_url: publicUrl,
+          logo_palette: palette,
+          logo_style_tags: style.styleTags || [],
+          logo_notes: style.visualNotes || "",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", activeProfileId);
+      if (error) throw error;
+
+      setLogoPalette(palette);
+      setLogoStyleTags(style.styleTags || []);
+      setLogoNotes(style.visualNotes || "");
+      setLogoSaved(true);
+    } catch (err) {
+      console.error("analyzeAndSaveBrandLogo failed:", err);
+      setLogoError("Couldn't read or save that logo — try a clearer file (PNG or SVG works best).");
+    }
+    setLogoAnalyzing(false);
   }
 
   // ── PATH 3: Pull real captions from their connected Instagram via Postiz ──
@@ -3434,18 +3568,22 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               <div style={{marginBottom:28}}>
                 <div style={{fontSize:11,letterSpacing:2,color:"#4DFFB8",textTransform:"uppercase",marginBottom:8}}>Brand · BISHOP Learning Chamber</div>
                 <div style={{fontFamily:"'Fraunces',serif",fontWeight:500,fontStyle:"italic",fontSize:isMobile?26:34,color:"#F8F7FF",textShadow:"0 0 30px rgba(77,255,184,.25)"}}>Teach BISHOP</div>
-                <div style={{fontSize:13.5,color:"#9591AC",marginTop:8}}>Paste a description, upload a photo, or connect Instagram — BISHOP reads your real voice, never guesses.</div>
+                <div style={{fontSize:13.5,color:"#9591AC",marginTop:8}}>Paste a description, upload a photo, upload your logo, or connect Instagram — BISHOP reads your real voice, never guesses.</div>
               </div>
 
-              <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:12,marginBottom:24}}>
-                {[{id:"text",label:"Paste Description"},{id:"photo",label:"Upload Photo"},{id:"instagram",label:"Connect Instagram"}].map(t=>(
-                  <div key={t.id} onClick={()=>{setLearnMode(t.id);setLearnSuggestion(null);setLearnError("");}} className={learnMode===t.id?"grad-shimmer":""}
-                    style={{padding:1.4,borderRadius:18,backgroundImage:learnMode===t.id?"linear-gradient(115deg,#4DFFB8,#00D4FF,#4DFFB8)":"rgba(255,255,255,.08)",cursor:"pointer"}}>
+              <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:12,marginBottom:24}}>
+                {[{id:"text",label:"Paste Description"},{id:"photo",label:"Upload Photo"},{id:"logo",label:"Upload Logo"},{id:"instagram",label:"Connect Instagram"}].map(t=>{
+                  const isLogo=t.id==="logo";
+                  const active=learnMode===t.id;
+                  const grad=isLogo?"linear-gradient(115deg,#E8C468,#B8863A,#E8C468)":"linear-gradient(115deg,#4DFFB8,#00D4FF,#4DFFB8)";
+                  return(
+                  <div key={t.id} onClick={()=>{setLearnMode(t.id);setLearnSuggestion(null);setLearnError("");}} className={active?"grad-shimmer":""}
+                    style={{padding:1.4,borderRadius:18,backgroundImage:active?grad:"rgba(255,255,255,.08)",cursor:"pointer"}}>
                     <div style={{background:"linear-gradient(165deg,#100B26,#0A0620)",borderRadius:17,padding:"18px 14px",textAlign:"center"}}>
-                      <div style={{fontSize:13.5,fontWeight:600,color:learnMode===t.id?"#4DFFB8":"#9BA0AC"}}>{t.label}</div>
+                      <div style={{fontSize:13.5,fontWeight:600,color:active?(isLogo?"#E8C468":"#4DFFB8"):"#9BA0AC"}}>{t.label}</div>
                     </div>
                   </div>
-                ))}
+                );})}
               </div>
 
               <div style={{background:"rgba(255,255,255,.04)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,.09)",borderRadius:20,padding:22}}>
@@ -3471,6 +3609,53 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   <button className="gbtn" disabled={!learnImage||learnAnalyzing} onClick={analyzeBrandFromPhoto} style={{background:"linear-gradient(115deg,#4DFFB8,#00D4FF)",color:"#0A0620"}}>
                     {learnAnalyzing?"⟳ BISHOP is reading...":"Learn My Brand"}
                   </button>
+                </>)}
+
+                {learnMode==="logo"&&(<>
+                  {!activeProfileId?(
+                    <div style={{fontSize:13,color:"#9BA0AC",lineHeight:1.6}}>Save a Brand Brief first — BISHOP needs a profile to attach the logo to.</div>
+                  ):(<>
+                    {!brandLogo?(
+                      <label style={{display:"block",border:"1.5px dashed rgba(232,196,104,.3)",borderRadius:16,padding:"28px 16px",textAlign:"center",cursor:"pointer",marginBottom:14}}>
+                        <div style={{fontSize:13,color:"#9BA0AC"}}>Tap to upload your logo — transparent PNG or SVG works best</div>
+                        <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])handleBrandLogoFile(e.target.files[0]);}}/>
+                      </label>
+                    ):(
+                      <div style={{marginBottom:14,borderRadius:16,overflow:"hidden",position:"relative",background:"rgba(255,255,255,.03)",padding:20,display:"flex",justifyContent:"center"}}>
+                        <img src={brandLogo.url} alt="" style={{maxWidth:"60%",maxHeight:180,objectFit:"contain",display:"block"}}/>
+                        <button onClick={()=>{setBrandLogo(null);setLogoPalette(null);setLogoStyleTags(null);setLogoSaved(false);}} style={{position:"absolute",top:8,right:8,background:"#ff2d2d",border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:"pointer"}}>✕</button>
+                      </div>
+                    )}
+                    <button className="gbtn" disabled={!brandLogo||!brandLogo.file||logoAnalyzing} onClick={analyzeAndSaveBrandLogo} style={{background:"linear-gradient(115deg,#E8C468,#B8863A)",color:"#0A0620"}}>
+                      {logoAnalyzing?"⟳ BISHOP is reading the mark...":logoSaved?"Re-analyze & Save":"Save to Brand Profile"}
+                    </button>
+
+                    {logoError&&<div style={{fontSize:12,color:"#ff6a6a",marginTop:14}}>{logoError}</div>}
+
+                    {logoPalette&&(
+                      <div style={{marginTop:20,paddingTop:20,borderTop:"1px solid rgba(255,255,255,.08)"}}>
+                        {logoSaved&&<div style={{fontSize:12,color:"#E8C468",fontWeight:600,marginBottom:14}}>✓ Saved — BISHOP will reference this mark going forward</div>}
+                        {logoNotes&&<div style={{fontSize:13,color:"#F0F1F4",lineHeight:1.6,marginBottom:16,fontStyle:"italic",fontFamily:"'Fraunces',serif"}}>"{logoNotes}"</div>}
+                        <div style={{fontSize:11,letterSpacing:1,color:"#82858C",textTransform:"uppercase",marginBottom:10}}>Palette pulled from the mark</div>
+                        <div style={{display:"flex",gap:10,marginBottom:18,flexWrap:"wrap"}}>
+                          {logoPalette.map((c,i)=>(
+                            <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,fontSize:11,color:"#9591AC"}}>
+                              <div style={{width:40,height:40,borderRadius:8,border:"1px solid rgba(255,255,255,.1)",background:c.hex}}/>
+                              {c.hex}
+                            </div>
+                          ))}
+                        </div>
+                        {logoStyleTags&&logoStyleTags.length>0&&(<>
+                          <div style={{fontSize:11,letterSpacing:1,color:"#82858C",textTransform:"uppercase",marginBottom:10}}>Style read</div>
+                          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+                            {logoStyleTags.map((tag,i)=>(
+                              <div key={i} style={{fontSize:12.5,padding:"7px 13px",borderRadius:999,border:"1px solid rgba(232,196,104,.35)",color:"#E8C468"}}>{tag}</div>
+                            ))}
+                          </div>
+                        </>)}
+                      </div>
+                    )}
+                  </>)}
                 </>)}
 
                 {learnMode==="instagram"&&(<>
