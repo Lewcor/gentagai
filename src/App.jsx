@@ -3843,16 +3843,17 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 )}
               </div>
 
-              {/* 5 large portal cards — glassmorphic gradient-edge tiles, LEWCOR digital-futures treatment */}
-              <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(5,1fr)",gap:14,marginBottom:32}}>
+              {/* 6 large portal cards — glassmorphic gradient-edge tiles, LEWCOR digital-futures treatment */}
+              <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:14,marginBottom:32}}>
                 {[
                   {id:"brand",label:"Brand",sub:"Teach BISHOP your business",mode:"brand-hq",grad:"linear-gradient(115deg,#F0C468,#C9A961,#F0C468)",icon:"◆"},
                   {id:"products",label:"Products",sub:"Manage what you sell",mode:"products",grad:"linear-gradient(115deg,#FF9D4D,#FF5F6D,#FF9D4D)",icon:"▣"},
                   {id:"create",label:"Create",sub:"Copy · Images · Video · A/B",mode:"copy",grad:"linear-gradient(115deg,#4DE8FF,#7C5AFF,#4DE8FF)",icon:"▶"},
                   {id:"campaigns",label:"Campaigns",sub:"Plan · Schedule · Publish",mode:"campaign",grad:"linear-gradient(115deg,#9D7CFF,#4D5FFF,#9D7CFF)",icon:"⬡"},
                   {id:"intelligence",label:"Intelligence",sub:"Performance · AI Viz",mode:"visibility",grad:"linear-gradient(115deg,#4DFFB8,#00D4FF,#4DFFB8)",icon:"◉"},
+                  {id:"social",label:"Social",sub:postizStatus.connected?`${postizStatus.integrations?.length||0} account(s) connected`:"Connect Instagram, TikTok & more",mode:null,grad:postizStatus.connected?"linear-gradient(115deg,#00ff88,#00D4FF,#00ff88)":"linear-gradient(115deg,#FF6A9D,#FF5F6D,#FF6A9D)",icon:"🔗"},
                 ].map(p=>(
-                  <div key={p.id} onClick={()=>{handleModeSwitch(p.mode);setActiveWorkspace(p.id);}} className="grad-shimmer"
+                  <div key={p.id} onClick={()=>{if(p.id==="social"){setShowAccount(true);}else{handleModeSwitch(p.mode);setActiveWorkspace(p.id);}}} className="grad-shimmer"
                     style={{padding:1.4,borderRadius:22,backgroundImage:p.grad,cursor:"pointer",transition:"opacity .25s ease, transform .25s ease, filter .25s ease",opacity:.75}}
                     onMouseEnter={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.transform="translateY(-4px) scale(1.015)";e.currentTarget.style.filter="drop-shadow(0 16px 36px rgba(124,90,255,.35))";}}
                     onMouseLeave={e=>{e.currentTarget.style.opacity=".75";e.currentTarget.style.transform="translateY(0) scale(1)";e.currentTarget.style.filter="none";}}>
@@ -3879,10 +3880,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   {label:"Generations",value:`${gensUsed}/${genLimit===Infinity?"∞":genLimit}`,color:"#00e5ff"},
                   {label:"Active Campaigns",value:String(campaignsList.length),color:campaignsList.length?"#7c83fd":"#565A64"},
                   {label:"AI Visibility",value:vizResult?`${vizResult.score}/100`:"Not scanned yet",color:vizResult?(vizResult.score>=70?"#00ff88":vizResult.score>=40?"#f0b429":"#ff6a6a"):"#565A64"},
-                  {label:"Social Connected",value:postizStatus.connected?`${postizStatus.integrations?.length||0} account(s)`:"Not connected",color:postizStatus.connected?"#00ff88":"#565A64"},
-                  {label:"Next Move",value:!brand||!niche?"Complete Brand Brief":!productDesc.trim()?"Add Product Info":!postizStatus.connected?"Connect Social Accounts":"Create Content",color:gold},
+                  {label:"Social Connected",value:postizStatus.connected?`${postizStatus.integrations?.length||0} account(s)`:"Not connected",color:postizStatus.connected?"#00ff88":"#565A64",onClick:()=>setShowAccount(true)},
+                  {label:"Next Move",value:!brand||!niche?"Complete Brand Brief":!productDesc.trim()?"Add Product Info":!postizStatus.connected?"Connect Social Accounts":"Create Content",color:gold,onClick:!postizStatus.connected&&brand&&niche&&productDesc.trim()?()=>setShowAccount(true):undefined},
                 ].map(s=>(
-                  <div key={s.label} style={{background:"linear-gradient(165deg,rgba(124,90,255,.06),rgba(0,180,255,.04))",backdropFilter:"blur(16px)",border:`1px solid ${s.color}2e`,borderRadius:16,padding:"14px 16px",boxShadow:`0 0 24px ${s.color}0a`}}>
+                  <div key={s.label} onClick={s.onClick} style={{background:"linear-gradient(165deg,rgba(124,90,255,.06),rgba(0,180,255,.04))",backdropFilter:"blur(16px)",border:`1px solid ${s.color}2e`,borderRadius:16,padding:"14px 16px",boxShadow:`0 0 24px ${s.color}0a`,cursor:s.onClick?"pointer":"default"}}>
                     <div style={{fontSize:10.5,color:"#8B8FA3",marginBottom:5}}>{s.label}</div>
                     <div style={{fontSize:15,fontWeight:600,color:s.color,display:"flex",alignItems:"center",gap:7}}>
                       {s.dot&&<span style={{width:6,height:6,borderRadius:"50%",background:s.color,boxShadow:`0 0 8px ${s.color}`,flexShrink:0}}/>}
