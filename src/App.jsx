@@ -2530,6 +2530,7 @@ Site text:
         body:JSON.stringify({
           userId:session.user.id,
           integrationId:integration.id,
+          identifier:integration.identifier||integration.platform||"",
           content:caption,
           imageUrl:mediaUrl,
         }),
