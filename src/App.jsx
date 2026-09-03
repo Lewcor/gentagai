@@ -3451,12 +3451,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         )}
       </div>
 
-      {/* ── SUB-NAV STRIP — only shown for spaces with sub-pages (Create, Intelligence) ── */}
-      {!isMobile&&TOP_NAV.find(t=>t.id===activeWorkspace)?.subpages&&(
-        <div style={{display:"flex",alignItems:"center",gap:4,padding:"9px 20px",borderBottom:"1px solid rgba(255,255,255,.06)",background:"rgba(9,13,18,.5)",backdropFilter:"blur(20px)",flexShrink:0}}>
+      {/* ── SUB-NAV STRIP — shown for spaces with sub-pages (Create, Intelligence). Horizontally
+      scrollable on mobile so it fits narrow screens without wrapping. ── */}
+      {TOP_NAV.find(t=>t.id===activeWorkspace)?.subpages&&(
+        <div style={{display:"flex",alignItems:"center",gap:4,padding:"9px 20px",borderBottom:"1px solid rgba(255,255,255,.06)",background:"rgba(9,13,18,.5)",backdropFilter:"blur(20px)",flexShrink:0,overflowX:isMobile?"auto":"visible",msOverflowStyle:isMobile?"none":undefined,scrollbarWidth:isMobile?"none":undefined}}>
           {TOP_NAV.find(t=>t.id===activeWorkspace).subpages.map(sp=>(
             <div key={sp.id} onClick={()=>handleModeSwitch(sp.mode)}
-              style={{padding:"6px 14px",borderRadius:999,fontSize:12.5,fontWeight:500,cursor:"pointer",transition:"all .15s",color:mode===sp.mode?mc:"#7B7F87",background:mode===sp.mode?`${mc}14`:"transparent"}}>
+              style={{padding:"6px 14px",borderRadius:999,fontSize:12.5,fontWeight:500,cursor:"pointer",transition:"all .15s",whiteSpace:"nowrap",flexShrink:0,color:mode===sp.mode?mc:"#7B7F87",background:mode===sp.mode?`${mc}14`:"transparent"}}>
               {sp.label}
             </div>
           ))}
