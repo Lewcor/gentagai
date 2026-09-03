@@ -369,13 +369,14 @@ const buildImage=({brand,niche,imageType,platform,tone,audience,imageTool,produc
   const tn={midjourney:"End with: --ar [ratio] --style raw --v 6.1 --q 2  Use --no for negatives.",dalle:"Describe exact lighting, lens mm, color grade, mood.",firefly:"Label: [Subject] [Setting] [Lighting] [Style] [Color]",stable:"Positive then NEGATIVE PROMPT: section. Add: masterpiece, 8k, photorealistic"};
   return `You are GENTAGAI Visual — expert AI image prompt engineer.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | TOOL: ${imageTool} | STYLE: ${st[tone]||st.hype} | RATIO: ${pRatio[platform]||"1:1"}${productBlock}${memoryBlock(memory)}\nSUBJECT: ${s[imageType]}\nGenerate 4 DISTINCT prompts for ${imageTool}:\n── PROMPT [N]: [Title]\nFULL PROMPT: [technical, paste-ready]\nSTYLE MODIFIERS: [lighting/lens/mood/color]\nTOOL PARAMS: [${tn[imageTool]||tn.midjourney}]\nNEGATIVE PROMPT: [exclusions]\nDEPLOY AS: [post/ad/story]\nVisual DNA: Kith, Fear of God, Supreme, Off-White, Palace.`;
 };
-const buildVideo=({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice,memory})=>{
+const buildVideo=({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice,memory,hasRefImage})=>{
   const productBlock=productDesc?`\nPRODUCT: ${productName||""}${productType?` (${productType})`:""} — ${productDesc}${productPrice?` · ${productPrice}`:""}`:"";
   const sp={tiktok_ad:{dur:"15-60s",ratio:"9:16",pace:"fast cuts every 2-3s"},youtube_pre:{dur:"6-30s",ratio:"16:9",pace:"brand in first 5s"},fb_video:{dur:"15-30s",ratio:"1:1 or 4:5",pace:"silent-ready, text overlays essential"},story_ad:{dur:"5-15s",ratio:"9:16",pace:"single message, instant impact"},brand_film:{dur:"60-90s",ratio:"16:9",pace:"emotional arc, slow build"},product_demo:{dur:"15-45s",ratio:"1:1",pace:"feature-first, benefit-driven"}};
   const spec=sp[videoAdType]||sp.tiktok_ad;
   const tg={runway:"[Scene] [Camera motion] [Lighting] [Style] [Duration]",pika:"[Scene as living photo] [Motion intensity] [What moves] [Style]",sora:"[Lens, DOF, color grade, time of day, subject blocking]",kling:"[Subject] [Environment] [Motion] [Mood]",heygen:"[Presenter style] [Background] [Clothing] [Speech tone]",capcut:"[Mood] [Music energy] [Transitions] [Color filter]"};
+  const refImageDirective=hasRefImage?`\n\nA real photo of the actual product is attached. Study it carefully — exact color, fit, fabric, logo placement, styling — and ground the SCRIPT and every ${videoTool.toUpperCase()} PROMPT in what you actually see. The prompts should describe THIS specific product, not a generic one.`:"";
   return `You are GENTAGAI Video — a video ad director who writes tight, usable scripts, not overstuffed production bibles.
-BRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | GOAL: ${goal||"conversions"} | TONE: ${toneLabel(tone)} | FORMAT: ${spec.dur} ${spec.ratio} | TOOL: ${videoTool} | PLATFORM: ${platform}${productBlock}${memoryBlock(memory)}
+BRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | GOAL: ${goal||"conversions"} | TONE: ${toneLabel(tone)} | FORMAT: ${spec.dur} ${spec.ratio} | TOOL: ${videoTool} | PLATFORM: ${platform}${productBlock}${memoryBlock(memory)}${refImageDirective}
 
 Write ONLY the following four things. Nothing else. No pixel sizes, no timestamped SFX tables, no VO delivery notes, no performance forecasts.
 
@@ -1365,6 +1366,11 @@ export default function Gentagai(){
 
   // ── Upload state ─────────────────────────────
   const [uploadedImage,setUploadedImage]=useState(null);
+  // ── Optional reference product photo for "Generate Script" (video) — separate
+  // from uploadedImage/uploadedVideo, which belong to the Upload & Amplify flow.
+  // Lets BISHOP write video-gen prompts grounded in the real product photo,
+  // not a generic description.
+  const [videoRefImage,setVideoRefImage]=useState(null); // {name,url(dataURL),base64,type}
   const [uploadedVideo,setUploadedVideo]=useState(null);
   const [uploadMode,setUploadMode]=useState("generate"); // eslint-disable-line
   const [imgDrag,setImgDrag]=useState(false);
@@ -2324,6 +2330,16 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
   }
   function handleImgDrop(e){e.preventDefault();setImgDrag(false);handleImageFile(e.dataTransfer.files[0]);}
   function handleVidDrop(e){e.preventDefault();setVidDrag(false);handleVideoFile(e.dataTransfer.files[0]);}
+  // Simple, local-only read (no cloud storage needed) — just gets base64 fast
+  // for vision so BISHOP can ground the video script/prompts in the real product.
+  function handleVideoRefImageFile(file){
+    if(!file||!file.type.startsWith("image/"))return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      setVideoRefImage({name:file.name,url:e.target.result,base64:e.target.result.split(",")[1],type:file.type});
+    };
+    reader.readAsDataURL(file);
+  }
 
   // ── Publish state ────────────────────────────
   const [showPublish,setShowPublish]=useState(false);
@@ -3089,8 +3105,21 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         setHistory(h=>[{id:Date.now(),brand,niche,platform,contentType:imageType,tone,mode:"image",imageTool,aiBrain,output:full,ts:new Date().toLocaleTimeString()},...h.slice(0,19)]);
       }else if(mode==="video"){
         if(!videoAdType||!videoTool)return;
-        const vidPrompt=buildVideo({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice,memory:activeMemoryText});
-        if(aiBrain==="bishop"){
+        const vidPrompt=buildVideo({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice,memory:activeMemoryText,hasRefImage:!!videoRefImage});
+        if(videoRefImage){
+          if(aiBrain==="bishop"){
+            full=await runBishopMulti({prompt:vidPrompt,geminiKey,chatgptKey,visionData:videoRefImage,maxTokens:4096},setOutput);
+          }else if(aiBrain==="gemini"&&geminiKey){
+            full=await callGeminiVision(vidPrompt,videoRefImage.base64,videoRefImage.type,geminiKey,setOutput);
+          }else if(aiBrain==="chatgpt"&&chatgptKey){
+            full=await callChatGPTVision(vidPrompt,videoRefImage.base64,videoRefImage.type,chatgptKey,setOutput);
+          }else{
+            full=await callClaudeVision([
+              {type:"image",source:{type:"base64",media_type:videoRefImage.type,data:videoRefImage.base64}},
+              {type:"text",text:vidPrompt}
+            ],setOutput,4096);
+          }
+        }else if(aiBrain==="bishop"){
           full=await runBishopMulti({prompt:vidPrompt,geminiKey,chatgptKey,maxTokens:4096},setOutput);
         }else if(aiBrain==="gemini"&&geminiKey){
           full=await callGemini(vidPrompt,geminiKey,setOutput);
@@ -4632,10 +4661,26 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
                   {VIDEO_TOOLS.map(t=><div key={t.id} className="toolc" style={videoTool===t.id?{borderColor:t.color,color:t.color,background:`${t.color}10`}:{}} onClick={()=>setVideoTool(t.id)}>{t.label}</div>)}
                 </div>
+
+                {/* Optional reference product photo — grounds the script + AI-tool prompts in the real item */}
+                <div className="sl" style={{color:"#f0b429"}}>Reference Photo <span style={{opacity:.5,fontWeight:400,textTransform:"none",letterSpacing:0}}>(optional)</span></div>
+                <div style={{fontSize:11,color:"#565A64",marginBottom:8,lineHeight:1.6}}>Upload the actual product — BISHOP will write the script and {videoTool?VIDEO_TOOLS.find(t=>t.id===videoTool)?.label:"tool"} prompts around exactly what's in this photo, not a generic description.</div>
+                {!videoRefImage?(
+                  <label style={{display:"block",border:"1.5px dashed #f0b42944",borderRadius:10,padding:"16px 12px",textAlign:"center",cursor:"pointer",marginBottom:14}}>
+                    <div style={{fontSize:11.5,color:"#82858C"}}>Tap to upload a product photo</div>
+                    <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])handleVideoRefImageFile(e.target.files[0]);}}/>
+                  </label>
+                ):(
+                  <div style={{marginBottom:14,borderRadius:10,overflow:"hidden",position:"relative"}}>
+                    <img src={videoRefImage.url} alt="" style={{width:"100%",maxHeight:130,objectFit:"cover",display:"block"}}/>
+                    <button onClick={()=>setVideoRefImage(null)} style={{position:"absolute",top:6,right:6,background:"#ff2d2d",border:"none",color:"#fff",width:22,height:22,borderRadius:"50%",cursor:"pointer"}}>✕</button>
+                  </div>
+                )}
+
                 <div className="sl" style={{color:"#f0b429"}}>AI Brain</div>
                 {renderBrainPicker("#f0b429")}
                 <button className="gbtn" disabled={!brand||!niche||running||!videoAdType||!videoTool} onClick={generate} style={{background:"linear-gradient(135deg,#f0b429,#ff8c00)",color:"#000",marginTop:4}}>
-                  {running?"⟳  GENERATING...":"▷  GENERATE VIDEO AD"}
+                  {running?"⟳  GENERATING...":videoRefImage?"▷  GENERATE FROM PHOTO":"▷  GENERATE VIDEO AD"}
                 </button>
                 {brand&&niche&&!videoAdType&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",marginTop:4}}>↑ Select a Video Ad Format first</div>}
                 {brand&&niche&&videoAdType&&!videoTool&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",marginTop:4}}>↑ Select a Prompt Target Tool</div>}
