@@ -3651,12 +3651,12 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       <div style={{fontSize:13,color:"#9BA0AC"}}>Tap to upload a product photo, flyer, or storefront shot</div>
                       <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])handleLearnImageFile(e.target.files[0]);}}/>
                     </label>
-                  ):(
-                    <div style={{marginBottom:14,borderRadius:16,overflow:"hidden",position:"relative"}}>
-                      <img src={learnImage.url} alt="" style={{width:"100%",maxHeight:220,objectFit:"cover",display:"block"}}/>
-                      <button onClick={()=>setLearnImage(null)} style={{position:"absolute",top:8,right:8,background:"#ff2d2d",border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:"pointer"}}>✕</button>
-                    </div>
-                  )}
+                    ):(
+                      <div style={{marginBottom:14,borderRadius:16,overflow:"hidden",position:"relative",background:"rgba(255,255,255,.03)",padding:20,display:"flex",justifyContent:"center"}}>
+                        <img src={brandLogo.url} alt="" style={{maxWidth:"60%",maxHeight:180,objectFit:"contain",display:"block"}}/>
+                        <button onClick={()=>{setBrandLogo({file: null, url: null});setLogoPalette(null);setLogoStyleTags(null);setLogoSaved(false);}} style={{position:"absolute",top:8,right:8,background:"#ff2d2d",border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:"pointer"}}>✕</button>
+                      </div>
+                    )}
                   <button className="gbtn" disabled={!learnImage||learnAnalyzing} onClick={analyzeBrandFromPhoto} style={{background:"linear-gradient(115deg,#4DFFB8,#00D4FF)",color:"#0A0620"}}>
                     {learnAnalyzing?"⟳ BISHOP is reading...":"Learn My Brand"}
                   </button>
@@ -3666,7 +3666,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   {!activeProfileId?(
                     <div style={{fontSize:13,color:"#9BA0AC",lineHeight:1.6}}>Save a Brand Brief first — BISHOP needs a profile to attach the logo to.</div>
                   ):(<>
-                    {!brandLogo?(
+                  {!brandLogo?.url?(
                       <label style={{display:"block",border:"1.5px dashed rgba(232,196,104,.3)",borderRadius:16,padding:"28px 16px",textAlign:"center",cursor:"pointer",marginBottom:14}}>
                         <div style={{fontSize:13,color:"#9BA0AC"}}>Tap to upload your logo — transparent PNG or SVG works best</div>
                         <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])handleBrandLogoFile(e.target.files[0]);}}/>
