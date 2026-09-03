@@ -5106,7 +5106,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             </div>
           </div>
 
-          {mode!=="visibility"&&(
+          {mode!=="visibility"&&!(mode==="video"&&videoFlow==="amplify")&&!(mode==="image"&&imageFlow==="amplify")&&(
           <button className="gbtn"
             disabled={!brand||!niche||running||(mode==="video"&&(!videoAdType||!videoTool))||(mode==="image"&&!imageTool)}
             onClick={generate}
@@ -5116,10 +5116,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           )}
 
           {/* Required selection hints */}
-          {mode!=="visibility"&&(!brand||!niche)&&<div style={{fontSize:11,color:"#45484F",textAlign:"center",letterSpacing:1,marginTop:-10}}>Brand + Niche required</div>}
-          {mode==="image"&&brand&&niche&&!imageTool&&<div style={{fontSize:11,color:"#ff7c00",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Prompt Target Tool above</div>}
-          {mode==="video"&&brand&&niche&&!videoAdType&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Video Ad Format above</div>}
-          {mode==="video"&&brand&&niche&&videoAdType&&!videoTool&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Prompt Target Tool above</div>}
+          {mode!=="visibility"&&!(mode==="video"&&videoFlow==="amplify")&&!(mode==="image"&&imageFlow==="amplify")&&(!brand||!niche)&&<div style={{fontSize:11,color:"#45484F",textAlign:"center",letterSpacing:1,marginTop:-10}}>Brand + Niche required</div>}
+          {mode==="image"&&imageFlow!=="amplify"&&brand&&niche&&!imageTool&&<div style={{fontSize:11,color:"#ff7c00",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Prompt Target Tool above</div>}
+          {mode==="video"&&videoFlow!=="amplify"&&brand&&niche&&!videoAdType&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Video Ad Format above</div>}
+          {mode==="video"&&videoFlow!=="amplify"&&brand&&niche&&videoAdType&&!videoTool&&<div style={{fontSize:11,color:"#f0b429",textAlign:"center",letterSpacing:1,marginTop:-10}}>↑ Select a Prompt Target Tool above</div>}
 
           {plan==="free"&&gensUsed>=3&&<div style={{background:"#0f0a00",border:"1px solid #f0b42922",borderRadius:6,padding:"12px",textAlign:"center"}}>
             <div style={{fontSize:12,color:"#f0b429",letterSpacing:1,marginBottom:6}}>{currentPlan.gens-gensUsed} free gens left</div>
