@@ -3707,7 +3707,6 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         </>)}
                       </div>
                     )}
-                  </>)}
                 </>)}
 
                 {learnMode==="instagram"&&(<>
