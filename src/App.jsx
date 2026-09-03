@@ -333,7 +333,7 @@ const NICHE_PRESETS = [
 const PRODUCT_TYPES = [
   "T-Shirt","Hoodie","Sneakers","Pants","Jacket","Accessory","Course","Software",
   "Service","App","Food / Drink","Skincare","Supplement","Digital Download",
-  "Event / Drop","NFT / Collection",
+  "Event / Drop","NFT / Collection","Music","Photography","Art / Artwork","Hair / Beauty Service",
 ];
 
 // ─────────────────────────────────────────────
