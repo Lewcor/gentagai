@@ -3674,8 +3674,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     ):(
                       <div style={{marginBottom:14,borderRadius:16,overflow:"hidden",position:"relative",background:"rgba(255,255,255,.03)",padding:20,display:"flex",justifyContent:"center"}}>
                         <img src={brandLogo.url} alt="" style={{maxWidth:"60%",maxHeight:180,objectFit:"contain",display:"block"}}/>
-                       <button onClick={()=>setBrandLogo({file: null, url: null});setLogoPalette(null);setLogoStyleTags(null);setLogoSaved(false);}} style={{position:"absolute",top:8,right:8,background:"#ff2d2d",border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:"pointer"}}>✕</button>
-                      </div>
+                       <button onClick={()=>{setBrandLogo({file: null, url: null});setLogoPalette(null);setLogoStyleTags(null);setLogoSaved(false);}} style={{position:"absolute",top:8,right:8,background:"#ff2d2d",border:"none",color:"#fff",width:26,height:26,borderRadius:"50%",cursor:"pointer"}}>✕</button>
                     )}
                     {brandLogo?.file&&(
                       <button className="gbtn" disabled={logoAnalyzing} onClick={analyzeAndSaveBrandLogo} style={{background:"linear-gradient(115deg,#E8C468,#B8863A)",color:"#0A0620"}}>
