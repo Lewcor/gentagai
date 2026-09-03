@@ -1472,7 +1472,7 @@ export default function Gentagai(){
   const [learnSuggestion,setLearnSuggestion]=useState(null);
   // ── Brand logo — separate from the photo path: a logo is a fixed visual anchor
   // (palette + mark geometry), not a mood photo BISHOP infers vibe from ──
-  const [brandLogo,setBrandLogo]=useState(null); // {name,url(dataURL),base64,type}
+  const [brandLogo, setBrandLogo] = useState({file: null, url: null}); ; // {name,url(dataURL),base64,type}
   const [logoAnalyzing,setLogoAnalyzing]=useState(false);
   const [logoError,setLogoError]=useState("");
   const [logoPalette,setLogoPalette]=useState(null); // [{hex,pct}]
