@@ -1356,19 +1356,60 @@ export default function Gentagai(){
 
   // ── AI Brain state ───────────────────────────
   const [aiBrain,setAiBrain]=useState("claude");          // claude | gemini | chatgpt
+  // localStorage is just an instant-paint cache so the UI doesn't flash
+  // "no key" for a moment on load — Supabase (user_api_keys) is now the
+  // real source of truth, so keys follow the account across browsers and
+  // devices instead of living only in whichever browser they were typed into.
   const [geminiKey,setGeminiKey]=useState(()=>{ try{return localStorage.getItem("gentagai_gemini_key")||"";}catch{return "";} });
   const [chatgptKey,setChatgptKey]=useState(()=>{ try{return localStorage.getItem("gentagai_chatgpt_key")||"";}catch{return "";} });
   const [showKeyInput,setShowKeyInput]=useState(null);    // "gemini" | "chatgpt" | null
   const [keyDraft,setKeyDraft]=useState("");
+  const [keySaveError,setKeySaveError]=useState("");
 
-  function saveKey(brain){
-    if(brain==="gemini"){setGeminiKey(keyDraft);try{localStorage.setItem("gentagai_gemini_key",keyDraft);}catch{}}
-    if(brain==="chatgpt"){setChatgptKey(keyDraft);try{localStorage.setItem("gentagai_chatgpt_key",keyDraft);}catch{}}
+  // Pull the real keys from Supabase once signed in. If this browser has a
+  // local-only key Supabase doesn't know about yet (from before this change,
+  // or a key typed while offline), push it up instead of losing it.
+  useEffect(()=>{
+    if(!session?.user)return;
+    (async()=>{
+      const{data,error}=await supabase.from("user_api_keys").select("gemini_key,chatgpt_key").eq("user_id",session.user.id).single();
+      if(error||!data){
+        // No row yet — if this browser already has local-only keys, save them
+        // as the account's first synced copy.
+        if(geminiKey||chatgptKey){
+          await supabase.from("user_api_keys").upsert({user_id:session.user.id,gemini_key:geminiKey||null,chatgpt_key:chatgptKey||null});
+        }
+        return;
+      }
+      if(data.gemini_key){setGeminiKey(data.gemini_key);try{localStorage.setItem("gentagai_gemini_key",data.gemini_key);}catch{}}
+      if(data.chatgpt_key){setChatgptKey(data.chatgpt_key);try{localStorage.setItem("gentagai_chatgpt_key",data.chatgpt_key);}catch{}}
+    })();
+  },[session]);
+
+  async function saveKey(brain){
+    const val=keyDraft;
+    setKeySaveError("");
+    if(brain==="gemini"){setGeminiKey(val);try{localStorage.setItem("gentagai_gemini_key",val);}catch{}}
+    if(brain==="chatgpt"){setChatgptKey(val);try{localStorage.setItem("gentagai_chatgpt_key",val);}catch{}}
     setShowKeyInput(null);setKeyDraft("");
+    if(session?.user){
+      const{error}=await supabase.from("user_api_keys").upsert({
+        user_id:session.user.id,
+        [brain==="gemini"?"gemini_key":"chatgpt_key"]:val,
+      });
+      if(error){console.error("Failed to sync API key:",error);setKeySaveError("Saved on this device, but couldn't sync to your account — try again later.");}
+    }
   }
-  function clearKey(brain){
+  async function clearKey(brain){
     if(brain==="gemini"){setGeminiKey("");try{localStorage.removeItem("gentagai_gemini_key");}catch{}}
     if(brain==="chatgpt"){setChatgptKey("");try{localStorage.removeItem("gentagai_chatgpt_key");}catch{}}
+    if(session?.user){
+      const{error}=await supabase.from("user_api_keys").upsert({
+        user_id:session.user.id,
+        [brain==="gemini"?"gemini_key":"chatgpt_key"]:null,
+      });
+      if(error)console.error("Failed to clear synced API key:",error);
+    }
   }
   function selectBrain(id){
     if(id==="gemini"&&!geminiKey){setShowKeyInput("gemini");setKeyDraft("");return;}
@@ -3101,6 +3142,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     <button onClick={()=>saveKey(showKeyInput)} style={{flex:1,padding:"6px",border:`1px solid ${b.color}55`,background:`${b.color}11`,color:b.color,fontSize:11,cursor:"pointer",fontFamily:"inherit",textTransform:"uppercase",letterSpacing:1}}>Save</button>
                     <button onClick={()=>setShowKeyInput(null)} style={{padding:"6px 8px",border:"1px solid #24272E",background:"transparent",color:"#82858C",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>✕</button>
                   </div>
+                  {keySaveError&&<div style={{fontSize:10,color:"#ff6a6a",marginTop:5}}>{keySaveError}</div>}
                 </div>
               )}
               {hasKey&&b.id!=="claude"&&isActive&&(
