@@ -1366,26 +1366,6 @@ export default function Gentagai(){
   const [keyDraft,setKeyDraft]=useState("");
   const [keySaveError,setKeySaveError]=useState("");
 
-  // Pull the real keys from Supabase once signed in. If this browser has a
-  // local-only key Supabase doesn't know about yet (from before this change,
-  // or a key typed while offline), push it up instead of losing it.
-  useEffect(()=>{
-    if(!session?.user)return;
-    (async()=>{
-      const{data,error}=await supabase.from("user_api_keys").select("gemini_key,chatgpt_key").eq("user_id",session.user.id).single();
-      if(error||!data){
-        // No row yet — if this browser already has local-only keys, save them
-        // as the account's first synced copy.
-        if(geminiKey||chatgptKey){
-          await supabase.from("user_api_keys").upsert({user_id:session.user.id,gemini_key:geminiKey||null,chatgpt_key:chatgptKey||null});
-        }
-        return;
-      }
-      if(data.gemini_key){setGeminiKey(data.gemini_key);try{localStorage.setItem("gentagai_gemini_key",data.gemini_key);}catch{}}
-      if(data.chatgpt_key){setChatgptKey(data.chatgpt_key);try{localStorage.setItem("gentagai_chatgpt_key",data.chatgpt_key);}catch{}}
-    })();
-  },[session]);
-
   async function saveKey(brain){
     const val=keyDraft;
     setKeySaveError("");
@@ -1441,6 +1421,28 @@ export default function Gentagai(){
   // ── Account (Supabase) — real plan status, sourced from Stripe via webhook ──
   const [session,setSession]=useState(null);
   const [authEmail,setAuthEmail]=useState("");
+
+  // Pull the real Gemini/ChatGPT keys from Supabase once signed in. If this
+  // browser has a local-only key Supabase doesn't know about yet (from
+  // before this change, or a key typed while offline), push it up instead
+  // of losing it. Must come after `session` is declared above — this was
+  // previously placed earlier in the file and read `session` before its
+  // own declaration ran, which crashed the whole app on load.
+  useEffect(()=>{
+    if(!session?.user)return;
+    (async()=>{
+      const{data,error}=await supabase.from("user_api_keys").select("gemini_key,chatgpt_key").eq("user_id",session.user.id).single();
+      if(error||!data){
+        if(geminiKey||chatgptKey){
+          await supabase.from("user_api_keys").upsert({user_id:session.user.id,gemini_key:geminiKey||null,chatgpt_key:chatgptKey||null});
+        }
+        return;
+      }
+      if(data.gemini_key){setGeminiKey(data.gemini_key);try{localStorage.setItem("gentagai_gemini_key",data.gemini_key);}catch{}}
+      if(data.chatgpt_key){setChatgptKey(data.chatgpt_key);try{localStorage.setItem("gentagai_chatgpt_key",data.chatgpt_key);}catch{}}
+    })();
+  },[session]);
+
   const [magicLinkSent,setMagicLinkSent]=useState(false);
   const [authLoading,setAuthLoading]=useState(false);
   const [postizStatus,setPostizStatus]=useState({connected:false,integrations:[]});
