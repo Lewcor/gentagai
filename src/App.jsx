@@ -3707,10 +3707,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         </>)}
                       </div>
                     )}
+                  </>)}
                 </>)}
-
-                {learnMode==="instagram"&&(<>
-                  <div style={{fontSize:13,color:"#9BA0AC",lineHeight:1.6,marginBottom:14}}>
+                  {learnMode==="instagram"&&(<>
+                <div style={{fontSize:13,color:"#9BA0AC",lineHeight:1.6,marginBottom:14}}>
                     {postizStatus.connected?"BISHOP will read your real recent captions to learn your voice.":"Connect Instagram via Postiz in Account first, then come back here."}
                   </div>
                   <button className="gbtn" disabled={!postizStatus.connected||learnAnalyzing} onClick={analyzeBrandFromInstagram} style={{background:"linear-gradient(115deg,#4DFFB8,#00D4FF)",color:"#0A0620",opacity:postizStatus.connected?1:.5}}>
