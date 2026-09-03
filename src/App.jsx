@@ -1551,7 +1551,14 @@ export default function Gentagai(){
       .select("*")
       .eq("user_id",session.user.id)
       .order("updated_at",{ascending:false});
-    if(!error&&data)setBrandProfiles(data);
+    if(!error&&data){
+      setBrandProfiles(data);
+      // Nothing selected yet on this load (fresh page load/session restore) —
+      // auto-select the most recently used profile instead of leaving the
+      // person stuck on "Not set yet" and getting bounced to Brand Brief
+      // every time they click Products with a brand already saved.
+      if(data.length&&!activeProfileId)switchToBrandProfile(data[0]);
+    }
   }
 
   // ── Save current Brand Brief fields as a new saved profile ──
