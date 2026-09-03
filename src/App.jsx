@@ -370,11 +370,28 @@ const buildImage=({brand,niche,imageType,platform,tone,audience,imageTool,produc
   return `You are GENTAGAI Visual — expert AI image prompt engineer.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | TOOL: ${imageTool} | STYLE: ${st[tone]||st.hype} | RATIO: ${pRatio[platform]||"1:1"}${productBlock}${memoryBlock(memory)}\nSUBJECT: ${s[imageType]}\nGenerate 4 DISTINCT prompts for ${imageTool}:\n── PROMPT [N]: [Title]\nFULL PROMPT: [technical, paste-ready]\nSTYLE MODIFIERS: [lighting/lens/mood/color]\nTOOL PARAMS: [${tn[imageTool]||tn.midjourney}]\nNEGATIVE PROMPT: [exclusions]\nDEPLOY AS: [post/ad/story]\nVisual DNA: Kith, Fear of God, Supreme, Off-White, Palace.`;
 };
 const buildVideo=({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice,memory})=>{
-  const productBlock=productDesc?`\n\nPRODUCT INTEL:\n- Product: ${productName||""}${productType?` (${productType})`:""}\n- Description: ${productDesc}\n${productPrice?`- Price / Value: ${productPrice}\n`:""}\nEvery shot, every word of script, and every CTA must be built around THIS specific product. Make the viewer need it.`:"";
+  const productBlock=productDesc?`\nPRODUCT: ${productName||""}${productType?` (${productType})`:""} — ${productDesc}${productPrice?` · ${productPrice}`:""}`:"";
   const sp={tiktok_ad:{dur:"15-60s",ratio:"9:16",pace:"fast cuts every 2-3s"},youtube_pre:{dur:"6-30s",ratio:"16:9",pace:"brand in first 5s"},fb_video:{dur:"15-30s",ratio:"1:1 or 4:5",pace:"silent-ready, text overlays essential"},story_ad:{dur:"5-15s",ratio:"9:16",pace:"single message, instant impact"},brand_film:{dur:"60-90s",ratio:"16:9",pace:"emotional arc, slow build"},product_demo:{dur:"15-45s",ratio:"1:1",pace:"feature-first, benefit-driven"}};
   const spec=sp[videoAdType]||sp.tiktok_ad;
-  const tg={runway:"[Scene] [Camera motion: dolly/handheld/aerial] [Lighting] [Style] [Duration]",pika:"[Scene as living photo] [Motion intensity: subtle/medium/intense] [What moves] [Cinematic style]",sora:"[Film director language: lens, DOF, color grade, time of day, subject blocking]",kling:"[Subject] [Environment] [Motion] [Mood] [Cinematic reference]",heygen:"[Presenter style] [Background] [Clothing] [Speech tone] [Lower-third text]",capcut:"[Mood] [Music energy] [Transition style] [Text overlay positions] [Color filter]"};
-  return `You are GENTAGAI Video — elite AI video ad director.\nBRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | GOAL: ${goal||"conversions"} | TONE: ${toneLabel(tone)} | FORMAT: ${spec.dur} ${spec.ratio} | TOOL: ${videoTool} | PLATFORM: ${platform}${productBlock}${memoryBlock(memory)}\n\nCreate a COMPLETE video ad production package:\n\n── 1. CONCEPT & STRATEGY\nLogline, core emotion, psychological hook, why it works for ${platform}.\n\n── 2. FULL SCRIPT\nEvery word. [HOOK 0-3s] [PROBLEM/DESIRE] [SOLUTION] [PROOF] [CTA]. Pacing: ${spec.pace}\n\n── 3. SHOT-BY-SHOT STORYBOARD\nShot # | Duration | Scene | Camera | On-screen text | Audio (min 6 shots)\n\n── 4. AI VIDEO PROMPTS FOR ${videoTool.toUpperCase()}\n3 prompts for key scenes. Format: ${tg[videoTool]||tg.runway}\n\n── 5. ON-SCREEN TEXT OVERLAYS\nTiming, position, copy, style for each text element.\n\n── 6. AUDIO DIRECTION\nMusic genre/BPM, SFX, VO tone, silence moments.\n\n── 7. CTA PACKAGE\nEnd card, CTA button (3 options), URL/handle, final frame.\n\n── 8. PERFORMANCE FORECAST\nExpected watch rate, engagement triggers, algorithm signals.\n\nMake it feel like a $50,000 production brief.`;
+  const tg={runway:"[Scene] [Camera motion] [Lighting] [Style] [Duration]",pika:"[Scene as living photo] [Motion intensity] [What moves] [Style]",sora:"[Lens, DOF, color grade, time of day, subject blocking]",kling:"[Subject] [Environment] [Motion] [Mood]",heygen:"[Presenter style] [Background] [Clothing] [Speech tone]",capcut:"[Mood] [Music energy] [Transitions] [Color filter]"};
+  return `You are GENTAGAI Video — a video ad director who writes tight, usable scripts, not overstuffed production bibles.
+BRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | GOAL: ${goal||"conversions"} | TONE: ${toneLabel(tone)} | FORMAT: ${spec.dur} ${spec.ratio} | TOOL: ${videoTool} | PLATFORM: ${platform}${productBlock}${memoryBlock(memory)}
+
+Write ONLY the following four things. Nothing else. No pixel sizes, no timestamped SFX tables, no VO delivery notes, no performance forecasts.
+
+── HOOK
+One line — the scroll-stopping idea this ad is built on.
+
+── SCRIPT
+The full word-for-word script, broken into HOOK / BUILD / PAYOFF / CTA beats with rough timing (e.g. "0-3s:"). Pacing: ${spec.pace}. Keep it as short as the format allows — say only what earns its place.
+
+── SHOTS
+A simple numbered list, 4-6 shots max. Each shot: one line — what's on screen + any on-screen text, nothing else.
+
+── ${videoTool.toUpperCase()} PROMPTS
+2 ready-to-paste prompts for the key shots. Format: ${tg[videoTool]||tg.runway}
+
+Keep the whole thing skimmable in under 30 seconds. Copy-paste ready, zero fluff.`;
 };
 const buildAB=({brand,niche,platform,contentType,tone,audience,goal,keywords,abVariable,variant,productName,productDesc,productType,productPrice,memory})=>{
   const productBlock=productDesc?`\nPRODUCT: ${productName||""}${productType?` (${productType})`:""} — ${productDesc.slice(0,120)}${productPrice?` · ${productPrice}`:""}\nBuild the content specifically around this product.`:"";
