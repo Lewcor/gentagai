@@ -1351,6 +1351,7 @@ export default function Gentagai(){
   // ── Flow state (generate vs amplify) ────────
   const [imageFlow,setImageFlow]=useState("generate"); // generate | amplify
   const [videoFlow,setVideoFlow]=useState("generate"); // generate | amplify
+  const [videoAmplifyMediaType,setVideoAmplifyMediaType]=useState("video"); // video | image — which upload zone shows in Video > Upload & Amplify
   const [amplifyType,setAmplifyType]=useState("full_suite"); // what AI Brain creates from upload
   const [step,setStep]=useState("idle");
   const [output,setOutput]=useState("");
@@ -4642,8 +4643,22 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
               </>)}
 
               {videoFlow==="amplify"&&(<>
+                {/* Media Type Toggle — pick Video or Image to upload */}
+                {!uploadedVideo&&!uploadedImage&&(
+                  <div style={{display:"flex",gap:6,marginBottom:14}}>
+                    <button onClick={()=>setVideoAmplifyMediaType("video")}
+                      style={{flex:1,padding:"9px 0",borderRadius:8,border:`1px solid ${videoAmplifyMediaType==="video"?"#f0b42966":"#24272E"}`,background:videoAmplifyMediaType==="video"?"#f0b42912":"transparent",color:videoAmplifyMediaType==="video"?"#f0b429":"#82858C",cursor:"pointer",fontSize:12,fontWeight:700,letterSpacing:1,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif"}}>
+                      🎬 UPLOAD VIDEO
+                    </button>
+                    <button onClick={()=>setVideoAmplifyMediaType("image")}
+                      style={{flex:1,padding:"9px 0",borderRadius:8,border:`1px solid ${videoAmplifyMediaType==="image"?"#00e5ff66":"#24272E"}`,background:videoAmplifyMediaType==="image"?"#00e5ff12":"transparent",color:videoAmplifyMediaType==="image"?"#00e5ff":"#82858C",cursor:"pointer",fontSize:12,fontWeight:700,letterSpacing:1,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif"}}>
+                      🖼️ UPLOAD IMAGE
+                    </button>
+                  </div>
+                )}
+
                 {/* Upload Zone */}
-                {!uploadedVideo?(
+                {!uploadedVideo&&!uploadedImage&&videoAmplifyMediaType==="video"&&(
                   <div style={{marginBottom:20}}>
                     <div style={{border:"2px dashed #2A2D33",background:"#0E1013",padding:"28px 16px",textAlign:"center",borderRadius:12,marginBottom:10}}>
                       <div style={{fontSize:40,marginBottom:10}}>🎬</div>
@@ -4670,7 +4685,36 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       />
                     </div>
                   </div>
-                ):(
+                )}
+                {!uploadedVideo&&!uploadedImage&&videoAmplifyMediaType==="image"&&(
+                  <div style={{marginBottom:20}}>
+                    <div style={{border:"2px dashed #2A2D33",background:"#0E1013",padding:"28px 16px",textAlign:"center",borderRadius:12,marginBottom:10}}>
+                      <div style={{fontSize:40,marginBottom:10}}>🖼️</div>
+                      <div style={{fontSize:16,color:"#F0F1F4",fontWeight:700,marginBottom:6}}>Upload Your Image</div>
+                      <div style={{fontSize:13,color:"#82858C",marginBottom:16}}>JPG · PNG · WEBP · GIF</div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e=>{if(e.target.files&&e.target.files[0])handleImageFile(e.target.files[0]);}}
+                        style={{
+                          display:"block",
+                          width:"100%",
+                          padding:"14px",
+                          background:"#00e5ff",
+                          color:"#000",
+                          border:"none",
+                          borderRadius:8,
+                          fontSize:14,
+                          fontWeight:700,
+                          cursor:"pointer",
+                          fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",
+                          letterSpacing:2,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {uploadedVideo&&(
                   <div style={{marginBottom:20,borderRadius:10,overflow:"hidden",border:"2px solid #00e5ff44"}}>
                     <video src={uploadedVideo.url} style={{width:"100%",maxHeight:150,display:"block",objectFit:"cover"}} muted playsInline preload="metadata"/>
                     <div style={{padding:"14px 16px",background:"#0E1013",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -4682,6 +4726,20 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                         <div style={{fontSize:10,color:uploadedVideo.extractingFrames?"#f0b429":uploadedVideo.frames?.length?"#5ce88a":"#ff6a6a",marginTop:2}}>{uploadedVideo.extractingFrames?"🎞 Sampling frames...":uploadedVideo.frames?.length?`🎞 ${uploadedVideo.frames.length} frames ready for BISHOP`:"🎞 No frames captured — will use text context only"}</div>
                       </div>
                       <button onClick={()=>setUploadedVideo(null)} style={{background:"#ff2d2d",border:"none",color:"#fff",fontSize:14,width:24,height:24,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
+                    </div>
+                  </div>
+                )}
+                {uploadedImage&&(
+                  <div style={{marginBottom:20,borderRadius:10,overflow:"hidden",border:"2px solid #00e5ff44",position:"relative"}}>
+                    <img src={uploadedImage.url} alt="upload" style={{width:"100%",maxHeight:150,objectFit:"cover",display:"block"}}/>
+                    <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,#08090Bee,transparent)"}}/>
+                    <div style={{position:"absolute",bottom:10,left:12,right:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <div>
+                        <div style={{fontSize:11,color:"#00e5ff",letterSpacing:1,marginBottom:2}}>✓ IMAGE UPLOADED</div>
+                        <div style={{fontSize:12,color:"#F0F1F4",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{uploadedImage.name}</div>
+                        <div style={{fontSize:10,color:uploadedImage.uploading?"#f0b429":uploadedImage.storageUrl?"#5ce88a":"#ff6a6a",marginTop:2}}>{uploadedImage.uploading?"☁ Saving to cloud...":uploadedImage.storageUrl?"☁ Saved":"☁ Save failed — using local copy"}</div>
+                      </div>
+                      <button onClick={e=>{e.stopPropagation();setUploadedImage(null);}} style={{background:"#ff2d2d",border:"none",color:"#fff",fontSize:14,width:24,height:24,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
                     </div>
                   </div>
                 )}
@@ -4717,12 +4775,12 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 {renderBrainPicker("#00e5ff")}
 
                 {/* Generate Button */}
-                <button className="gbtn" disabled={!uploadedVideo||running||!brand||!niche} onClick={amplifyGenerate}
-                  style={{background:uploadedVideo&&brand&&niche?"linear-gradient(135deg,#00e5ff,#0055ff)":"#1a1d24",color:uploadedVideo&&brand&&niche?"#000":"#45484F",marginTop:4,fontSize:15,padding:"15px 0",letterSpacing:3}}>
+                <button className="gbtn" disabled={(!uploadedVideo&&!uploadedImage)||running||!brand||!niche} onClick={amplifyGenerate}
+                  style={{background:(uploadedVideo||uploadedImage)&&brand&&niche?"linear-gradient(135deg,#00e5ff,#0055ff)":"#1a1d24",color:(uploadedVideo||uploadedImage)&&brand&&niche?"#000":"#45484F",marginTop:4,fontSize:15,padding:"15px 0",letterSpacing:3}}>
                   {running?"⟳  GENERATING...":`◈  ${AI_BRAINS.find(b=>b.id===aiBrain)?.label||"AI"} GENERATE`}
                 </button>
                 {!brand||!niche?<div style={{textAlign:"center",fontSize:12,color:"#45484F",marginTop:6}}>↑ Add Brand + Niche in Section 01</div>
-                :!uploadedVideo?<div style={{textAlign:"center",fontSize:12,color:"#45484F",marginTop:6}}>↑ Upload a video above to begin</div>:null}
+                :!uploadedVideo&&!uploadedImage?<div style={{textAlign:"center",fontSize:12,color:"#45484F",marginTop:6}}>↑ Upload a video or image above to begin</div>:null}
               </>)}
             </div>
           )}
@@ -5164,7 +5222,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                 </div>}
 
                 {/* Uploaded image preview */}
-                {mode==="image"&&uploadedImage&&imageFlow==="amplify"&&(
+                {((mode==="image"&&imageFlow==="amplify")||(mode==="video"&&videoFlow==="amplify"))&&uploadedImage&&(
                   <div style={{marginBottom:20,display:"flex",gap:14,alignItems:"flex-start",padding:"14px",background:"#15181D",border:"1px solid #ff7c0033",borderRadius:6}}>
                     <img src={uploadedImage.url} alt="uploaded" style={{width:80,height:80,objectFit:"cover",borderRadius:4,flexShrink:0,border:"1px solid #ff7c0055"}}/>
                     <div style={{flex:1}}>
