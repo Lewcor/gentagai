@@ -3059,7 +3059,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       }else if(mode==="image"){
         if(!imageTool)return;
         const imgPrompt=buildImage({brand,niche,imageType,platform,tone,audience,imageTool,productName,productDesc,productType,memory:activeMemoryText});
-        if(aiBrain==="gemini"&&geminiKey){
+        if(aiBrain==="bishop"){
+          full=await runBishopMulti({prompt:imgPrompt,geminiKey,chatgptKey,maxTokens:4096},setOutput);
+        }else if(aiBrain==="gemini"&&geminiKey){
           full=await callGemini(imgPrompt,geminiKey,setOutput);
         }else if(aiBrain==="chatgpt"&&chatgptKey){
           full=await callChatGPT(imgPrompt,chatgptKey,setOutput);
@@ -3070,7 +3072,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       }else if(mode==="video"){
         if(!videoAdType||!videoTool)return;
         const vidPrompt=buildVideo({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice,memory:activeMemoryText});
-        if(aiBrain==="gemini"&&geminiKey){
+        if(aiBrain==="bishop"){
+          full=await runBishopMulti({prompt:vidPrompt,geminiKey,chatgptKey,maxTokens:4096},setOutput);
+        }else if(aiBrain==="gemini"&&geminiKey){
           full=await callGemini(vidPrompt,geminiKey,setOutput);
         }else if(aiBrain==="chatgpt"&&chatgptKey){
           full=await callChatGPT(vidPrompt,chatgptKey,setOutput);
