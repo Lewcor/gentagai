@@ -1434,6 +1434,25 @@ export default function Gentagai(){
       if(d.screen==="app"){setScreen("app");}
       if(d.history){setHistory(d.history);}
       if(d.lastSaved){setLastSaved(d.lastSaved);}
+      // Restore whatever Brand Brief / Product Intel you were mid-typing, so a
+      // refresh or dropped session never wipes out unsaved work. If this brand
+      // was already a saved profile (activeProfileId present), restoring it
+      // here means the later Supabase profile-load won't overwrite these
+      // fresher local edits with the last cloud-saved snapshot.
+      if(d.draft){
+        const dr=d.draft;
+        if(dr.brand)setBrand(dr.brand);
+        if(dr.niche)setNiche(dr.niche);
+        if(dr.audience)setAudience(dr.audience);
+        if(Array.isArray(dr.tone)&&dr.tone.length)setTone(dr.tone);
+        if(dr.keywords)setKeywords(dr.keywords);
+        if(dr.goal)setGoal(dr.goal);
+        if(dr.productName)setProductName(dr.productName);
+        if(dr.productDesc)setProductDesc(dr.productDesc);
+        if(dr.productPrice)setProductPrice(dr.productPrice);
+        if(dr.productType)setProductType(dr.productType);
+        if(dr.activeProfileId)setActiveProfileId(dr.activeProfileId);
+      }
     }catch{}
     // Load saved platform URLs
     try{
@@ -2166,15 +2185,45 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     setSession(null);setPlan("free");setBilling("monthly");setMagicLinkSent(false);setAuthEmail("");
   }
 
-  // ── Auto-save ───────────────────────────────
+  // ── Auto-save (local) — every keystroke in Brand Brief / Product Intel mirrors
+  // to localStorage as a draft, so a refresh or dropped session never loses
+  // unsaved work. Separate from the debounced cloud sync below, which only
+  // fires for a brand you've already saved as a profile. ──
   useEffect(()=>{
     if(screen==="idle")return;
     try{
-      localStorage.setItem(STORAGE_KEY,JSON.stringify({plan,billing,gensUsed,screen,history:history.slice(0,20),lastSaved:new Date().toLocaleTimeString(),version:VERSION}));
+      localStorage.setItem(STORAGE_KEY,JSON.stringify({
+        plan,billing,gensUsed,screen,history:history.slice(0,20),lastSaved:new Date().toLocaleTimeString(),version:VERSION,
+        draft:{brand,niche,audience,tone,keywords,goal,productName,productDesc,productPrice,productType,activeProfileId},
+      }));
       setLastSaved(new Date().toLocaleTimeString());
       setSaveFlash(true);setTimeout(()=>setSaveFlash(false),1500);
     }catch{}
-  },[history,plan,billing,gensUsed,screen]);
+  },[history,plan,billing,gensUsed,screen,brand,niche,audience,tone,keywords,goal,productName,productDesc,productPrice,productType,activeProfileId]);
+
+  // ── Auto-save (cloud) — once a Brand Brief is already a saved profile,
+  // push edits to Supabase ~1.5s after you stop typing. Never fires on a
+  // blank Brand Name or Niche, so a mid-edit pause while clearing a field
+  // can't accidentally wipe the saved profile. Never creates a NEW profile
+  // on its own — that stays an explicit "Complete Brand Brief" action. ──
+  const brandAutoSaveTimer=useRef(null);
+  useEffect(()=>{
+    if(!activeProfileId||!session?.user)return;
+    if(!brand.trim()||!niche.trim())return;
+    if(brandAutoSaveTimer.current)clearTimeout(brandAutoSaveTimer.current);
+    brandAutoSaveTimer.current=setTimeout(async()=>{
+      const{error}=await supabase.from("brand_profiles")
+        .update({brand_name:brand.trim(),niche,audience,tones:tone,keywords,goal,updated_at:new Date().toISOString()})
+        .eq("id",activeProfileId);
+      if(!error){
+        setLastSaved(new Date().toLocaleTimeString());
+        setSaveFlash(true);setTimeout(()=>setSaveFlash(false),1500);
+      }else{
+        console.error("Brand auto-save failed:",error);
+      }
+    },1500);
+    return()=>{if(brandAutoSaveTimer.current)clearTimeout(brandAutoSaveTimer.current);};
+  },[brand,niche,audience,tone,keywords,goal,activeProfileId,session]);
 
   useEffect(()=>{if(outRef.current&&running)outRef.current.scrollTop=outRef.current.scrollHeight;},[output,abA,abB,running]);
 
