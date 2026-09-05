@@ -304,6 +304,13 @@ const AI_BRAINS = [
     apiEndpoint:"https://api.openai.com/v1/chat/completions",
   },
   {
+    id:"qwen",label:"Qwen",sub:"Alibaba",color:"#615ced",icon:"⬢",
+    desc:"Requires Qwen API key",
+    model:"qwen-max",free:false,
+    link:"https://bailian.console.alibabacloud.com/",
+    apiEndpoint:"https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
+  },
+  {
     id:"bishop",label:"BISHOP",sub:"All AI",color:"#00ff88",icon:"👑",
     desc:"Claude + every connected AI — BISHOP picks the best answer",
     model:"multi",free:true,
@@ -908,6 +915,45 @@ async function callChatGPTVision(prompt,base64,mimeType,apiKey,onChunk){
   return full;
 }
 
+// Qwen text-only — DashScope's OpenAI-compatible endpoint, so this mirrors
+// callChatGPT's request/SSE shape exactly, just pointed at Alibaba's API.
+async function callQwen(prompt,apiKey,onChunk){
+  const res=await fetch("https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",{
+    method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},
+    body:JSON.stringify({model:"qwen-max",max_tokens:4096,stream:true,messages:[{role:"user",content:prompt}]})
+  });
+  const reader=res.body.getReader(),dec=new TextDecoder();let full="";
+  while(true){
+    const{done,value}=await reader.read();if(done)break;
+    for(const line of dec.decode(value).split("\n")){
+      if(!line.startsWith("data: "))continue;const d=line.slice(6);if(d==="[DONE]")continue;
+      try{const p=JSON.parse(d);const t=p.choices?.[0]?.delta?.content||"";if(t){full+=t;onChunk(full);}}catch{}
+    }
+  }
+  return full;
+}
+
+// Qwen vision — same compatible-mode endpoint, qwen-vl-max model, identical
+// image_url content shape to the ChatGPT vision call above.
+async function callQwenVision(prompt,base64,mimeType,apiKey,onChunk){
+  const res=await fetch("https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",{
+    method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},
+    body:JSON.stringify({model:"qwen-vl-max",max_tokens:4096,stream:true,messages:[{role:"user",content:[
+      {type:"image_url",image_url:{url:`data:${mimeType};base64,${base64}`}},
+      {type:"text",text:prompt}
+    ]}]})
+  });
+  const reader=res.body.getReader(),dec=new TextDecoder();let full="";
+  while(true){
+    const{done,value}=await reader.read();if(done)break;
+    for(const line of dec.decode(value).split("\n")){
+      if(!line.startsWith("data: "))continue;const d=line.slice(6);if(d==="[DONE]")continue;
+      try{const p=JSON.parse(d);const t=p.choices?.[0]?.delta?.content||"";if(t){full+=t;onChunk(full);}}catch{}
+    }
+  }
+  return full;
+}
+
 // BISHOP Multi-AI — fires the same prompt at every connected model in
 // parallel (never sequentially, to avoid stacking up latency), then has
 // Claude judge/synthesize the single best answer via /api/bishop-judge.
@@ -915,7 +961,7 @@ async function callChatGPTVision(prompt,base64,mimeType,apiKey,onChunk){
 // no reason to spend an extra call judging a single option. If every
 // model fails, or the judge call itself fails, falls back gracefully
 // instead of losing the person's work.
-async function runBishopMulti({prompt,geminiKey,chatgptKey,visionData,maxTokens=2048},onChunk){
+async function runBishopMulti({prompt,geminiKey,chatgptKey,qwenKey,visionData,maxTokens=2048},onChunk){
   const jobs=[];
   if(visionData){
     jobs.push(callClaudeVision([
@@ -924,10 +970,12 @@ async function runBishopMulti({prompt,geminiKey,chatgptKey,visionData,maxTokens=
     ],()=>{},maxTokens));
     if(geminiKey)jobs.push(callGeminiVision(prompt,visionData.base64,visionData.type,geminiKey,()=>{}).catch(()=>""));
     if(chatgptKey)jobs.push(callChatGPTVision(prompt,visionData.base64,visionData.type,chatgptKey,()=>{}).catch(()=>""));
+    if(qwenKey)jobs.push(callQwenVision(prompt,visionData.base64,visionData.type,qwenKey,()=>{}).catch(()=>""));
   }else{
     jobs.push(callAPI(prompt));
     if(geminiKey)jobs.push(callGemini(prompt,geminiKey,()=>{}).catch(()=>""));
     if(chatgptKey)jobs.push(callChatGPT(prompt,chatgptKey,()=>{}).catch(()=>""));
+    if(qwenKey)jobs.push(callQwen(prompt,qwenKey,()=>{}).catch(()=>""));
   }
 
   const settled=await Promise.allSettled(jobs);
@@ -1386,7 +1434,8 @@ export default function Gentagai(){
   // devices instead of living only in whichever browser they were typed into.
   const [geminiKey,setGeminiKey]=useState(()=>{ try{return localStorage.getItem("gentagai_gemini_key")||"";}catch{return "";} });
   const [chatgptKey,setChatgptKey]=useState(()=>{ try{return localStorage.getItem("gentagai_chatgpt_key")||"";}catch{return "";} });
-  const [showKeyInput,setShowKeyInput]=useState(null);    // "gemini" | "chatgpt" | null
+  const [qwenKey,setQwenKey]=useState(()=>{ try{return localStorage.getItem("gentagai_qwen_key")||"";}catch{return "";} });
+  const [showKeyInput,setShowKeyInput]=useState(null);    // "gemini" | "chatgpt" | "qwen" | null
   const [keyDraft,setKeyDraft]=useState("");
   const [keySaveError,setKeySaveError]=useState("");
 
@@ -1395,11 +1444,13 @@ export default function Gentagai(){
     setKeySaveError("");
     if(brain==="gemini"){setGeminiKey(val);try{localStorage.setItem("gentagai_gemini_key",val);}catch{}}
     if(brain==="chatgpt"){setChatgptKey(val);try{localStorage.setItem("gentagai_chatgpt_key",val);}catch{}}
+    if(brain==="qwen"){setQwenKey(val);try{localStorage.setItem("gentagai_qwen_key",val);}catch{}}
     setShowKeyInput(null);setKeyDraft("");
     if(session?.user){
+      const column=brain==="gemini"?"gemini_key":brain==="qwen"?"qwen_key":"chatgpt_key";
       const{error}=await supabase.from("user_api_keys").upsert({
         user_id:session.user.id,
-        [brain==="gemini"?"gemini_key":"chatgpt_key"]:val,
+        [column]:val,
       });
       if(error){console.error("Failed to sync API key:",error);setKeySaveError("Saved on this device, but couldn't sync to your account — try again later.");}
     }
@@ -1407,10 +1458,12 @@ export default function Gentagai(){
   async function clearKey(brain){
     if(brain==="gemini"){setGeminiKey("");try{localStorage.removeItem("gentagai_gemini_key");}catch{}}
     if(brain==="chatgpt"){setChatgptKey("");try{localStorage.removeItem("gentagai_chatgpt_key");}catch{}}
+    if(brain==="qwen"){setQwenKey("");try{localStorage.removeItem("gentagai_qwen_key");}catch{}}
     if(session?.user){
+      const column=brain==="gemini"?"gemini_key":brain==="qwen"?"qwen_key":"chatgpt_key";
       const{error}=await supabase.from("user_api_keys").upsert({
         user_id:session.user.id,
-        [brain==="gemini"?"gemini_key":"chatgpt_key"]:null,
+        [column]:null,
       });
       if(error)console.error("Failed to clear synced API key:",error);
     }
@@ -1418,6 +1471,7 @@ export default function Gentagai(){
   function selectBrain(id){
     if(id==="gemini"&&!geminiKey){setShowKeyInput("gemini");setKeyDraft("");return;}
     if(id==="chatgpt"&&!chatgptKey){setShowKeyInput("chatgpt");setKeyDraft("");return;}
+    if(id==="qwen"&&!qwenKey){setShowKeyInput("qwen");setKeyDraft("");return;}
     setAiBrain(id);setShowKeyInput(null);
   }
 
@@ -1474,15 +1528,16 @@ export default function Gentagai(){
   useEffect(()=>{
     if(!session?.user)return;
     (async()=>{
-      const{data,error}=await supabase.from("user_api_keys").select("gemini_key,chatgpt_key").eq("user_id",session.user.id).single();
+      const{data,error}=await supabase.from("user_api_keys").select("gemini_key,chatgpt_key,qwen_key").eq("user_id",session.user.id).single();
       if(error||!data){
-        if(geminiKey||chatgptKey){
-          await supabase.from("user_api_keys").upsert({user_id:session.user.id,gemini_key:geminiKey||null,chatgpt_key:chatgptKey||null});
+        if(geminiKey||chatgptKey||qwenKey){
+          await supabase.from("user_api_keys").upsert({user_id:session.user.id,gemini_key:geminiKey||null,chatgpt_key:chatgptKey||null,qwen_key:qwenKey||null});
         }
         return;
       }
       if(data.gemini_key){setGeminiKey(data.gemini_key);try{localStorage.setItem("gentagai_gemini_key",data.gemini_key);}catch{}}
       if(data.chatgpt_key){setChatgptKey(data.chatgpt_key);try{localStorage.setItem("gentagai_chatgpt_key",data.chatgpt_key);}catch{}}
+      if(data.qwen_key){setQwenKey(data.qwen_key);try{localStorage.setItem("gentagai_qwen_key",data.qwen_key);}catch{}}
     })();
   },[session]);
 
@@ -2945,6 +3000,8 @@ Specific items to check/fix before posting this exact image.`,
           full=await callGeminiVision(taskPrompts[uploadMode]||taskPrompts.analyze,uploadedImage.base64,uploadedImage.type,geminiKey,setOutput);
         }else if(aiBrain==="chatgpt"&&chatgptKey){
           full=await callChatGPTVision(taskPrompts[uploadMode]||taskPrompts.analyze,uploadedImage.base64,uploadedImage.type,chatgptKey,setOutput);
+        }else if(aiBrain==="qwen"&&qwenKey){
+          full=await callQwenVision(taskPrompts[uploadMode]||taskPrompts.analyze,uploadedImage.base64,uploadedImage.type,qwenKey,setOutput);
         }else{
           // Default: Claude (built-in)
           full=await callClaudeVision(msg.content,setOutput,4096);
@@ -3039,6 +3096,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           full=await callGemini(videoPrompt,geminiKey,setOutput);
         }else if(aiBrain==="chatgpt"&&chatgptKey){
           full=await callChatGPT(videoPrompt,chatgptKey,setOutput);
+        }else if(aiBrain==="qwen"&&qwenKey){
+          full=await callQwen(videoPrompt,qwenKey,setOutput);
         }else{
           full=await streamAPI(videoPrompt,setOutput);
         }
@@ -3083,11 +3142,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         let part="";
         if(uploadedImage){
           if(aiBrain==="bishop"){
-            part=await runBishopMulti({prompt,geminiKey,chatgptKey,visionData:uploadedImage,maxTokens:ampTokens},onChunk);
+            part=await runBishopMulti({prompt,geminiKey,chatgptKey,qwenKey,visionData:uploadedImage,maxTokens:ampTokens},onChunk);
           }else if(aiBrain==="gemini"&&geminiKey){
             part=await callGeminiVision(prompt,uploadedImage.base64,uploadedImage.type,geminiKey,onChunk);
           }else if(aiBrain==="chatgpt"&&chatgptKey){
             part=await callChatGPTVision(prompt,uploadedImage.base64,uploadedImage.type,chatgptKey,onChunk);
+          }else if(aiBrain==="qwen"&&qwenKey){
+            part=await callQwenVision(prompt,uploadedImage.base64,uploadedImage.type,qwenKey,onChunk);
           }else{
             const msg={role:"user",content:[
               {type:"image",source:{type:"base64",media_type:uploadedImage.type,data:uploadedImage.base64}},
@@ -3095,16 +3156,17 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             ]};
             part=await callClaudeVision(msg.content,onChunk,ampTokens);
           }
-        }else if(hasVideoFrames&&!(aiBrain==="gemini"&&geminiKey)&&!(aiBrain==="chatgpt"&&chatgptKey)){
+        }else if(hasVideoFrames&&!(aiBrain==="gemini"&&geminiKey)&&!(aiBrain==="chatgpt"&&chatgptKey)&&!(aiBrain==="qwen"&&qwenKey)){
           const content=[
             ...uploadedVideo.frames.map(f=>({type:"image",source:{type:"base64",media_type:"image/jpeg",data:f}})),
             {type:"text",text:prompt}
           ];
           part=await callClaudeVision(content,onChunk,ampTokens);
         }else{
-          if(aiBrain==="bishop") part=await runBishopMulti({prompt,geminiKey,chatgptKey,maxTokens:ampTokens},onChunk);
+          if(aiBrain==="bishop") part=await runBishopMulti({prompt,geminiKey,chatgptKey,qwenKey,maxTokens:ampTokens},onChunk);
           else if(aiBrain==="gemini"&&geminiKey) part=await callGemini(prompt,geminiKey,onChunk);
           else if(aiBrain==="chatgpt"&&chatgptKey) part=await callChatGPT(prompt,chatgptKey,onChunk);
+          else if(aiBrain==="qwen"&&qwenKey) part=await callQwen(prompt,qwenKey,onChunk);
           else part=await streamAPI(prompt,onChunk);
         }
         combined = combined ? combined + "\n\n" + part : part;
@@ -3143,11 +3205,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         if(!imageTool)return;
         const imgPrompt=buildImage({brand,niche,imageType,platform,tone,audience,imageTool,productName,productDesc,productType,memory:activeMemoryText});
         if(aiBrain==="bishop"){
-          full=await runBishopMulti({prompt:imgPrompt,geminiKey,chatgptKey,maxTokens:4096},setOutput);
+          full=await runBishopMulti({prompt:imgPrompt,geminiKey,chatgptKey,qwenKey,maxTokens:4096},setOutput);
         }else if(aiBrain==="gemini"&&geminiKey){
           full=await callGemini(imgPrompt,geminiKey,setOutput);
         }else if(aiBrain==="chatgpt"&&chatgptKey){
           full=await callChatGPT(imgPrompt,chatgptKey,setOutput);
+        }else if(aiBrain==="qwen"&&qwenKey){
+          full=await callQwen(imgPrompt,qwenKey,setOutput);
         }else{
           full=await streamAPI(imgPrompt,setOutput);
         }
@@ -3157,11 +3221,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         const vidPrompt=buildVideo({brand,niche,videoAdType,platform,tone,audience,goal,videoTool,productName,productDesc,productType,productPrice,memory:activeMemoryText,hasRefImage:!!videoRefImage});
         if(videoRefImage){
           if(aiBrain==="bishop"){
-            full=await runBishopMulti({prompt:vidPrompt,geminiKey,chatgptKey,visionData:videoRefImage,maxTokens:4096},setOutput);
+            full=await runBishopMulti({prompt:vidPrompt,geminiKey,chatgptKey,qwenKey,visionData:videoRefImage,maxTokens:4096},setOutput);
           }else if(aiBrain==="gemini"&&geminiKey){
             full=await callGeminiVision(vidPrompt,videoRefImage.base64,videoRefImage.type,geminiKey,setOutput);
           }else if(aiBrain==="chatgpt"&&chatgptKey){
             full=await callChatGPTVision(vidPrompt,videoRefImage.base64,videoRefImage.type,chatgptKey,setOutput);
+          }else if(aiBrain==="qwen"&&qwenKey){
+            full=await callQwenVision(vidPrompt,videoRefImage.base64,videoRefImage.type,qwenKey,setOutput);
           }else{
             full=await callClaudeVision([
               {type:"image",source:{type:"base64",media_type:videoRefImage.type,data:videoRefImage.base64}},
@@ -3169,11 +3235,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             ],setOutput,4096);
           }
         }else if(aiBrain==="bishop"){
-          full=await runBishopMulti({prompt:vidPrompt,geminiKey,chatgptKey,maxTokens:4096},setOutput);
+          full=await runBishopMulti({prompt:vidPrompt,geminiKey,chatgptKey,qwenKey,maxTokens:4096},setOutput);
         }else if(aiBrain==="gemini"&&geminiKey){
           full=await callGemini(vidPrompt,geminiKey,setOutput);
         }else if(aiBrain==="chatgpt"&&chatgptKey){
           full=await callChatGPT(vidPrompt,chatgptKey,setOutput);
+        }else if(aiBrain==="qwen"&&qwenKey){
+          full=await callQwen(vidPrompt,qwenKey,setOutput);
         }else{
           full=await streamAPI(vidPrompt,setOutput);
         }
@@ -3225,7 +3293,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       <div style={{display:"flex",gap:4,marginBottom:14}}>
         {AI_BRAINS.map(b=>{
           const isActive=aiBrain===b.id;
-          const hasKey=b.id==="claude"||(b.id==="gemini"&&geminiKey)||(b.id==="chatgpt"&&chatgptKey);
+          const hasKey=b.id==="claude"||(b.id==="gemini"&&geminiKey)||(b.id==="chatgpt"&&chatgptKey)||(b.id==="qwen"&&qwenKey);
           return(
             <div key={b.id} style={{flex:1}}>
               <div onClick={()=>selectBrain(b.id)}
