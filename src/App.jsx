@@ -533,7 +533,10 @@ WHY IT WORKS: [reason]
 [Which hook works best as a paid ad opener and exactly why, tied to what converts on ${platform}]
 
 ── DELIVERY NOTE
-[One line on pacing/tone for saying this hook out loud on camera, or how it should appear as on-screen text]`,
+[One line on pacing/tone for saying this hook out loud on camera, or how it should appear as on-screen text]
+
+── TOP 5 HASHTAGS
+The 5 single best hashtags for this exact post right now — mix trending, viral, and niche-specific tags as the moment calls for it. Just the 5 tags, space-separated, no explanation.`,
 
     caption_pack:
 visualDirective+
@@ -610,19 +613,10 @@ Native-feel note: [how to make this not look like an ad]
 
     trending_strategy:
 visualDirective+
-`Give a short, sharp trending + viral content take on this ${mediaType} — like a sharp friend who actually knows social media texting you their read, not a slide deck. One confident answer per section below, 1-3 sentences each, natural spoken tone, no sub-bullets, no numbered option lists, no headers like "Step 1/Step 2." Total under 130 words.
+`Give a short, sharp trending + viral take on this ${mediaType} — like a sharp friend who actually knows social media texting you their real read, not a slide deck. Write it as ONE flowing note in natural, spoken sentences that build on each other — not isolated headers stacked into separate boxes. Weave together, in whatever order feels natural to say out loud: the one real trend or format on ${platform} this genuinely fits right now (name it specifically, tied to something actually in the image), the single best first move in the first hour after posting, the one specific detail in this exact visual that'll actually get comments or saves and why, and the best follow-up post to do next. Let one thought lead into the next like you're actually talking. No headers, no "Step 1/Step 2," no sub-bullets. Total under 150 words.
 
-── TREND ALIGNMENT
-The one real trend or format on ${platform} this genuinely fits right now — name it specifically, tied to something actually in the image.
-
-── FIRST MOVE
-The single best thing to do in the first hour after posting — one concrete action, not a checklist.
-
-── WHAT MAKES PEOPLE ENGAGE
-The one specific detail in this exact visual that'll get comments or saves, and why.
-
-── NEXT POST
-The one best follow-up piece to post after this — specific, not generic.`,
+── TOP 5 HASHTAGS
+The 5 single best hashtags for this exact post right now — mix trending, viral, and niche-specific tags as the moment calls for it. Just the 5 tags, space-separated, no explanation.`,
 
     full_suite:
 visualDirective+
