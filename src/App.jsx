@@ -291,24 +291,18 @@ const AI_BRAINS = [
   },
   {
     id:"gemini",label:"Gemini",sub:"Google",color:"#4285f4",icon:"✦",
-    desc:"Requires Gemini API key",
-    model:"gemini-1.5-pro",free:false,
-    link:"https://aistudio.google.com/apikey",
-    apiEndpoint:"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent",
+    desc:"Built-in · No key needed",
+    model:"gemini-1.5-pro",free:true,
   },
   {
     id:"chatgpt",label:"ChatGPT",sub:"OpenAI",color:"#10a37f",icon:"★",
-    desc:"Requires OpenAI API key",
-    model:"gpt-4o",free:false,
-    link:"https://platform.openai.com/api-keys",
-    apiEndpoint:"https://api.openai.com/v1/chat/completions",
+    desc:"Built-in · No key needed",
+    model:"gpt-4o",free:true,
   },
   {
     id:"qwen",label:"Qwen",sub:"Alibaba",color:"#615ced",icon:"⬢",
-    desc:"Requires Qwen API key",
-    model:"qwen-max",free:false,
-    link:"https://bailian.console.alibabacloud.com/",
-    apiEndpoint:"https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
+    desc:"Built-in · No key needed",
+    model:"qwen-max",free:true,
   },
   {
     id:"bishop",label:"BISHOP",sub:"All AI",color:"#00ff88",icon:"👑",
@@ -838,114 +832,91 @@ async function callClaudeVision(content,onChunk,maxTokens=4096){
   }catch(e){const msg="⚠ Connection error: "+e.message;onChunk(msg);return msg;}
 }
 
-// Gemini text-only
+// Gemini text-only — routes through GENTAGAI's own server-side proxy
+// (api/gemini.js), which holds the real API key. No user key needed;
+// this is now built-in, same as Claude. Non-streaming: the typewriter
+// reveal below fakes the "typing" feel over the full response.
 async function callGemini(prompt,apiKey,onChunk){
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:streamGenerateContent?alt=sse&key=${apiKey}`,{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:4096}})
-  });
-  const reader=res.body.getReader(),dec=new TextDecoder();let full="";
-  while(true){
-    const{done,value}=await reader.read();if(done)break;
-    for(const line of dec.decode(value).split("\n")){
-      if(!line.startsWith("data: "))continue;
-      try{const p=JSON.parse(line.slice(6));const t=p.candidates?.[0]?.content?.parts?.[0]?.text||"";if(t){full+=t;onChunk(full);}}catch{}
-    }
-  }
-  return full;
+  try{
+    const res=await fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:4096}})});
+    const data=await res.json();
+    if(!res.ok){const msg="⚠ "+(data.error?.message||data.error||"Gemini error");onChunk(msg);return msg;}
+    const full=data.candidates?.[0]?.content?.parts?.[0]?.text||"⚠ No response received";
+    await typewriterReveal(full,onChunk);
+    return full;
+  }catch(e){const msg="⚠ Connection error: "+e.message;onChunk(msg);return msg;}
 }
 
-// Gemini vision (image + text)
+// Gemini vision (image + text) — same proxy, image + text parts.
 async function callGeminiVision(prompt,base64,mimeType,apiKey,onChunk){
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:streamGenerateContent?alt=sse&key=${apiKey}`,{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mimeType,data:base64}},{text:prompt}]}],generationConfig:{maxOutputTokens:4096}})
-  });
-  const reader=res.body.getReader(),dec=new TextDecoder();let full="";
-  while(true){
-    const{done,value}=await reader.read();if(done)break;
-    for(const line of dec.decode(value).split("\n")){
-      if(!line.startsWith("data: "))continue;
-      try{const p=JSON.parse(line.slice(6));const t=p.candidates?.[0]?.content?.parts?.[0]?.text||"";if(t){full+=t;onChunk(full);}}catch{}
-    }
-  }
-  return full;
+  try{
+    const res=await fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mimeType,data:base64}},{text:prompt}]}],generationConfig:{maxOutputTokens:4096}})});
+    const data=await res.json();
+    if(!res.ok){const msg="⚠ "+(data.error?.message||data.error||"Gemini error");onChunk(msg);return msg;}
+    const full=data.candidates?.[0]?.content?.parts?.[0]?.text||"⚠ No response received";
+    await typewriterReveal(full,onChunk);
+    return full;
+  }catch(e){const msg="⚠ Connection error: "+e.message;onChunk(msg);return msg;}
 }
 
-// ChatGPT text-only
+// ChatGPT text-only — routes through api/openai.js, GENTAGAI's own key.
 async function callChatGPT(prompt,apiKey,onChunk){
-  const res=await fetch("https://api.openai.com/v1/chat/completions",{
-    method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},
-    body:JSON.stringify({model:"gpt-4o",max_tokens:4096,stream:true,messages:[{role:"user",content:prompt}]})
-  });
-  const reader=res.body.getReader(),dec=new TextDecoder();let full="";
-  while(true){
-    const{done,value}=await reader.read();if(done)break;
-    for(const line of dec.decode(value).split("\n")){
-      if(!line.startsWith("data: "))continue;const d=line.slice(6);if(d==="[DONE]")continue;
-      try{const p=JSON.parse(d);const t=p.choices?.[0]?.delta?.content||"";if(t){full+=t;onChunk(full);}}catch{}
-    }
-  }
-  return full;
+  try{
+    const res=await fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"gpt-4o",max_tokens:4096,messages:[{role:"user",content:prompt}]})});
+    const data=await res.json();
+    if(!res.ok){const msg="⚠ "+(data.error?.message||data.error||"ChatGPT error");onChunk(msg);return msg;}
+    const full=data.choices?.[0]?.message?.content||"⚠ No response received";
+    await typewriterReveal(full,onChunk);
+    return full;
+  }catch(e){const msg="⚠ Connection error: "+e.message;onChunk(msg);return msg;}
 }
 
-// ChatGPT vision
+// ChatGPT vision — same proxy, image_url content shape.
 async function callChatGPTVision(prompt,base64,mimeType,apiKey,onChunk){
-  const res=await fetch("https://api.openai.com/v1/chat/completions",{
-    method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},
-    body:JSON.stringify({model:"gpt-4o",max_tokens:4096,stream:true,messages:[{role:"user",content:[
-      {type:"image_url",image_url:{url:`data:${mimeType};base64,${base64}`}},
-      {type:"text",text:prompt}
-    ]}]})
-  });
-  const reader=res.body.getReader(),dec=new TextDecoder();let full="";
-  while(true){
-    const{done,value}=await reader.read();if(done)break;
-    for(const line of dec.decode(value).split("\n")){
-      if(!line.startsWith("data: "))continue;const d=line.slice(6);if(d==="[DONE]")continue;
-      try{const p=JSON.parse(d);const t=p.choices?.[0]?.delta?.content||"";if(t){full+=t;onChunk(full);}}catch{}
-    }
-  }
-  return full;
+  try{
+    const res=await fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"gpt-4o",max_tokens:4096,messages:[{role:"user",content:[
+        {type:"image_url",image_url:{url:`data:${mimeType};base64,${base64}`}},
+        {type:"text",text:prompt}
+      ]}]})});
+    const data=await res.json();
+    if(!res.ok){const msg="⚠ "+(data.error?.message||data.error||"ChatGPT error");onChunk(msg);return msg;}
+    const full=data.choices?.[0]?.message?.content||"⚠ No response received";
+    await typewriterReveal(full,onChunk);
+    return full;
+  }catch(e){const msg="⚠ Connection error: "+e.message;onChunk(msg);return msg;}
 }
 
-// Qwen text-only — DashScope's OpenAI-compatible endpoint, so this mirrors
-// callChatGPT's request/SSE shape exactly, just pointed at Alibaba's API.
+// Qwen text-only — routes through api/qwen.js, GENTAGAI's own DashScope key.
 async function callQwen(prompt,apiKey,onChunk){
-  const res=await fetch("https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",{
-    method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},
-    body:JSON.stringify({model:"qwen-max",max_tokens:4096,stream:true,messages:[{role:"user",content:prompt}]})
-  });
-  const reader=res.body.getReader(),dec=new TextDecoder();let full="";
-  while(true){
-    const{done,value}=await reader.read();if(done)break;
-    for(const line of dec.decode(value).split("\n")){
-      if(!line.startsWith("data: "))continue;const d=line.slice(6);if(d==="[DONE]")continue;
-      try{const p=JSON.parse(d);const t=p.choices?.[0]?.delta?.content||"";if(t){full+=t;onChunk(full);}}catch{}
-    }
-  }
-  return full;
+  try{
+    const res=await fetch("/api/qwen",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"qwen-max",max_tokens:4096,messages:[{role:"user",content:prompt}]})});
+    const data=await res.json();
+    if(!res.ok){const msg="⚠ "+(data.error?.message||data.error||"Qwen error");onChunk(msg);return msg;}
+    const full=data.choices?.[0]?.message?.content||"⚠ No response received";
+    await typewriterReveal(full,onChunk);
+    return full;
+  }catch(e){const msg="⚠ Connection error: "+e.message;onChunk(msg);return msg;}
 }
 
-// Qwen vision — same compatible-mode endpoint, qwen-vl-max model, identical
-// image_url content shape to the ChatGPT vision call above.
+// Qwen vision — same proxy, qwen-vl-max model, image_url content shape.
 async function callQwenVision(prompt,base64,mimeType,apiKey,onChunk){
-  const res=await fetch("https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",{
-    method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},
-    body:JSON.stringify({model:"qwen-vl-max",max_tokens:4096,stream:true,messages:[{role:"user",content:[
-      {type:"image_url",image_url:{url:`data:${mimeType};base64,${base64}`}},
-      {type:"text",text:prompt}
-    ]}]})
-  });
-  const reader=res.body.getReader(),dec=new TextDecoder();let full="";
-  while(true){
-    const{done,value}=await reader.read();if(done)break;
-    for(const line of dec.decode(value).split("\n")){
-      if(!line.startsWith("data: "))continue;const d=line.slice(6);if(d==="[DONE]")continue;
-      try{const p=JSON.parse(d);const t=p.choices?.[0]?.delta?.content||"";if(t){full+=t;onChunk(full);}}catch{}
-    }
-  }
-  return full;
+  try{
+    const res=await fetch("/api/qwen",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"qwen-vl-max",max_tokens:4096,messages:[{role:"user",content:[
+        {type:"image_url",image_url:{url:`data:${mimeType};base64,${base64}`}},
+        {type:"text",text:prompt}
+      ]}]})});
+    const data=await res.json();
+    if(!res.ok){const msg="⚠ "+(data.error?.message||data.error||"Qwen error");onChunk(msg);return msg;}
+    const full=data.choices?.[0]?.message?.content||"⚠ No response received";
+    await typewriterReveal(full,onChunk);
+    return full;
+  }catch(e){const msg="⚠ Connection error: "+e.message;onChunk(msg);return msg;}
 }
 
 // BISHOP Multi-AI — fires the same prompt at every connected model in
@@ -955,21 +926,21 @@ async function callQwenVision(prompt,base64,mimeType,apiKey,onChunk){
 // no reason to spend an extra call judging a single option. If every
 // model fails, or the judge call itself fails, falls back gracefully
 // instead of losing the person's work.
-async function runBishopMulti({prompt,geminiKey,chatgptKey,qwenKey,visionData,maxTokens=2048},onChunk){
+async function runBishopMulti({prompt,visionData,maxTokens=2048},onChunk){
   const jobs=[];
   if(visionData){
     jobs.push(callClaudeVision([
       {type:"image",source:{type:"base64",media_type:visionData.type,data:visionData.base64}},
       {type:"text",text:prompt}
     ],()=>{},maxTokens));
-    if(geminiKey)jobs.push(callGeminiVision(prompt,visionData.base64,visionData.type,geminiKey,()=>{}).catch(()=>""));
-    if(chatgptKey)jobs.push(callChatGPTVision(prompt,visionData.base64,visionData.type,chatgptKey,()=>{}).catch(()=>""));
-    if(qwenKey)jobs.push(callQwenVision(prompt,visionData.base64,visionData.type,qwenKey,()=>{}).catch(()=>""));
+    jobs.push(callGeminiVision(prompt,visionData.base64,visionData.type,null,()=>{}).catch(()=>""));
+    jobs.push(callChatGPTVision(prompt,visionData.base64,visionData.type,null,()=>{}).catch(()=>""));
+    jobs.push(callQwenVision(prompt,visionData.base64,visionData.type,null,()=>{}).catch(()=>""));
   }else{
     jobs.push(callAPI(prompt));
-    if(geminiKey)jobs.push(callGemini(prompt,geminiKey,()=>{}).catch(()=>""));
-    if(chatgptKey)jobs.push(callChatGPT(prompt,chatgptKey,()=>{}).catch(()=>""));
-    if(qwenKey)jobs.push(callQwen(prompt,qwenKey,()=>{}).catch(()=>""));
+    jobs.push(callGemini(prompt,null,()=>{}).catch(()=>""));
+    jobs.push(callChatGPT(prompt,null,()=>{}).catch(()=>""));
+    jobs.push(callQwen(prompt,null,()=>{}).catch(()=>""));
   }
 
   const settled=await Promise.allSettled(jobs);
@@ -1462,10 +1433,10 @@ export default function Gentagai(){
       if(error)console.error("Failed to clear synced API key:",error);
     }
   }
+  // All AI Brains are now built-in (Gemini/ChatGPT/Qwen route through
+  // GENTAGAI's own server-side proxies), so selecting one never needs a
+  // key prompt — same as Claude always worked.
   function selectBrain(id){
-    if(id==="gemini"&&!geminiKey){setShowKeyInput("gemini");setKeyDraft("");return;}
-    if(id==="chatgpt"&&!chatgptKey){setShowKeyInput("chatgpt");setKeyDraft("");return;}
-    if(id==="qwen"&&!qwenKey){setShowKeyInput("qwen");setKeyDraft("");return;}
     setAiBrain(id);setShowKeyInput(null);
   }
 
@@ -2990,11 +2961,11 @@ Specific items to check/fix before posting this exact image.`,
           {type:"text",text:taskPrompts[uploadMode]||taskPrompts.analyze}
         ]};
         let full="";
-        if(aiBrain==="gemini"&&geminiKey){
+        if(aiBrain==="gemini"){
           full=await callGeminiVision(taskPrompts[uploadMode]||taskPrompts.analyze,uploadedImage.base64,uploadedImage.type,geminiKey,setOutput);
-        }else if(aiBrain==="chatgpt"&&chatgptKey){
+        }else if(aiBrain==="chatgpt"){
           full=await callChatGPTVision(taskPrompts[uploadMode]||taskPrompts.analyze,uploadedImage.base64,uploadedImage.type,chatgptKey,setOutput);
-        }else if(aiBrain==="qwen"&&qwenKey){
+        }else if(aiBrain==="qwen"){
           full=await callQwenVision(taskPrompts[uploadMode]||taskPrompts.analyze,uploadedImage.base64,uploadedImage.type,qwenKey,setOutput);
         }else{
           // Default: Claude (built-in)
@@ -3086,11 +3057,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         };
         const videoPrompt=videoPrompts[uploadMode]||videoPrompts.analyze;
         let full="";
-        if(aiBrain==="gemini"&&geminiKey){
+        if(aiBrain==="gemini"){
           full=await callGemini(videoPrompt,geminiKey,setOutput);
-        }else if(aiBrain==="chatgpt"&&chatgptKey){
+        }else if(aiBrain==="chatgpt"){
           full=await callChatGPT(videoPrompt,chatgptKey,setOutput);
-        }else if(aiBrain==="qwen"&&qwenKey){
+        }else if(aiBrain==="qwen"){
           full=await callQwen(videoPrompt,qwenKey,setOutput);
         }else{
           full=await streamAPI(videoPrompt,setOutput);
@@ -3137,11 +3108,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         if(uploadedImage){
           if(aiBrain==="bishop"){
             part=await runBishopMulti({prompt,geminiKey,chatgptKey,qwenKey,visionData:uploadedImage,maxTokens:ampTokens},onChunk);
-          }else if(aiBrain==="gemini"&&geminiKey){
+          }else if(aiBrain==="gemini"){
             part=await callGeminiVision(prompt,uploadedImage.base64,uploadedImage.type,geminiKey,onChunk);
-          }else if(aiBrain==="chatgpt"&&chatgptKey){
+          }else if(aiBrain==="chatgpt"){
             part=await callChatGPTVision(prompt,uploadedImage.base64,uploadedImage.type,chatgptKey,onChunk);
-          }else if(aiBrain==="qwen"&&qwenKey){
+          }else if(aiBrain==="qwen"){
             part=await callQwenVision(prompt,uploadedImage.base64,uploadedImage.type,qwenKey,onChunk);
           }else{
             const msg={role:"user",content:[
@@ -3150,7 +3121,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             ]};
             part=await callClaudeVision(msg.content,onChunk,ampTokens);
           }
-        }else if(hasVideoFrames&&!(aiBrain==="gemini"&&geminiKey)&&!(aiBrain==="chatgpt"&&chatgptKey)&&!(aiBrain==="qwen"&&qwenKey)){
+        }else if(hasVideoFrames&&!(aiBrain==="gemini")&&!(aiBrain==="chatgpt")&&!(aiBrain==="qwen")){
           const content=[
             ...uploadedVideo.frames.map(f=>({type:"image",source:{type:"base64",media_type:"image/jpeg",data:f}})),
             {type:"text",text:prompt}
@@ -3158,9 +3129,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           part=await callClaudeVision(content,onChunk,ampTokens);
         }else{
           if(aiBrain==="bishop") part=await runBishopMulti({prompt,geminiKey,chatgptKey,qwenKey,maxTokens:ampTokens},onChunk);
-          else if(aiBrain==="gemini"&&geminiKey) part=await callGemini(prompt,geminiKey,onChunk);
-          else if(aiBrain==="chatgpt"&&chatgptKey) part=await callChatGPT(prompt,chatgptKey,onChunk);
-          else if(aiBrain==="qwen"&&qwenKey) part=await callQwen(prompt,qwenKey,onChunk);
+          else if(aiBrain==="gemini") part=await callGemini(prompt,geminiKey,onChunk);
+          else if(aiBrain==="chatgpt") part=await callChatGPT(prompt,chatgptKey,onChunk);
+          else if(aiBrain==="qwen") part=await callQwen(prompt,qwenKey,onChunk);
           else part=await streamAPI(prompt,onChunk);
         }
         combined = combined ? combined + "\n\n" + part : part;
@@ -3200,11 +3171,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         const imgPrompt=buildImage({brand,niche,imageType,platform,tone,audience,imageTool,productName,productDesc,productType,memory:activeMemoryText});
         if(aiBrain==="bishop"){
           full=await runBishopMulti({prompt:imgPrompt,geminiKey,chatgptKey,qwenKey,maxTokens:4096},setOutput);
-        }else if(aiBrain==="gemini"&&geminiKey){
+        }else if(aiBrain==="gemini"){
           full=await callGemini(imgPrompt,geminiKey,setOutput);
-        }else if(aiBrain==="chatgpt"&&chatgptKey){
+        }else if(aiBrain==="chatgpt"){
           full=await callChatGPT(imgPrompt,chatgptKey,setOutput);
-        }else if(aiBrain==="qwen"&&qwenKey){
+        }else if(aiBrain==="qwen"){
           full=await callQwen(imgPrompt,qwenKey,setOutput);
         }else{
           full=await streamAPI(imgPrompt,setOutput);
@@ -3216,11 +3187,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         if(videoRefImage){
           if(aiBrain==="bishop"){
             full=await runBishopMulti({prompt:vidPrompt,geminiKey,chatgptKey,qwenKey,visionData:videoRefImage,maxTokens:4096},setOutput);
-          }else if(aiBrain==="gemini"&&geminiKey){
+          }else if(aiBrain==="gemini"){
             full=await callGeminiVision(vidPrompt,videoRefImage.base64,videoRefImage.type,geminiKey,setOutput);
-          }else if(aiBrain==="chatgpt"&&chatgptKey){
+          }else if(aiBrain==="chatgpt"){
             full=await callChatGPTVision(vidPrompt,videoRefImage.base64,videoRefImage.type,chatgptKey,setOutput);
-          }else if(aiBrain==="qwen"&&qwenKey){
+          }else if(aiBrain==="qwen"){
             full=await callQwenVision(vidPrompt,videoRefImage.base64,videoRefImage.type,qwenKey,setOutput);
           }else{
             full=await callClaudeVision([
@@ -3230,11 +3201,11 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           }
         }else if(aiBrain==="bishop"){
           full=await runBishopMulti({prompt:vidPrompt,geminiKey,chatgptKey,qwenKey,maxTokens:4096},setOutput);
-        }else if(aiBrain==="gemini"&&geminiKey){
+        }else if(aiBrain==="gemini"){
           full=await callGemini(vidPrompt,geminiKey,setOutput);
-        }else if(aiBrain==="chatgpt"&&chatgptKey){
+        }else if(aiBrain==="chatgpt"){
           full=await callChatGPT(vidPrompt,chatgptKey,setOutput);
-        }else if(aiBrain==="qwen"&&qwenKey){
+        }else if(aiBrain==="qwen"){
           full=await callQwen(vidPrompt,qwenKey,setOutput);
         }else{
           full=await streamAPI(vidPrompt,setOutput);
@@ -3287,14 +3258,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       <div style={{display:"flex",gap:4,marginBottom:14}}>
         {AI_BRAINS.map(b=>{
           const isActive=aiBrain===b.id;
-          const hasKey=b.id==="claude"||(b.id==="gemini"&&geminiKey)||(b.id==="chatgpt"&&chatgptKey)||(b.id==="qwen"&&qwenKey);
           return(
             <div key={b.id} style={{flex:1}}>
               <div onClick={()=>selectBrain(b.id)}
                 style={{padding:"8px 4px",border:`1px solid ${isActive?b.color+"88":"#24272E"}`,background:isActive?`${b.color}10`:"#0E1013",cursor:"pointer",textAlign:"center",transition:"all .15s",borderRadius:4}}>
                 <div style={{fontSize:18,color:isActive?b.color:"#6B6F7A",lineHeight:1}}>{b.icon}</div>
                 <div style={{fontSize:11,color:isActive?b.color:"#82858C",marginTop:3,letterSpacing:.5}}>{b.label}</div>
-                <div style={{fontSize:10,color:hasKey&&b.id!=="claude"?"#00ff8866":"#45484F",marginTop:1}}>{b.id==="claude"?"built-in":hasKey?"✓ key saved":"+ add key"}</div>
+                <div style={{fontSize:10,color:"#45484F",marginTop:1}}>{b.free?"built-in":"+ add key"}</div>
               </div>
               {showKeyInput===b.id&&(
                 <div style={{background:"#08090B",border:`1px solid ${b.color}33`,padding:"8px",borderRadius:"0 0 4px 4px",marginTop:-1}}>
@@ -3309,7 +3279,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   {keySaveError&&<div style={{fontSize:10,color:"#ff6a6a",marginTop:5}}>{keySaveError}</div>}
                 </div>
               )}
-              {hasKey&&b.id!=="claude"&&isActive&&(
+              {!b.free&&isActive&&(
                 <button onClick={()=>clearKey(b.id)} style={{width:"100%",background:"none",border:"none",color:"#45484F",fontSize:10,cursor:"pointer",fontFamily:"inherit",marginTop:2,letterSpacing:1}}>clear key</button>
               )}
             </div>
