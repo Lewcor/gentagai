@@ -2151,16 +2151,26 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     }
   }
 
+  // Loads a saved campaign's setup back into the form so it can be run again.
+  function rerunCampaign(c){
+    setActiveCampaign(null);setCampaignPieces([]);setPieceMetrics({});setMetricsDraft({});
+    setCName((c.name||"")+" (copy)");setCGoal(c.goal||"");setCLength(c.length_days||7);
+    setCPlatforms(Array.isArray(c.platforms)&&c.platforms.length?c.platforms:["instagram"]);
+    setProductName(c.product_name||"");setProductDesc(c.product_desc||"");
+    const media=Array.isArray(c.media)?c.media:[];
+    const urls=media.map(m=>m.image_url);const names=media.map(m=>m.name);
+    setCSelMedia(vaultAssets.filter(a=>urls.includes(a.url)).map(a=>a.id));
+    setCSelProducts(products.filter(x=>names.includes(x.name)).map(x=>x.id));
+    setCampaignError("");
+    if(isMobile)setMobileTab("config");
+  }
+
   function clearAllInfo(){
     setProductName("");setProductDesc("");setProductPrice("");setProductType("");
     setUploadedImage(null);setUploadedVideo(null);
     newCampaignForm();
     setCampaignError("");
     reset();
-  }
-  function clearAllLinks(){
-    setPlatformURLs({});
-    try{localStorage.removeItem("gentagai_platform_urls");}catch{}
   }
 
   function newCampaignForm(){
@@ -5083,13 +5093,19 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       <>
         {campaignsList.length>0&&(
           <div style={{marginBottom:22}}>
-            <div style={{fontSize:9.5,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:10}}>Past Campaigns</div>
+            <div style={{fontSize:9.5,letterSpacing:2,color:"#82858C",textTransform:"uppercase",marginBottom:4}}>Saved Campaigns</div>
+            <div style={{fontSize:11,color:"#565A64",marginBottom:10}}>Everything is saved. Open one, or re-run it with the same setup.</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {campaignsList.map(c=>(
-                <div key={c.id} onClick={()=>openCampaign(c)}
-                  style={{padding:"10px 12px",borderRadius:9,border:"1px solid #24272E",cursor:"pointer",background:"rgba(255,255,255,.02)"}}>
-                  <div style={{fontSize:12.5,fontWeight:700,color:"#F0F1F4"}}>{c.name}</div>
-                  <div style={{fontSize:10.5,color:"#565A64",marginTop:2}}>{c.length_days} days · {c.goal||"no goal set"}</div>
+                <div key={c.id} style={{padding:"10px 12px",borderRadius:9,border:"1px solid #24272E",background:"rgba(255,255,255,.02)"}}>
+                  <div onClick={()=>openCampaign(c)} style={{cursor:"pointer"}}>
+                    <div style={{fontSize:12.5,fontWeight:700,color:"#F0F1F4"}}>{c.name}</div>
+                    <div style={{fontSize:10.5,color:"#565A64",marginTop:2}}>{c.length_days} days · {c.goal||"no goal set"}{c.created_at?` · ${new Date(c.created_at).toLocaleDateString()}`:""}</div>
+                  </div>
+                  <div style={{display:"flex",gap:6,marginTop:8}}>
+                    <button className="sm" onClick={()=>openCampaign(c)} style={{borderColor:"#4DE8FF55",color:"#4DE8FF"}}>OPEN</button>
+                    <button className="sm" onClick={()=>rerunCampaign(c)} style={{borderColor:"#f0b42966",color:"#f0b429"}}>↻ RE-RUN</button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -5568,9 +5584,6 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       <div style={{fontSize:12,color:"#565A64",marginBottom:showURLSetup?12:0,lineHeight:1.6}}>
                         {showURLSetup?"Enter your profile URLs below. Saved in your browser — enter once, use forever.":"Enter your URLs once and we'll direct-link you to post instantly on any platform."}
                       </div>
-                      {showURLSetup&&Object.values(platformURLs).some(Boolean)&&(
-                        <button className="sm" onClick={clearAllLinks} style={{borderColor:"#ff6a6a44",color:"#ff6a6a",marginBottom:12}}>✕ CLEAR ALL LINKS</button>
-                      )}
                       {showURLSetup&&(
                         <div style={{display:"flex",flexDirection:"column",gap:8}}>
                           {PUBLISH_PLATFORMS.map(pf=>(
