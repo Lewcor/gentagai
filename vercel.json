@@ -4,7 +4,15 @@
   "outputDirectory": "build",
   "framework": "create-react-app",
   "rewrites": [
+    { "source": "/api/chat", "destination": "/api/ai?p=chat" },
+    { "source": "/api/gemini", "destination": "/api/ai?p=gemini" },
+    { "source": "/api/openai", "destination": "/api/ai?p=openai" },
+    { "source": "/api/qwen", "destination": "/api/ai?p=qwen" },
+    { "source": "/api/bishop-judge", "destination": "/api/ai?p=judge" },
+    { "source": "/api/use-generation", "destination": "/api/account?a=use-generation" },
+    { "source": "/api/redeem-code", "destination": "/api/account?a=redeem-code" },
+    { "source": "/api/claim-purchase", "destination": "/api/account?a=claim-purchase" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
-} 
+}
