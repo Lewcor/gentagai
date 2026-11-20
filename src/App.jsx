@@ -1,6 +1,7 @@
 /* eslint-disable */
 import { useState, useRef, useEffect, Component } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { ApprovalsPage, CalendarPage, InsightsPage, NextMovesPage, PublishingPage, SettingsPage, ProductAssets, ProductPerformance } from "./Pages";
 import { Canvas, useFrame } from "@react-three/fiber";
 
 // ─────────────────────────────────────────────
@@ -209,7 +210,7 @@ const VIDEO_TOOLS = [
 const WORKSPACES = [
   {id:"bishop",icon:"◈",label:"BISHOP",pages:[
     {id:"command-center",label:"Command Center",mode:"copy",built:true},
-    {id:"next-moves",label:"Next Moves",built:false},
+    {id:"next-moves",label:"Next Moves",mode:"next-moves",built:true},
   ]},
   {id:"brand",icon:"◆",label:"Brand",pages:[
     {id:"brand-hq",label:"Brand HQ",mode:"brand-hq",built:true},
@@ -230,24 +231,24 @@ const WORKSPACES = [
   {id:"campaigns",icon:"⬡",label:"Campaigns",pages:[
     {id:"campaign-builder",label:"Campaign Builder",mode:"campaign",built:true},
     {id:"campaigns",label:"Campaigns",mode:"campaign",built:true},
-    {id:"calendar",label:"Calendar",built:false},
-    {id:"approvals",label:"Approvals",built:false},
+    {id:"calendar",label:"Calendar",mode:"calendar",built:true},
+    {id:"approvals",label:"Approvals",mode:"approvals",built:true},
   ]},
   {id:"intelligence",icon:"◉",label:"Intelligence",pages:[
     {id:"ai-viz",label:"AI Viz",mode:"visibility",built:true},
     {id:"performance",label:"Performance",mode:"campaign",built:true},
-    {id:"bishop-insights",label:"BISHOP Insights",built:false},
+    {id:"bishop-insights",label:"BISHOP Insights",mode:"bishop-insights",built:true},
   ]},
   {id:"bridge",icon:"⌁",label:"Bridge",pages:[
     {id:"connections",label:"Connections",built:true,action:"account"},
-    {id:"publishing",label:"Publishing",built:false,note:"Opens after generating content"},
+    {id:"publishing",label:"Publishing",mode:"publishing",built:true},
     {id:"automation",label:"Automation",built:false},
   ]},
   {id:"account",icon:"⚙",label:"Account",pages:[
     {id:"agency",label:"Agency",built:true,action:"account"},
     {id:"billing",label:"Billing",built:true,action:"account"},
     {id:"team",label:"Team",built:false},
-    {id:"settings",label:"Settings",built:false},
+    {id:"settings",label:"Settings",mode:"settings",built:true},
   ]},
 ];
 
@@ -2347,6 +2348,10 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     if(isMobile)setMobileTab("config");
   }
 
+  function navToPage(pageId){
+    for(const w of WORKSPACES){const it=w.pages.find(p=>p.id===pageId);if(it){handleSidebarNav(it,w.id);return;}}
+  }
+
   // ── Generation ──────────────────────────────
   function reset(){setStep("idle");setOutput("");setAbA("");setAbB("");setScores(null);setHistActive(null);setAbTab("variants");}
 
@@ -3553,7 +3558,19 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         )}
 
         {/* ── BRAND HQ — 3D Immersive hub, entry point before the actual Brand Brief form ── */}
-        {mode==="brand-hq"?(
+        {mode==="approvals"?(
+          <ApprovalsPage session={session} supabase={supabase} activeProfileId={activeProfileId} gold={gold} isMobile={isMobile} onNavigate={navToPage}/>
+        ):mode==="calendar"?(
+          <CalendarPage session={session} supabase={supabase} activeProfileId={activeProfileId} gold={gold} isMobile={isMobile} onNavigate={navToPage}/>
+        ):mode==="bishop-insights"?(
+          <InsightsPage session={session} supabase={supabase} activeProfileId={activeProfileId} gold={gold} isMobile={isMobile} onNavigate={navToPage} callAPI={callAPI} claimGeneration={claimGeneration} brand={brand}/>
+        ):mode==="next-moves"?(
+          <NextMovesPage session={session} supabase={supabase} activeProfileId={activeProfileId} gold={gold} isMobile={isMobile} onNavigate={navToPage} callAPI={callAPI} claimGeneration={claimGeneration} brand={brand} products={products} brandMemories={brandMemories} postizStatus={postizStatus} brandPct={Math.round(([!!brand.trim(),!!niche.trim(),!!audience.trim(),tone&&tone.length>0,!!goal.trim(),!!keywords.trim()].filter(Boolean).length/6)*100)}/>
+        ):mode==="publishing"?(
+          <PublishingPage session={session} supabase={supabase} activeProfileId={activeProfileId} gold={gold} isMobile={isMobile} onNavigate={navToPage} apiFetch={apiFetch} postizStatus={postizStatus}/>
+        ):mode==="settings"?(
+          <SettingsPage session={session} gold={gold} isMobile={isMobile} plan={plan} planName={currentPlan.name} gensUsed={gensUsed} genLimit={genLimit} aiBrain={aiBrain} setAiBrain={setAiBrain} aiBrains={AI_BRAINS} postizStatus={postizStatus} onNavigate={navToPage} onManagePlan={()=>setShowAccount(true)} onLogout={signOutAccount}/>
+        ):mode==="brand-hq"?(
           <div style={{flex:1,overflowY:"auto",display:"flex",justifyContent:"center",padding:isMobile?"28px 16px 100px":"52px 40px",minHeight:0}}>
             <div style={{width:"100%",maxWidth:1000}}>
 
@@ -4012,8 +4029,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {id:"story",label:"Story",built:true},
                     {id:"customer",label:"Customer",built:true},
                     {id:"positioning",label:"Positioning",built:true},
-                    {id:"assets",label:"Assets",built:false},
-                    {id:"performance",label:"Performance",built:false},
+                    {id:"assets",label:"Assets",built:true},
+                    {id:"performance",label:"Performance",built:true},
                   ].map(t=>(
                     <button key={t.id} disabled={!t.built} onClick={()=>{if(t.built){setProductChamberTab(t.id);setChamberSaveError("");setChamberSaved(false);}}}
                       style={{padding:"7px 15px",borderRadius:999,border:`1px solid ${productChamberTab===t.id?"#FF9D4D77":"rgba(255,255,255,.1)"}`,background:productChamberTab===t.id?"rgba(255,157,77,.12)":"transparent",color:!t.built?"#4a4d54":productChamberTab===t.id?"#FF9D4D":"#9BA0AC",cursor:t.built?"pointer":"not-allowed",fontSize:12.5,opacity:t.built?1:.5}}>
@@ -4022,6 +4039,8 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                   ))}
                 </div>
 
+                {productChamberTab==="assets"&&<ProductAssets supabase={supabase} session={session} product={activeProduct} activeProfileId={activeProfileId} gold={gold} onProductUpdated={d=>setProducts(ps=>ps.map(x=>x.id===d.id?d:x))} onNavigate={navToPage}/>}
+                {productChamberTab==="performance"&&<ProductPerformance supabase={supabase} session={session} product={activeProduct} gold={gold} onNavigate={navToPage}/>}
                 {(productChamberTab==="story"||productChamberTab==="customer"||productChamberTab==="positioning")&&(()=>{
                   const cfg={
                     story:{label:"Product Story",helper:"What this product is, why it exists, and what makes it worth buying.",placeholder:"Example: Premium heavyweight streetwear inspired by Chicago identity and designed around confidence, culture, and self-expression."},
