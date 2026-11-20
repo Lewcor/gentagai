@@ -6,6 +6,7 @@
 // doesn't have a website to scan.
 // ═══════════════════════════════════════════════════════════
 import { createClient } from "@supabase/supabase-js";
+import { requireUser } from "./_auth.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -15,10 +16,10 @@ const supabase = createClient(
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { userId, integrationId } = req.body;
-  if (!userId) {
-    return res.status(400).json({ error: "Missing userId" });
-  }
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const userId = user.id; // from the verified token, never from the client
+  const { integrationId } = req.body || {};
 
   const { data: connection, error: fetchError } = await supabase
     .from("postiz_connections")
