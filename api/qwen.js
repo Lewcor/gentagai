@@ -6,21 +6,16 @@
 // this mirrors api/openai.js almost exactly, just pointed at a
 // different provider. Non-streaming, same reasoning as the others.
 // ═══════════════════════════════════════════════════════════
+import { setCors, requireUser, capTokens } from "./_auth.js";
+
 export const config = { maxDuration: 60 };
 
 export default async function handler(req, res) {
-  if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    return res.status(200).end();
-  }
-
-  if (req.method !== "POST") {
-    return res.status(405).send("Method not allowed");
-  }
-
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  setCors(req, res);
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
+  const user = await requireUser(req, res);
+  if (!user) return;
 
   const apiKey = process.env.QWEN_API_KEY;
   if (!apiKey) {
@@ -28,7 +23,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const payload = { ...req.body, stream: false };
+    const payload = { ...req.body, stream: false, max_tokens: capTokens(req.body?.max_tokens) };
 
     const response = await fetch("https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions", {
       method: "POST",

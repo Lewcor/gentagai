@@ -11,6 +11,16 @@ const supabase = createClient(
   process.env.REACT_APP_SUPABASE_ANON_KEY
 );
 
+// Every call to our own paid/private endpoints carries the signed-in user's
+// Supabase token so the server can verify who is asking (and refuse strangers).
+async function apiFetch(url,opts={}){
+  const {data}=await supabase.auth.getSession();
+  const token=data?.session?.access_token;
+  const headers={...(opts.headers||{}),...(token?{Authorization:`Bearer ${token}`}:{})};
+  return fetch(url,{...opts,headers});
+}
+
+
 // ─────────────────────────────────────────────
 // Storage — persists uploaded reference images/video to Supabase
 // so they survive beyond this browser session instead of living
@@ -782,7 +792,7 @@ function typewriterReveal(text,onChunk){
 
 async function streamAPI(prompt,onChunk){
   try{
-    const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:4096,messages:[{role:"user",content:prompt}]})});
+    const res=await apiFetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:4096,messages:[{role:"user",content:prompt}]})});
     if(!res.ok){
       const err=await res.text();
       let msg="⚠ Error "+res.status;
@@ -797,7 +807,7 @@ async function streamAPI(prompt,onChunk){
 }
 async function callAPI(prompt){
   try{
-    const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:4096,messages:[{role:"user",content:prompt}]})});
+    const res=await apiFetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:4096,messages:[{role:"user",content:prompt}]})});
     if(!res.ok){const err=await res.text();return "⚠ Error: "+err.slice(0,100);}
     const data=await res.json();
     return data.content?.map(b=>b.text||"").join("")||"";
@@ -807,7 +817,7 @@ async function callAPI(prompt){
 // non-streaming — used for one-shot structured analysis, not generation.
 async function callAPIContent(content,maxTokens=2048){
   try{
-    const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:maxTokens,messages:[{role:"user",content}]})});
+    const res=await apiFetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:maxTokens,messages:[{role:"user",content}]})});
     if(!res.ok){const err=await res.text();return "⚠ Error: "+err.slice(0,100);}
     const data=await res.json();
     return data.content?.map(b=>b.text||"").join("")||"";
@@ -818,7 +828,7 @@ async function callAPIContent(content,maxTokens=2048){
 // Now matches streamAPI's real response shape and surfaces real errors.
 async function callClaudeVision(content,onChunk,maxTokens=4096){
   try{
-    const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:maxTokens,messages:[{role:"user",content}]})});
+    const res=await apiFetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:maxTokens,messages:[{role:"user",content}]})});
     if(!res.ok){
       const err=await res.text();
       let msg="⚠ Error "+res.status;
@@ -838,7 +848,7 @@ async function callClaudeVision(content,onChunk,maxTokens=4096){
 // reveal below fakes the "typing" feel over the full response.
 async function callGemini(prompt,apiKey,onChunk){
   try{
-    const res=await fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},
+    const res=await apiFetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:4096}})});
     const data=await res.json();
     if(!res.ok){const msg="⚠ "+(data.error?.message||data.error||"Gemini error");onChunk(msg);return msg;}
@@ -851,7 +861,7 @@ async function callGemini(prompt,apiKey,onChunk){
 // Gemini vision (image + text) — same proxy, image + text parts.
 async function callGeminiVision(prompt,base64,mimeType,apiKey,onChunk){
   try{
-    const res=await fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},
+    const res=await apiFetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mimeType,data:base64}},{text:prompt}]}],generationConfig:{maxOutputTokens:4096}})});
     const data=await res.json();
     if(!res.ok){const msg="⚠ "+(data.error?.message||data.error||"Gemini error");onChunk(msg);return msg;}
@@ -864,7 +874,7 @@ async function callGeminiVision(prompt,base64,mimeType,apiKey,onChunk){
 // ChatGPT text-only — routes through api/openai.js, GENTAGAI's own key.
 async function callChatGPT(prompt,apiKey,onChunk){
   try{
-    const res=await fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},
+    const res=await apiFetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({model:"gpt-4o",max_tokens:4096,messages:[{role:"user",content:prompt}]})});
     const data=await res.json();
     if(!res.ok){const msg="⚠ "+(data.error?.message||data.error||"ChatGPT error");onChunk(msg);return msg;}
@@ -877,7 +887,7 @@ async function callChatGPT(prompt,apiKey,onChunk){
 // ChatGPT vision — same proxy, image_url content shape.
 async function callChatGPTVision(prompt,base64,mimeType,apiKey,onChunk){
   try{
-    const res=await fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},
+    const res=await apiFetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({model:"gpt-4o",max_tokens:4096,messages:[{role:"user",content:[
         {type:"image_url",image_url:{url:`data:${mimeType};base64,${base64}`}},
         {type:"text",text:prompt}
@@ -893,7 +903,7 @@ async function callChatGPTVision(prompt,base64,mimeType,apiKey,onChunk){
 // Qwen text-only — routes through api/qwen.js, GENTAGAI's own DashScope key.
 async function callQwen(prompt,apiKey,onChunk){
   try{
-    const res=await fetch("/api/qwen",{method:"POST",headers:{"Content-Type":"application/json"},
+    const res=await apiFetch("/api/qwen",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({model:"qwen-max",max_tokens:4096,messages:[{role:"user",content:prompt}]})});
     const data=await res.json();
     if(!res.ok){const msg="⚠ "+(data.error?.message||data.error||"Qwen error");onChunk(msg);return msg;}
@@ -906,7 +916,7 @@ async function callQwen(prompt,apiKey,onChunk){
 // Qwen vision — same proxy, qwen-vl-max model, image_url content shape.
 async function callQwenVision(prompt,base64,mimeType,apiKey,onChunk){
   try{
-    const res=await fetch("/api/qwen",{method:"POST",headers:{"Content-Type":"application/json"},
+    const res=await apiFetch("/api/qwen",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({model:"qwen-vl-max",max_tokens:4096,messages:[{role:"user",content:[
         {type:"image_url",image_url:{url:`data:${mimeType};base64,${base64}`}},
         {type:"text",text:prompt}
@@ -958,7 +968,7 @@ async function runBishopMulti({prompt,visionData,maxTokens=2048},onChunk){
   }
 
   try{
-    const res=await fetch("/api/bishop-judge",{method:"POST",headers:{"Content-Type":"application/json"},
+    const res=await apiFetch("/api/bishop-judge",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({prompt,candidates})});
     const data=await res.json();
     const final=res.ok&&data.result?data.result:candidates[0];
@@ -1614,7 +1624,7 @@ export default function Gentagai(){
 
   function refetchPostizStatus(){
     if(!session?.user)return;
-    fetch(`/api/postiz-integrations?userId=${session.user.id}`,{cache:"no-store"})
+    apiFetch(`/api/postiz-integrations?userId=${session.user.id}`,{cache:"no-store"})
       .then(r=>r.json()).then(setPostizStatus).catch(()=>{});
   }
 
@@ -1623,7 +1633,7 @@ export default function Gentagai(){
     if(!session?.user)return;
     setPostizDisconnecting(d=>({...d,[integrationId]:true}));
     try{
-      const res=await fetch("/api/postiz-disconnect",{
+      const res=await apiFetch("/api/postiz-disconnect",{
         method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({userId:session.user.id,integrationId}),
       });
@@ -2587,7 +2597,7 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     if(!vizUrl.trim())return;
     setVizScanning(true);setVizResult(null);setVizError("");setVizFixOutput("");setVizBrandSuggestion(null);setVizBrandError("");
     try{
-      const res=await fetch("/api/ai-visibility-check",{
+      const res=await apiFetch("/api/ai-visibility-check",{
         method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({url:vizUrl.trim()}),
       });
@@ -2770,7 +2780,7 @@ Site text:
     setLearnAnalyzing(true);setLearnSuggestion(null);setLearnError("");
     try{
       const igIntegration=postizStatus.integrations?.find(i=>(i.identifier||i.platform||"").toLowerCase().includes("instagram"));
-      const res=await fetch("/api/postiz-posts",{
+      const res=await apiFetch("/api/postiz-posts",{
         method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({userId:session.user.id,integrationId:igIntegration?.id}),
       });
@@ -2811,7 +2821,7 @@ Site text:
     setPostizPublishing(s=>({...s,[integration.id]:"publishing"}));
     setPostizPublishError("");
     try{
-      const res=await fetch("/api/postiz-publish",{
+      const res=await apiFetch("/api/postiz-publish",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({

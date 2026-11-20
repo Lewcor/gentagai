@@ -17,6 +17,7 @@
 //     that settings object or Postiz rejects the whole request.
 // ═══════════════════════════════════════════════════════════
 import { createClient } from "@supabase/supabase-js";
+import { requireUser } from "./_auth.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -67,8 +68,11 @@ function buildSettings(identifier) {
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { userId, integrationId, identifier, content, imageUrl, scheduleDate } = req.body;
-  if (!userId || !integrationId || !content) {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const userId = user.id; // from the verified token, never from the client
+  const { integrationId, identifier, content, imageUrl, scheduleDate } = req.body || {};
+  if (!integrationId || !content) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 

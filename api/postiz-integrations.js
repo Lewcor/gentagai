@@ -4,6 +4,7 @@
 // Postiz), refreshing the cache if the stored copy looks stale.
 // ═══════════════════════════════════════════════════════════
 import { createClient } from "@supabase/supabase-js";
+import { requireUser } from "./_auth.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -11,8 +12,9 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  const { userId } = req.query;
-  if (!userId) return res.status(400).json({ error: "Missing userId" });
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const userId = user.id; // from the verified token, never from the client
 
   // This response is per-user and changes any time they (dis)connect a
   // platform — it must never be served from a cache (browser or Vercel's
