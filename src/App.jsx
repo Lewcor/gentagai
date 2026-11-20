@@ -2151,6 +2151,18 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     }
   }
 
+  function clearAllInfo(){
+    setProductName("");setProductDesc("");setProductPrice("");setProductType("");
+    setUploadedImage(null);setUploadedVideo(null);
+    newCampaignForm();
+    setCampaignError("");
+    reset();
+  }
+  function clearAllLinks(){
+    setPlatformURLs({});
+    try{localStorage.removeItem("gentagai_platform_urls");}catch{}
+  }
+
   function newCampaignForm(){
     setActiveCampaign(null);setCampaignPieces([]);setCName("");setCGoal("");setCLength(7);setCPlatforms(["instagram"]);setCSelProducts([]);setCSelMedia([]);
     setPieceMetrics({});setMetricsDraft({});
@@ -4462,7 +4474,10 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
           {/* ── PRODUCT INTEL ── */}
           <div>
-            <div className="sl" style={{color:mc}}>02 — Product Intel</div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div className="sl" style={{color:mc}}>02 — Product Intel</div>
+              {(productName||productDesc||productPrice||productType||uploadedImage||uploadedVideo)&&<button className="sm" onClick={clearAllInfo} style={{borderColor:"#ff6a6a44",color:"#ff6a6a",marginBottom:8}}>✕ CLEAR ALL</button>}
+            </div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
 
               <div><div style={{fontSize:13,letterSpacing:2,color:mc,opacity:.85,marginBottom:8,fontWeight:700}}>PRODUCT NAME</div>
@@ -5058,6 +5073,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
       <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:19,color:"#f0b429",letterSpacing:1,marginBottom:6}}>⬡ CAMPAIGN BUILDER</div>
       <div style={{fontSize:12,color:"#82858C",lineHeight:1.6}}>Connect Copy, Images, Video, and A/B into one real multi-day workflow — not five separate tools.</div>
     </div>
+    <button className="sm" onClick={clearAllInfo} style={{borderColor:"#ff6a6a44",color:"#ff6a6a",marginBottom:16,width:"100%"}}>✕ CLEAR ALL &amp; START A NEW CAMPAIGN</button>
 
     {!activeProfileId&&(
       <div style={{fontSize:12,color:"#45484F",lineHeight:1.6}}>💡 Save a brand profile above (Active Brand → Save As Profile) to start building campaigns.</div>
@@ -5552,6 +5568,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                       <div style={{fontSize:12,color:"#565A64",marginBottom:showURLSetup?12:0,lineHeight:1.6}}>
                         {showURLSetup?"Enter your profile URLs below. Saved in your browser — enter once, use forever.":"Enter your URLs once and we'll direct-link you to post instantly on any platform."}
                       </div>
+                      {showURLSetup&&Object.values(platformURLs).some(Boolean)&&(
+                        <button className="sm" onClick={clearAllLinks} style={{borderColor:"#ff6a6a44",color:"#ff6a6a",marginBottom:12}}>✕ CLEAR ALL LINKS</button>
+                      )}
                       {showURLSetup&&(
                         <div style={{display:"flex",flexDirection:"column",gap:8}}>
                           {PUBLISH_PLATFORMS.map(pf=>(
