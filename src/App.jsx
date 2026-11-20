@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { useState, useRef, useEffect, Component } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ApprovalsPage, CalendarPage, InsightsPage, NextMovesPage, PublishingPage, SettingsPage, ProductAssets, ProductPerformance } from "./Pages";
+import { ApprovalsPage, CalendarPage, InsightsPage, NextMovesPage, PublishingPage, SettingsPage, ProductAssets, ProductPerformance, parsePiece } from "./Pages";
 import { Canvas, useFrame } from "@react-three/fiber";
 
 // ─────────────────────────────────────────────
@@ -1781,6 +1781,8 @@ export default function Gentagai(){
       }).select().single();
       if(!error&&data){
         setVaultAssets(v=>[data,...v]);
+        setVaultUploading(false);
+        return data;
       }else{
         console.error("uploadToVault save failed:",error);
         setVaultError("Uploaded, but couldn't save it to your Vault — try again.");
@@ -1993,6 +1995,8 @@ Respond with ONLY valid JSON, no markdown fences, in exactly this shape:
   const CAMPAIGN_THEMES=["Teaser","Story","Product Reveal","Social Proof","Lifestyle","FOMO","Last Call"];
   const CAMPAIGN_PLATFORMS=[{id:"instagram",label:"Instagram"},{id:"tiktok",label:"TikTok"},{id:"facebook",label:"Facebook"},{id:"email",label:"Email"}];
   const [campaignsList,setCampaignsList]=useState([]);
+  const [cSelProducts,setCSelProducts]=useState([]); // showroom product ids chosen for the campaign
+  const [cSelMedia,setCSelMedia]=useState([]);       // vault asset ids (photos/videos) chosen for the campaign
   const [activeCampaign,setActiveCampaign]=useState(null);
   const [campaignPieces,setCampaignPieces]=useState([]);
   const [cName,setCName]=useState("");
@@ -2014,11 +2018,11 @@ Respond with ONLY valid JSON, no markdown fences, in exactly this shape:
       .then(({data,error})=>{if(!error&&data)setCampaignsList(data);});
   },[activeProfileId,session]);
 
-  function buildCampaignDayPrompt(theme,dayNumber){
+  function buildCampaignDayPrompt(theme,dayNumber,items){
     const platformList=cPlatforms.map(p=>CAMPAIGN_PLATFORMS.find(x=>x.id===p)?.label).join(" + ")||"Instagram";
     return `You are GENTAGAI — writing Day ${dayNumber} of a ${cLength}-day campaign.
 BRAND: ${brand} | NICHE: ${niche} | AUDIENCE: ${audience||"18-35"} | TONE: ${toneLabel(tone)}
-PRODUCT: ${productName||""} — ${productDesc||""}
+${items&&items.length?`PRODUCTS IN THIS CAMPAIGN: ${items.map(x=>x.name+(x.desc?" — "+x.desc:"")).join(" | ")}\nTODAY FEATURES: ${items[(dayNumber-1)%items.length].name}`:`PRODUCT: ${productName||""} — ${productDesc||""}`}
 CAMPAIGN GOAL: ${cGoal||goal||"drive sales"} | PLATFORMS: ${platformList}${memoryBlock(activeMemoryText)}
 TODAY'S ROLE IN THE ARC: ${theme}
 Write ONE tight, platform-native post that fits this exact day's role in the campaign — not a generic post, one that only makes sense at this point in a ${cLength}-day arc.
@@ -2031,13 +2035,19 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
   async function buildCampaign(){
     if(!brand||!niche||!cGoal.trim()||!activeProfileId){setCampaignError("Save a brand profile and add a campaign goal first.");return;}
     setCampaignError("");
+    const items=[
+      ...products.filter(x=>cSelProducts.includes(x.id)).map(x=>({name:x.name,desc:x.description||"",image_url:x.image_url||"",kind:"image"})),
+      ...vaultAssets.filter(a=>cSelMedia.includes(a.id)).map(a=>({name:(a.name||"").replace(/\.[^.]+$/,""),desc:"",image_url:a.url,kind:(a.file_type||"").startsWith("video/")?"video":"image"})),
+    ];
     const{data:camp,error:campErr}=await supabase.from("campaigns").insert({
+      media:items,
       user_id:session.user.id,brand_profile_id:activeProfileId,
       name:cName.trim()||`${brand} Campaign`,goal:cGoal,product_name:productName,product_desc:productDesc,
       platforms:cPlatforms,length_days:cLength,status:"draft",
     }).select().single();
     if(campErr||!camp){setCampaignError("Couldn't create the campaign — try again.");return;}
     setCampaignsList(c=>[camp,...c]);
+    if(isMobile)setMobileTab("output");
     setActiveCampaign(camp);
     setCampaignPieces([]);
 
@@ -2046,7 +2056,7 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
     for(const day of days){
       const theme=CAMPAIGN_THEMES[(day-1)%CAMPAIGN_THEMES.length];
       setCampaignBuilding(`Writing Day ${day} — ${theme}...`);
-      const content=await callAPI(buildCampaignDayPrompt(theme,day));
+      const content=await callAPI(buildCampaignDayPrompt(theme,day,items));
       const{data:piece,error:pieceErr}=await supabase.from("campaign_pieces").insert({
         user_id:session.user.id,campaign_id:camp.id,day_number:day,day_theme:theme,content,status:"draft",
       }).select().single();
@@ -2064,6 +2074,7 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
   }
 
   async function openCampaign(camp){
+    if(isMobile)setMobileTab("output");
     setActiveCampaign(camp);setCampaignPieces([]);setPieceMetrics({});setMetricsDraft({});
     const{data,error}=await supabase.from("campaign_pieces").select("*").eq("campaign_id",camp.id).order("day_number");
     if(!error&&data){
@@ -2141,7 +2152,7 @@ VISUAL DIRECTION: [one line — what the image or video should show]`;
   }
 
   function newCampaignForm(){
-    setActiveCampaign(null);setCampaignPieces([]);setCName("");setCGoal("");setCLength(7);setCPlatforms(["instagram"]);
+    setActiveCampaign(null);setCampaignPieces([]);setCName("");setCGoal("");setCLength(7);setCPlatforms(["instagram"]);setCSelProducts([]);setCSelMedia([]);
     setPieceMetrics({});setMetricsDraft({});
   }
 
@@ -5086,6 +5097,33 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           ))}
         </div>
 
+        <div style={{fontSize:9,letterSpacing:1,color:"#565A64",textTransform:"uppercase",marginBottom:6}}>Products in this campaign</div>
+        <div style={{fontSize:11,color:"#6B6F7A",lineHeight:1.5,marginBottom:8}}>Pick as many as you want, or upload new photos and videos. BISHOP features one each day.</div>
+        {products.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+          {products.map(x=>{const on=cSelProducts.includes(x.id);return(
+            <button key={x.id} onClick={()=>setCSelProducts(v=>on?v.filter(i=>i!==x.id):[...v,x.id])}
+              style={{display:"flex",alignItems:"center",gap:6,padding:"5px 10px 5px 5px",borderRadius:999,border:`1px solid ${on?"#f0b42988":"#24272E"}`,background:on?"#f0b42914":"transparent",color:on?"#f0b429":"#9BA0AC",cursor:"pointer",fontSize:11.5,fontFamily:"inherit"}}>
+              {x.image_url?<img src={x.image_url} alt="" style={{width:22,height:22,borderRadius:"50%",objectFit:"cover"}}/>:<span style={{width:22,height:22,borderRadius:"50%",background:"#1a1d24",display:"inline-block"}}/>}
+              {on?"✓ ":""}{x.name}
+            </button>);})}
+        </div>}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(64px,1fr))",gap:6,marginBottom:8}}>
+          {vaultAssets.filter(a=>(a.file_type||"").startsWith("image/")||(a.file_type||"").startsWith("video/")).slice(0,40).map(a=>{const on=cSelMedia.includes(a.id);const vid=(a.file_type||"").startsWith("video/");return(
+            <div key={a.id} onClick={()=>setCSelMedia(v=>on?v.filter(i=>i!==a.id):[...v,a.id])} title={a.name}
+              style={{position:"relative",aspectRatio:"1",borderRadius:8,overflow:"hidden",cursor:"pointer",border:`2px solid ${on?"#4ADE80":"#24272E"}`,background:"#0E1013"}}>
+              {vid?<video src={a.url} muted style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<img src={a.url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>}
+              {vid&&<span style={{position:"absolute",left:3,bottom:3,fontSize:9,background:"#000a",color:"#fff",padding:"1px 4px",borderRadius:4}}>▶</span>}
+              {on&&<span style={{position:"absolute",right:3,top:3,fontSize:10,background:"#4ADE80",color:"#000",borderRadius:"50%",width:16,height:16,display:"flex",alignItems:"center",justifyContent:"center"}}>✓</span>}
+            </div>);})}
+        </div>
+        <label style={{display:"block",textAlign:"center",padding:"10px",border:"1px dashed #f0b42966",borderRadius:9,color:"#f0b429",fontSize:12,cursor:vaultUploading?"default":"pointer",marginBottom:14}}>
+          {vaultUploading?"⟳ Uploading…":"+ Upload product photos or videos"}
+          <input type="file" accept="image/*,video/*" multiple disabled={vaultUploading} style={{display:"none"}}
+            onChange={async e=>{const files=Array.from(e.target.files||[]);e.target.value="";for(const f of files){const row=await uploadToVault(f,f.type.startsWith("video/")?"video":"product");if(row)setCSelMedia(v=>[...v,row.id]);}}}/>
+        </label>
+        {vaultError&&<div style={{fontSize:11,color:"#ff6a6a",marginBottom:10}}>{vaultError}</div>}
+        {!activeProfileId&&null}
+
         <div style={{fontSize:9,letterSpacing:1,color:"#565A64",textTransform:"uppercase",marginBottom:6}}>Platforms</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:18}}>
           {CAMPAIGN_PLATFORMS.map(p=>{
@@ -5113,59 +5151,9 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           <div style={{fontSize:14,fontWeight:800,color:"#F5F6F8"}}>{activeCampaign.name}</div>
           <button className="sm" onClick={newCampaignForm} style={{borderColor:"#24272E"}}>← ALL CAMPAIGNS</button>
         </div>
-        {campaignPieces.length===0&&campaignBuilding&&(
-          <div style={{textAlign:"center",padding:"20px 0",color:"#f0b429",fontSize:12}}>⟳ {campaignBuilding}</div>
-        )}
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {campaignPieces.map(p=>{
-            const statusColor={draft:"#82858C",approved:"#00e5ff",scheduled:"#7c83fd",published:"#00ff88"}[p.status];
-            const statusNext={draft:"Approve",approved:"Schedule",scheduled:"Publish",published:null}[p.status];
-            return(
-              <div key={p.id} style={{background:"rgba(255,255,255,.025)",border:"1px solid rgba(255,255,255,.08)",borderRadius:12,padding:14}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                  <div style={{fontSize:11,fontWeight:800,color:"#f0b429"}}>DAY {p.day_number} — {p.day_theme.toUpperCase()}</div>
-                  <div style={{fontSize:9,fontWeight:700,letterSpacing:1,color:statusColor,textTransform:"uppercase"}}>{p.status}</div>
-                </div>
-                <div style={{fontSize:12,color:"#C9CDD3",lineHeight:1.6,whiteSpace:"pre-wrap",marginBottom:10}}>{p.content}</div>
-
-                {p.status==="published"&&pieceMetrics[p.id]&&(()=>{
-                  const draft=metricsDraft[p.id]||{views:0,likes:0,comments:0,shares:0,notes:""};
-                  const saving=savingMetrics[p.id];
-                  return(
-                    <div style={{marginTop:4,marginBottom:10,padding:"12px",background:"rgba(255,255,255,.02)",border:"1px solid #24272E",borderRadius:8}}>
-                      <div style={{fontSize:9.5,letterSpacing:2,color:"#00ff88",textTransform:"uppercase",marginBottom:8}}>📊 Performance</div>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6,marginBottom:8}}>
-                        {[["views","Views"],["likes","Likes"],["comments","Comments"],["shares","Shares"]].map(([field,label])=>(
-                          <div key={field}>
-                            <div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase",marginBottom:3}}>{label}</div>
-                            <input type="number" min="0" value={draft[field]}
-                              onChange={e=>updateMetricsDraft(p.id,field,e.target.value)}
-                              style={{width:"100%",background:"#0E1013",border:"1px solid #24272E",borderRadius:5,padding:"6px 7px",color:"#F0F1F4",fontSize:12,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",outline:"none"}}/>
-                          </div>
-                        ))}
-                      </div>
-                      <input placeholder="Notes (what worked, what didn't...)" value={draft.notes}
-                        onChange={e=>updateMetricsDraft(p.id,"notes",e.target.value)}
-                        style={{width:"100%",background:"#0E1013",border:"1px solid #24272E",borderRadius:5,padding:"7px 9px",color:"#F0F1F4",fontSize:11.5,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",outline:"none",marginBottom:8}}/>
-                      <button className="sm" disabled={saving} onClick={()=>savePerformanceLog(p.id)} style={{borderColor:"#00ff8855",color:"#00ff88"}}>
-                        {saving?"⟳ SAVING...":"💾 SAVE METRICS"}
-                      </button>
-                    </div>
-                  );
-                })()}
-
-                {statusNext&&(
-                  <button className="sm" onClick={()=>advancePieceStatus(p)} style={{borderColor:`${statusColor}55`,color:statusColor}}>
-                    {statusNext} →
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        {campaignBuilding&&campaignPieces.length>0&&(
-          <div style={{textAlign:"center",padding:"14px 0",color:"#f0b429",fontSize:11}}>⟳ {campaignBuilding}</div>
-        )}
+        <div style={{fontSize:12,color:"#82858C",lineHeight:1.6,marginBottom:12}}>Your campaign is open in the center. Everything BISHOP writes shows up there.</div>
+        {campaignBuilding&&<div style={{textAlign:"center",padding:"10px 0",color:"#f0b429",fontSize:12}}>⟳ {campaignBuilding}</div>}
+        {campaignError&&<div style={{fontSize:11,color:"#ff6a6a",marginTop:6}}>{campaignError}</div>}
       </>
     )}
   </div>
@@ -5219,7 +5207,95 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
           minHeight:0,
           paddingBottom:isMobile?"80px":0,
         }}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 18px",borderBottom:"1px solid #1a1d24",background:"#08090B",flexShrink:0}}>
+          {mode==="campaign"&&activeCampaign&&activeProfileId&&(
+            <div style={{flex:1,overflowY:"auto",padding:isMobile?"20px 14px 40px":"34px 40px 60px",minHeight:0}}>
+              <div style={{maxWidth:900,margin:"0 auto"}}>
+                <div style={{marginBottom:22}}>
+                  <div style={{fontSize:11,letterSpacing:2,color:"#f0b429",textTransform:"uppercase",marginBottom:6}}>Campaign</div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:"italic",fontWeight:500,fontSize:isMobile?26:34,color:"#F8F7FF",lineHeight:1.15}}>{activeCampaign.name}</div>
+                  <div style={{fontSize:13,color:"#9591AC",marginTop:6}}>{activeCampaign.goal||""} · {activeCampaign.length_days} days · {campaignPieces.length} of {activeCampaign.length_days} written</div>
+                  <div style={{height:5,borderRadius:4,background:"rgba(255,255,255,.06)",marginTop:12,maxWidth:360,overflow:"hidden"}}><div style={{height:"100%",width:`${Math.min(100,Math.round(campaignPieces.length/(activeCampaign.length_days||1)*100))}%`,background:"linear-gradient(90deg,#f0b429,#ff7c00)",transition:"width .4s"}}/></div>
+                </div>
+                {(activeCampaign.media||[]).length>0&&(
+                  <div style={{display:"flex",gap:8,overflowX:"auto",marginBottom:22,paddingBottom:4}}>
+                    {(activeCampaign.media||[]).map((m,i)=>(
+                      <div key={i} style={{flexShrink:0,width:84}}>
+                        <div style={{width:84,height:84,borderRadius:10,overflow:"hidden",background:"#0E1013",border:"1px solid #24272E"}}>
+                          {m.image_url?(m.kind==="video"?<video src={m.image_url} muted style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<img src={m.image_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>):null}
+                        </div>
+                        <div style={{fontSize:10.5,color:"#9BA0AC",marginTop:4,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{m.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {campaignBuilding&&(
+                  <div style={{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",marginBottom:18,borderRadius:14,border:"1px solid #f0b42944",background:"rgba(240,180,41,.06)",color:"#f0b429",fontSize:13}}>
+                    <span className="blink">⟳</span> {campaignBuilding}
+                  </div>
+                )}
+                <div style={{display:"flex",flexDirection:"column",gap:16}}>
+                  {campaignPieces.map(p=>{
+                    const statusColor={draft:"#82858C",approved:"#00e5ff",scheduled:"#7c83fd",published:"#00ff88"}[p.status];
+                    const statusNext={draft:"Approve",approved:"Schedule",scheduled:"Publish",published:null}[p.status];
+                    const parts=parsePiece(p.content);
+                    const media=activeCampaign.media||[];
+                    const feat=media.length?media[(p.day_number-1)%media.length]:null;
+                    return(
+                      <div key={p.id} style={{background:"rgba(255,255,255,.04)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,.08)",borderRadius:18,padding:isMobile?16:22,display:"flex",gap:20,flexDirection:isMobile?"column":"row"}}>
+                        {feat?.image_url&&(
+                          <div style={{width:isMobile?"100%":200,flexShrink:0}}>
+                            <div style={{width:"100%",aspectRatio:"1",borderRadius:12,overflow:"hidden",background:"#0E1013"}}>
+                              {feat.kind==="video"?<video src={feat.image_url} controls style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<img src={feat.image_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>}
+                            </div>
+                            <div style={{fontSize:11,color:"#9BA0AC",marginTop:6}}>Featuring {feat.name}</div>
+                          </div>
+                        )}
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                            <div style={{fontSize:12,fontWeight:800,color:"#f0b429",letterSpacing:1}}>DAY {p.day_number} — {(p.day_theme||"").toUpperCase()}</div>
+                            <div style={{fontSize:10,fontWeight:700,letterSpacing:1,color:statusColor,textTransform:"uppercase"}}>{p.status}{p.scheduled_date?` · ${p.scheduled_date}`:""}</div>
+                          </div>
+                          <div style={{fontSize:15,color:"#F0F1F4",lineHeight:1.65,whiteSpace:"pre-wrap",marginBottom:10}}>{parts.caption}</div>
+                          {parts.hashtags&&<div style={{fontSize:12.5,color:"#6B6F7A",lineHeight:1.6,marginBottom:10}}>{parts.hashtags}</div>}
+                          {parts.visual&&<div style={{fontSize:12.5,color:"#9591AC",lineHeight:1.55,padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,.03)",marginBottom:12}}><span style={{color:"#f0b429",fontSize:10,letterSpacing:1.5,textTransform:"uppercase"}}>Visual idea</span><br/>{parts.visual}</div>}
+                {p.status==="published"&&pieceMetrics[p.id]&&(()=>{
+                  const draft=metricsDraft[p.id]||{views:0,likes:0,comments:0,shares:0,notes:""};
+                  const saving=savingMetrics[p.id];
+                  return(
+                    <div style={{marginTop:4,marginBottom:10,padding:"12px",background:"rgba(255,255,255,.02)",border:"1px solid #24272E",borderRadius:8}}>
+                      <div style={{fontSize:9.5,letterSpacing:2,color:"#00ff88",textTransform:"uppercase",marginBottom:8}}>📊 Performance</div>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6,marginBottom:8}}>
+                        {[["views","Views"],["likes","Likes"],["comments","Comments"],["shares","Shares"]].map(([field,label])=>(
+                          <div key={field}>
+                            <div style={{fontSize:8.5,color:"#565A64",textTransform:"uppercase",marginBottom:3}}>{label}</div>
+                            <input type="number" min="0" value={draft[field]}
+                              onChange={e=>updateMetricsDraft(p.id,field,e.target.value)}
+                              style={{width:"100%",background:"#0E1013",border:"1px solid #24272E",borderRadius:5,padding:"6px 7px",color:"#F0F1F4",fontSize:12,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",outline:"none"}}/>
+                          </div>
+                        ))}
+                      </div>
+                      <input placeholder="Notes (what worked, what didn't...)" value={draft.notes}
+                        onChange={e=>updateMetricsDraft(p.id,"notes",e.target.value)}
+                        style={{width:"100%",background:"#0E1013",border:"1px solid #24272E",borderRadius:5,padding:"7px 9px",color:"#F0F1F4",fontSize:11.5,fontFamily:"'Inter',-apple-system,'Helvetica Neue',sans-serif",outline:"none",marginBottom:8}}/>
+                      <button className="sm" disabled={saving} onClick={()=>savePerformanceLog(p.id)} style={{borderColor:"#00ff8855",color:"#00ff88"}}>
+                        {saving?"⟳ SAVING...":"💾 SAVE METRICS"}
+                      </button>
+                    </div>
+                  );
+                })()}
+                          {statusNext&&(
+                            <button className="sm" onClick={()=>advancePieceStatus(p)} style={{borderColor:`${statusColor}55`,color:statusColor}}>{statusNext} →</button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div style={{display:(mode==="campaign"&&activeCampaign&&activeProfileId)?"none":"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 18px",borderBottom:"1px solid #1a1d24",background:"#08090B",flexShrink:0}}>
             <div style={{display:"flex",alignItems:"center",gap:9,flexWrap:"wrap"}}>
               {mode==="ab"?(
                 <><button className={`sm ${abTab==="variants"?"on":""}`} onClick={()=>setAbTab("variants")}>⇄ Variants</button>
@@ -5249,7 +5325,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
 
           {running&&<div style={{flexShrink:0}}>{[0,1,2].map(i=><div key={i} className="gline" style={{background:`linear-gradient(90deg,${mc},${mc}44)`,animationDelay:`${i*.28}s`}}/>)}</div>}
 
-          <div ref={outRef} style={{flex:1,overflowY:"auto",padding:mode==="ab"?"0":isMobile?"20px 16px":"32px 36px",minHeight:0,wordBreak:"break-word"}}>
+          <div ref={outRef} style={{display:(mode==="campaign"&&activeCampaign&&activeProfileId)?"none":"block",flex:1,overflowY:"auto",padding:mode==="ab"?"0":isMobile?"20px 16px":"32px 36px",minHeight:0,wordBreak:"break-word"}}>
             {step==="idle"&&(()=>{
               const checks=[
                 {label:"Brand Voice",ok:tone&&tone.length>0},

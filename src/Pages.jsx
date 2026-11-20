@@ -61,7 +61,7 @@ function ErrorLine({ children }) {
 
 // Splits a generated campaign piece into its parts.
 export function parsePiece(content) {
-  const text = content || "";
+  const text = (content || "").replace(/\*\*/g, "").replace(/^\s*#+\s*/gm, "").replace(/^\s*-{3,}\s*$/gm, "");
   const grab = (label, until) => {
     const re = new RegExp(label + "\\s*:?\\s*([\\s\\S]*?)(?=" + until + "|$)", "i");
     const m = text.match(re);
