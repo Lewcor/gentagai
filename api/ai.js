@@ -60,12 +60,22 @@ async function callGemini(req, res) {
   }
 
   try {
+    // gemini-1.5-pro was retired by Google in Sept 2025. Override the model
+    // without a redeploy by setting GEMINI_MODEL in Vercel.
+    const model = (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim();
+    const body = {
+      ...req.body,
+      generationConfig: {
+        ...(req.body?.generationConfig || {}),
+        maxOutputTokens: capTokens(req.body?.generationConfig?.maxOutputTokens),
+      },
+    };
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey.trim()}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(req.body),
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey.trim() },
+        body: JSON.stringify(body),
       }
     );
 
