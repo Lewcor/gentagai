@@ -3079,12 +3079,13 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
         };
         const videoPrompt=videoPrompts[uploadMode]||videoPrompts.analyze;
         let full="";
+        const vfr=uploadedVideo?.frames?.length?uploadedVideo.frames[Math.floor(uploadedVideo.frames.length/2)]:null;
         if(aiBrain==="gemini"){
-          full=await callGemini(videoPrompt,geminiKey,setOutput);
+          full=vfr?await callGeminiVision(videoPrompt,vfr,"image/jpeg",geminiKey,setOutput):await callGemini(videoPrompt,geminiKey,setOutput);
         }else if(aiBrain==="chatgpt"){
-          full=await callChatGPT(videoPrompt,chatgptKey,setOutput);
+          full=vfr?await callChatGPTVision(videoPrompt,vfr,"image/jpeg",chatgptKey,setOutput):await callChatGPT(videoPrompt,chatgptKey,setOutput);
         }else if(aiBrain==="qwen"){
-          full=await callQwen(videoPrompt,qwenKey,setOutput);
+          full=vfr?await callQwenVision(videoPrompt,vfr,"image/jpeg",qwenKey,setOutput):await callQwen(videoPrompt,qwenKey,setOutput);
         }else{
           full=await streamAPI(videoPrompt,setOutput);
         }
@@ -3143,7 +3144,14 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
             ]};
             part=await callClaudeVision(msg.content,onChunk,ampTokens);
           }
-        }else if(hasVideoFrames&&!(aiBrain==="gemini")&&!(aiBrain==="chatgpt")&&!(aiBrain==="qwen")){
+        }else if(hasVideoFrames&&(aiBrain==="gemini"||aiBrain==="chatgpt"||aiBrain==="qwen")){
+          // These models take one image per call — send the middle frame so they
+          // actually see the video instead of guessing from text alone.
+          const fr=uploadedVideo.frames[Math.floor(uploadedVideo.frames.length/2)];
+          if(aiBrain==="gemini") part=await callGeminiVision(prompt,fr,"image/jpeg",geminiKey,onChunk);
+          else if(aiBrain==="chatgpt") part=await callChatGPTVision(prompt,fr,"image/jpeg",chatgptKey,onChunk);
+          else part=await callQwenVision(prompt,fr,"image/jpeg",qwenKey,onChunk);
+        }else if(hasVideoFrames){
           const content=[
             ...uploadedVideo.frames.map(f=>({type:"image",source:{type:"base64",media_type:"image/jpeg",data:f}})),
             {type:"text",text:prompt}
@@ -5453,7 +5461,7 @@ Write the full caption, hashtags, and posting strategy for ${platform}.`,
                     {uploadedImage||uploadedVideo?"Analyzing":"Generating"} for
                   </div>
                   <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:20,color:"#fff",letterSpacing:2}}>{brand}</div>
-                  <div style={{fontSize:12,color:"#565A64",marginTop:3}}>{niche}{mode==="video"&&` · ${VIDEO_AD_TYPES.find(v=>v.id===videoAdType)?.label}`}</div>
+                  <div style={{fontSize:12,color:"#565A64",marginTop:3}}>{niche}{mode==="video"&&VIDEO_AD_TYPES.find(v=>v.id===videoAdType)?.label&&` · ${VIDEO_AD_TYPES.find(v=>v.id===videoAdType).label}`}</div>
                 </div>}
 
                 {/* Uploaded image preview */}
