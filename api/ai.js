@@ -54,7 +54,7 @@ async function callClaude(req, res) {
 
 async function callGemini(req, res) {
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = (process.env.GEMINI_API_KEY || "").trim();
   if (!apiKey) {
     return res.status(500).json({ error: "GEMINI_API_KEY not configured" });
   }
@@ -130,7 +130,7 @@ async function callOpenAI(req, res) {
 
 async function callQwen(req, res) {
 
-  const apiKey = process.env.QWEN_API_KEY;
+  const apiKey = (process.env.QWEN_API_KEY || "").trim();
   if (!apiKey) {
     return res.status(500).json({ error: "QWEN_API_KEY not configured" });
   }
